@@ -37,7 +37,7 @@ class _SignUpPageState extends State<SignUpPage> {
   Future<void> _signup() async {
     if (_formKey.currentState!.validate()) {
       final response = await http.post(
-        Uri.parse('http://172.23.13.181:5000/signup'),
+        Uri.parse('http://localhost:5000/signup'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

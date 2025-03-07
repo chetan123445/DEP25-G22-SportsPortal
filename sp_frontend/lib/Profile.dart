@@ -17,6 +17,11 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   File? _image;
   String name = "";
+  String mobileNo = "";
+  String dob = "";
+  String degree = "";
+  String department = "";
+  String currentYear = "";
   final TextEditingController _phoneNumberController = TextEditingController();
 
   @override
@@ -29,7 +34,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-          'http://localhost:5000/api/profile?email=${widget.email}', // Use email to fetch profile data
+          'http://localhost:5000/profile?email=${widget.email}', // Use email to fetch profile data
         ),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
@@ -38,7 +43,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          name = data['data'][0]['name']; // Extract name from the response
+          name = data['data'][0]['name'] ?? ""; // Extract name from the response
+          mobileNo = data['data'][0]['mobileNo']?.toString() ?? "";
+          dob = data['data'][0]['DOB'] ?? "";
+          degree = data['data'][0]['Degree'] ?? "";
+          department = data['data'][0]['Department'] ?? "";
+          currentYear = data['data'][0]['CurrentYear']?.toString() ?? "";
+          _phoneNumberController.text = mobileNo;
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -183,50 +194,124 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "Name",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                      if (name.isNotEmpty) ...[
+                        Text(
+                          "Name",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
-                      TextField(
-                        controller: TextEditingController(text: name),
-                        decoration: InputDecoration(
-                          hintText: "Enter your name",
+                        TextField(
+                          controller: TextEditingController(text: name),
+                          decoration: InputDecoration(
+                            hintText: "Enter your name",
+                          ),
+                          readOnly: true,
                         ),
-                        readOnly: true,
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        "Mobile Number",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                        SizedBox(height: 10),
+                      ],
+                      if (widget.email.isNotEmpty) ...[
+                        Text(
+                          "Email",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
-                      TextField(
-                        controller: _phoneNumberController,
-                        decoration: InputDecoration(
-                          hintText: "Enter your mobile number",
+                        TextField(
+                          controller: TextEditingController(text: widget.email),
+                          decoration: InputDecoration(
+                            hintText: "Enter your email",
+                          ),
+                          readOnly: true,
                         ),
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        "Email",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                        SizedBox(height: 10),
+                      ],
+                      if (mobileNo.isNotEmpty) ...[
+                        Text(
+                          "Mobile Number",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
-                      TextField(
-                        controller: TextEditingController(text: widget.email),
-                        decoration: InputDecoration(
-                          hintText: "Enter your email",
+                        TextField(
+                          controller: _phoneNumberController,
+                          decoration: InputDecoration(
+                            hintText: "Enter your mobile number",
+                          ),
                         ),
-                        readOnly: true,
-                      ),
-                      SizedBox(height: 20),
+                        SizedBox(height: 10),
+                      ],
+                      if (dob.isNotEmpty) ...[
+                        Text(
+                          "Date of Birth",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        TextField(
+                          controller: TextEditingController(text: dob),
+                          decoration: InputDecoration(
+                            hintText: "Enter your date of birth",
+                          ),
+                          readOnly: true,
+                        ),
+                        SizedBox(height: 10),
+                      ],
+                      if (degree.isNotEmpty) ...[
+                        Text(
+                          "Degree",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        TextField(
+                          controller: TextEditingController(text: degree),
+                          decoration: InputDecoration(
+                            hintText: "Enter your degree",
+                          ),
+                          readOnly: true,
+                        ),
+                        SizedBox(height: 10),
+                      ],
+                      if (department.isNotEmpty) ...[
+                        Text(
+                          "Department",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        TextField(
+                          controller: TextEditingController(text: department),
+                          decoration: InputDecoration(
+                            hintText: "Enter your department",
+                          ),
+                          readOnly: true,
+                        ),
+                        SizedBox(height: 10),
+                      ],
+                      if (currentYear.isNotEmpty) ...[
+                        Text(
+                          "Current Year",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        TextField(
+                          controller: TextEditingController(text: currentYear),
+                          decoration: InputDecoration(
+                            hintText: "Enter your current year",
+                          ),
+                          readOnly: true,
+                        ),
+                        SizedBox(height: 20),
+                      ],
                     ],
                   ),
                 ),

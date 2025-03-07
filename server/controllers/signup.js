@@ -15,7 +15,15 @@ const transporter = nodemailer.createTransport({
 export const signup = async (req, res) =>  {
     const { email, name, password } = req.body;
 
+    // Log the request body to verify its contents
+    console.log("Request Body:", req.body);
+
     try {
+        // Ensure email is defined
+        if (!email) {
+            return res.status(400).json({ message: "Email is required." });
+        }
+
         // Ensure email is from IIT Ropar
         if (!email.endsWith("@iitrpr.ac.in")) {
             return res.status(400).json({ message: "Only IIT Ropar emails are allowed." });
