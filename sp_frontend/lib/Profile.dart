@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'EditProfile.dart';
+import 'home.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String email; // Add email parameter
@@ -43,9 +44,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          name = data['data'][0]['name'] ?? ""; // Extract name from the response
+          name =
+              data['data'][0]['name'] ?? ""; // Extract name from the response
           mobileNo = data['data'][0]['mobileNo']?.toString() ?? "";
-          dob = data['data'][0]['DOB'] ?? "";
+          dob =
+              data['data'][0]['DOB']?.split('T')[0] ??
+              ""; // Extract only the date part
           degree = data['data'][0]['Degree'] ?? "";
           department = data['data'][0]['Department'] ?? "";
           currentYear = data['data'][0]['CurrentYear']?.toString() ?? "";
@@ -113,7 +117,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomePage(email: widget.email),
+              ),
+              (route) => false,
+            );
           },
         ),
         actions: [
@@ -122,7 +132,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => EditProfileScreen()),
+                MaterialPageRoute(
+                  builder:
+                      (context) => EditProfileScreen(
+                        email: widget.email,
+                        name: name,
+                        mobileNo: mobileNo,
+                        dob: dob,
+                        degree: degree,
+                        department: department,
+                        currentYear: currentYear,
+                        profilePicture: _image?.path,
+                      ),
+                ),
               );
             },
           ),

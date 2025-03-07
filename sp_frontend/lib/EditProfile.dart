@@ -1,14 +1,58 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'Profile.dart';
+import 'home.dart';
 
 class EditProfileScreen extends StatefulWidget {
+  final String email;
+  final String name;
+  final String mobileNo;
+  final String dob;
+  final String degree;
+  final String department;
+  final String currentYear;
+  final String? profilePicture;
+
+  EditProfileScreen({
+    required this.email,
+    required this.name,
+    required this.mobileNo,
+    required this.dob,
+    required this.degree,
+    required this.department,
+    required this.currentYear,
+    this.profilePicture,
+  });
+
   @override
   _EditProfileScreenState createState() => _EditProfileScreenState();
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   File? _image;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _mobileNoController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
+  final TextEditingController _degreeController = TextEditingController();
+  final TextEditingController _departmentController = TextEditingController();
+  final TextEditingController _currentYearController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.text = widget.name;
+    _mobileNoController.text = widget.mobileNo;
+    _dobController.text = widget.dob;
+    _degreeController.text = widget.degree;
+    _departmentController.text = widget.department;
+    _currentYearController.text = widget.currentYear;
+    if (widget.profilePicture != null) {
+      _image = File(widget.profilePicture!);
+    }
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await ImagePicker().pickImage(source: source);
@@ -45,6 +89,57 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         );
       },
     );
+  }
+
+  Future<void> _updateProfile() async {
+    try {
+      final Map<String, dynamic> updateData = {'email': widget.email};
+
+      if (_nameController.text.isNotEmpty)
+        updateData['name'] = _nameController.text;
+      if (_mobileNoController.text.isNotEmpty)
+        updateData['mobileNo'] = _mobileNoController.text;
+      if (_dobController.text.isNotEmpty)
+        updateData['DOB'] = _dobController.text;
+      if (_degreeController.text.isNotEmpty)
+        updateData['Degree'] = _degreeController.text;
+      if (_departmentController.text.isNotEmpty)
+        updateData['Department'] = _departmentController.text;
+      if (_currentYearController.text.isNotEmpty)
+        updateData['CurrentYear'] = _currentYearController.text;
+      if (_image != null) updateData['profilePicture'] = _image!.path;
+
+      final response = await http.patch(
+        Uri.parse(
+          'http://localhost:5000/update-profile',
+        ), // Correct the endpoint
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(updateData),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Profile updated successfully')));
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfileScreen(email: widget.email),
+          ),
+          (route) => route.isFirst,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update profile: ${response.body}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error updating profile: $e')));
+    }
   }
 
   @override
@@ -130,41 +225,58 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   child: Column(
                     children: [
                       // Username
-                      buildTextField("Edit name", "Enter your new username"),
+                      buildTextField(
+                        "Edit name",
+                        "Enter your new username",
+                        _nameController,
+                      ),
                       SizedBox(height: 10),
 
-                      // Email
-                      buildTextField("Date of Birth", "Enter your DOB"),
+                      // Date of Birth
+                      buildTextField(
+                        "Date of Birth",
+                        "Enter your DOB",
+                        _dobController,
+                      ),
                       SizedBox(height: 10),
 
                       // Phone Number
-                      buildTextField("Phone Number", "Enter your new phone number"),
-                      SizedBox(height: 10),
-
-                      buildTextField("Field", "Enter your field"),
-                      SizedBox(height: 10),
-
-                      buildTextField("Department", "Enter your department"),
-                      SizedBox(height: 10),
-
-                      buildTextField("Current Year", "Enter your current year"),
-                      SizedBox(height: 10),
-
-                      // Password
                       buildTextField(
-                        "Password",
-                        "Enter your new password",
-                        obscureText: true,
+                        "Phone Number",
+                        "Enter your new phone number",
+                        _mobileNoController,
                       ),
-                      SizedBox(height: 20),
+                      SizedBox(height: 10),
+
+                      // Degree
+                      buildTextField(
+                        "Degree",
+                        "Enter your degree",
+                        _degreeController,
+                      ),
+                      SizedBox(height: 10),
+
+                      // Department
+                      buildTextField(
+                        "Department",
+                        "Enter your department",
+                        _departmentController,
+                      ),
+                      SizedBox(height: 10),
+
+                      // Current Year
+                      buildTextField(
+                        "Current Year",
+                        "Enter your current year",
+                        _currentYearController,
+                      ),
+                      SizedBox(height: 10),
 
                       // Update Button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            // Add update functionality
-                          },
+                          onPressed: _updateProfile,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black,
                             padding: EdgeInsets.symmetric(vertical: 15),
@@ -190,7 +302,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget buildTextField(String label, String hint, {bool obscureText = false}) {
+  Widget buildTextField(
+    String label,
+    String hint,
+    TextEditingController controller, {
+    bool obscureText = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -199,6 +316,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         TextField(
+          controller: controller,
           obscureText: obscureText,
           decoration: InputDecoration(
             hintText: hint,

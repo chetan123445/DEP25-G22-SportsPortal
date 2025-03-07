@@ -14,7 +14,7 @@ router.post("/signup", signup);
 router.post("/verify-email", verify_email);
 router.post("/login", login);
 router.get("/profile", getProfile); // Ensure this is a GET request
-router.patch("/update-profile", updateProfile);
+router.patch("/update-profile", updateProfile); // Correct the endpoint to match the frontend
 router.post("/add-IYSCevent", addIYSCevent);
 router.get("/live-events", getLiveEvents);
 router.get("/upcoming-events", getUpcomingEvents);

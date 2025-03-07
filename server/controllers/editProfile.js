@@ -1,16 +1,17 @@
 import User from '../models/User.js';
 
 export const updateProfile = async (req, res) => {
-    const { name, email, mobileNo, DOB, Degree, Department, CurrentYear } = req.body;
+    const { name, email, mobileNo, DOB, Degree, Department, CurrentYear, profilePicture } = req.body;
 
     try {
         const updateFields = {};
-        if (name) updateFields.name = name;
-        if (mobileNo) updateFields.mobileNo = mobileNo;
-        if (DOB) updateFields.DOB = DOB;
-        if (Degree) updateFields.Degree = Degree;
-        if (Department) updateFields.Department = Department;
-        if (CurrentYear) updateFields.CurrentYear = CurrentYear;
+        if (name !== undefined && name !== null) updateFields.name = name;
+        if (mobileNo !== undefined && mobileNo !== null) updateFields.mobileNo = mobileNo;
+        if (DOB !== undefined && DOB !== null) updateFields.DOB = DOB;
+        if (Degree !== undefined && Degree !== null) updateFields.Degree = Degree;
+        if (Department !== undefined && Department !== null) updateFields.Department = Department;
+        if (CurrentYear !== undefined && CurrentYear !== null) updateFields.CurrentYear = CurrentYear;
+        if (profilePicture !== undefined && profilePicture !== null) updateFields.profilePicture = profilePicture;
 
         const update_profile = await User.findOneAndUpdate(
             { email },
