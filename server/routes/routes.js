@@ -6,6 +6,7 @@ import { getProfile } from '../controllers/profile.js'; // Import the getProfile
 import { updateProfile } from '../controllers/editProfile.js';
 import { addIYSCevent } from '../controllers/addIYSCevent.js';
 import { getLiveEvents, getUpcomingEvents, getPastEvents } from '../controllers/events.js';
+import { getIYSCevent } from '../controllers/getIYSCevent.js'; // Import the new controller
 
 const router = express.Router();
 
@@ -18,5 +19,6 @@ router.post("/add-IYSCevent", addIYSCevent);
 router.get("/live-events", getLiveEvents);
 router.get("/upcoming-events", getUpcomingEvents);
 router.get("/past-events", getPastEvents);
+router.get("/iyscevents", getIYSCevent); // Add new route for fetching IYSC events by type
 
 export default router;
