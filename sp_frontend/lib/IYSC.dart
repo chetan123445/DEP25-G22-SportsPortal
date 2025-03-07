@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // Import FontAwesome package
 import 'field_athletics.dart'; // Import the FieldAthleticsPage
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'iysc_events_page.dart'; // Import the new IYSCEventsPage
 
 class IYSCPage extends StatelessWidget {
   @override
@@ -37,27 +40,52 @@ class IYSCPage extends StatelessWidget {
           crossAxisSpacing: 8.0,
           mainAxisSpacing: 8.0,
           children: [
-            _buildEventCard(context, Icons.sports_cricket, 'Cricket'),
-            _buildEventCard(context, Icons.sports_soccer, 'Football'),
-            _buildEventCard(context, Icons.sports_tennis, 'Table Tennis'),
-            _buildEventCard(context, Icons.sports_tennis, 'Tennis'),
-            _buildEventCard(context, Icons.sports_hockey, 'Hockey'),
+            _buildEventCard(context, Icons.sports_cricket, 'Cricket', onTap: () => _fetchIYSCEvents(context, 'Cricket')),
+            _buildEventCard(context, Icons.sports_soccer, 'Football', onTap: () => _fetchIYSCEvents(context, 'Football')),
+            _buildEventCard(context, Icons.sports_tennis, 'Table Tennis', onTap: () => _fetchIYSCEvents(context, 'Table Tennis')),
+            _buildEventCard(context, Icons.sports_tennis, 'Tennis', onTap: () => _fetchIYSCEvents(context, 'Tennis')),
+            _buildEventCard(context, Icons.sports_hockey, 'Hockey', onTap: () => _fetchIYSCEvents(context, 'Hockey')),
             _buildEventCard(context, Icons.directions_run, 'Field Athletics', onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => FieldAthleticsPage()),
               );
             }),
-            _buildEventCard(context, FontAwesomeIcons.dumbbell, 'Weightlifting'),
-            _buildEventCard(context, FontAwesomeIcons.weight, 'Powerlifting'),
-            _buildEventCard(context, FontAwesomeIcons.chess, 'Chess'),
-            _buildEventCard(context, FontAwesomeIcons.feather, 'Badminton'), // Badminton icon
-            _buildEventCard(context, FontAwesomeIcons.basketballBall, 'Basketball'), // Basketball icon
-            _buildEventCard(context, FontAwesomeIcons.volleyballBall, 'Volleyball'), // Volleyball icon
+            _buildEventCard(context, FontAwesomeIcons.dumbbell, 'Weightlifting', onTap: () => _fetchIYSCEvents(context, 'Weightlifting')),
+            _buildEventCard(context, FontAwesomeIcons.weight, 'Powerlifting', onTap: () => _fetchIYSCEvents(context, 'Powerlifting')),
+            _buildEventCard(context, FontAwesomeIcons.chess, 'Chess', onTap: () => _fetchIYSCEvents(context, 'Chess')),
+            _buildEventCard(context, FontAwesomeIcons.feather, 'Badminton', onTap: () => _fetchIYSCEvents(context, 'Badminton')), // Badminton icon
+            _buildEventCard(context, FontAwesomeIcons.basketballBall, 'Basketball', onTap: () => _fetchIYSCEvents(context, 'Basketball')), // Basketball icon
+            _buildEventCard(context, FontAwesomeIcons.volleyballBall, 'Volleyball', onTap: () => _fetchIYSCEvents(context, 'Volleyball')), // Volleyball icon
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _fetchIYSCEvents(BuildContext context, String type) async {
+    final response = await http.get(Uri.parse('http://localhost:5000/iyscevents?type=$type'));
+    if (response.statusCode == 200) {
+      final responseBody = json.decode(response.body);
+      final events = responseBody['data'];
+      if (events is List) {
+        if (events.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('No events found for $type')),
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => IYSCEventsPage(events: events)),
+          );
+        }
+      } else {
+        print('Unexpected response format');
+      }
+    } else {
+      // Handle error
+      print('Failed to load events');
+    }
   }
 
   Widget _buildEventCard(BuildContext context, IconData icon, String title, {VoidCallback? onTap}) {
