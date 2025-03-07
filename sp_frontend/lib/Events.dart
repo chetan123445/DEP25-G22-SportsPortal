@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class EventsPage extends StatefulWidget {
   @override
@@ -7,17 +9,41 @@ class EventsPage extends StatefulWidget {
 
 class _EventsPageState extends State<EventsPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  List<dynamic> liveEvents = [];
+  List<dynamic> upcomingEvents = [];
+  List<dynamic> pastEvents = [];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    fetchEvents();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> fetchEvents() async {
+    final liveResponse = await http.get(Uri.parse('http://localhost:5000/live-events'));
+    final upcomingResponse = await http.get(Uri.parse('http://localhost:5000/upcoming-events'));
+    final pastResponse = await http.get(Uri.parse('http://localhost:5000/past-events'));
+
+    if (liveResponse.statusCode == 200 && upcomingResponse.statusCode == 200 && pastResponse.statusCode == 200) {
+      setState(() {
+        liveEvents = json.decode(liveResponse.body);
+        upcomingEvents = json.decode(upcomingResponse.body);
+        pastEvents = json.decode(pastResponse.body);
+      });
+      print('Live Events: $liveEvents');
+      print('Upcoming Events: $upcomingEvents');
+      print('Past Events: $pastEvents');
+    } else {
+      // Handle error
+      print('Failed to load events');
+    }
   }
 
   @override
@@ -58,30 +84,44 @@ class _EventsPageState extends State<EventsPage> with SingleTickerProviderStateM
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildEventsGrid(context, 'Live Events'),
-          _buildEventsGrid(context, 'Upcoming Events'),
-          _buildEventsGrid(context, 'Past Events'),
+          _buildEventsList(context, liveEvents),
+          _buildEventsList(context, upcomingEvents),
+          _buildEventsList(context, pastEvents),
         ],
       ),
     );
   }
 
-  Widget _buildEventsGrid(BuildContext context, String eventType) {
+  Widget _buildEventsList(BuildContext context, List<dynamic> events) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: GridView.count(
-        crossAxisCount: 2,
-        crossAxisSpacing: 8.0,
-        mainAxisSpacing: 8.0,
-        children: [
-          // Add event cards here based on the eventType
-          _buildEventCard(context, Icons.event, eventType),
-        ],
+      child: ListView.builder(
+        itemCount: events.length,
+        itemBuilder: (context, index) {
+          final event = events[index];
+          return _buildEventCard(
+            context,
+            event['type'] ?? 'No Type',
+            event['date']?.split('T')[0] ?? 'No Date', // Trim the date part
+            event['time'] ?? 'No Time',
+            event['venue'] ?? 'No Venue',
+            event['description'] ?? 'No Description',
+            event['winner'],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildEventCard(BuildContext context, IconData icon, String title) {
+  Widget _buildEventCard(
+    BuildContext context,
+    String type,
+    String date,
+    String time,
+    String venue,
+    String description,
+    String? winner,
+  ) {
     return GestureDetector(
       onTap: () {
         // Handle event tap
@@ -96,26 +136,104 @@ class _EventsPageState extends State<EventsPage> with SingleTickerProviderStateM
             border: Border.all(color: Colors.black, width: 2.0),
             borderRadius: BorderRadius.circular(8.0),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Text(
+                      'Type:',
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(width: 8.0),
+                    Text(type),
+                  ],
                 ),
-                padding: EdgeInsets.all(16.0),
-                child: Icon(icon, size: 48.0, color: Colors.black),
-              ),
-              SizedBox(height: 8.0),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.bold,
+                SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Text(
+                      'Date:',
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(width: 8.0),
+                    Text(date),
+                  ],
                 ),
-              ),
-            ],
+                SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Text(
+                      'Time:',
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(width: 8.0),
+                    Text(time),
+                  ],
+                ),
+                SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Text(
+                      'Venue:',
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(width: 8.0),
+                    Text(venue),
+                  ],
+                ),
+                SizedBox(height: 8.0),
+                Text(
+                  'Description:',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                Text(
+                  description,
+                  style: TextStyle(fontSize: 14.0),
+                  maxLines: null,
+                ),
+                if (winner != null) ...[
+                  SizedBox(height: 8.0),
+                  Row(
+                    children: [
+                      Text(
+                        'Winner:',
+                        style: TextStyle(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(width: 8.0),
+                      Text(winner),
+                    ],
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),
