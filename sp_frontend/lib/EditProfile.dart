@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'Profile.dart';
 import 'home.dart';
+import 'constants.dart'; // Import the constants file
 
 class EditProfileScreen extends StatefulWidget {
   final String email;
@@ -111,8 +112,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       final response = await http.patch(
         Uri.parse(
-          'http://localhost:5000/update-profile',
-        ), // Correct the endpoint
+          '$baseUrl/update-profile', // Use baseUrl for the endpoint
+        ),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

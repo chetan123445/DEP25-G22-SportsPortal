@@ -167,6 +167,16 @@ class HomePage extends StatelessWidget {
               },
             ),
             ListTile(
+              leading: Icon(Icons.sports_hockey),
+              title: Text('PHL'),
+              onTap: () {},
+            ),
+            ListTile(
+              leading: Icon(Icons.sports_basketball),
+              title: Text('BasketBrawl'),
+              onTap: () {},
+            ),
+            ListTile(
               leading: Icon(Icons.emoji_events),
               title: Text('GC'),
               onTap: () {

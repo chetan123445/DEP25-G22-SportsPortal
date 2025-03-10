@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'login.dart'; // Import the LoginPage
+import 'constants.dart'; // Import the constants file
 
 class EmailVerificationPage extends StatefulWidget {
   final String email; // Add email parameter
@@ -23,7 +24,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
 
   Future<void> _verifyEmail() async {
     final response = await http.post(
-      Uri.parse('http://localhost:5000/verify-email'),
+      Uri.parse('$baseUrl/verify-email'), // Use baseUrl for the endpoint
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },

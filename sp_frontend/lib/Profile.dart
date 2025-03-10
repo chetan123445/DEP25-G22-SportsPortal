@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'EditProfile.dart';
 import 'home.dart';
+import 'constants.dart'; // Import the constants file
 
 class ProfileScreen extends StatefulWidget {
   final String email; // Add email parameter
@@ -35,7 +36,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-          'http://localhost:5000/profile?email=${widget.email}', // Use email to fetch profile data
+          '$baseUrl/profile?email=${widget.email}', // Use baseUrl to fetch profile data
         ),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',

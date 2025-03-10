@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'login.dart'; // Import the LoginPage
 import 'email_verification.dart'; // Import the EmailVerificationPage
+import 'constants.dart'; // Import the constants file
 
 void main() {
   runApp(MyApp());
@@ -37,7 +38,7 @@ class _SignUpPageState extends State<SignUpPage> {
   Future<void> _signup() async {
     if (_formKey.currentState!.validate()) {
       final response = await http.post(
-        Uri.parse('http://localhost:5000/signup'),
+        Uri.parse('$baseUrl/signup'), // Use baseUrl for the endpoint
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

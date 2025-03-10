@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'home.dart'; // Import the HomePage
 import 'signup.dart'; // Import the SignUpPage
+import 'constants.dart'; // Import the constants file
 
 void main() {
   runApp(MyApp());
@@ -36,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
     final password = _passwordController.text;
 
     final response = await http.post(
-      Uri.parse('http://localhost:5000/login'),
+      Uri.parse('$baseUrl/login'), // Use baseUrl for the endpoint
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
