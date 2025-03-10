@@ -6,8 +6,10 @@ const IYSCeventSchema = new mongoose.Schema({
     date: { type: Date, required: true },
     time: { type: String, required: true },
     venue: { type: String, required: true },
-    description: { type: String, required: true },
+    description: { type: String, required: false },
     winner: { type: String, required: false },
+    team1: { type: String, required: true },
+    team2: { type: String, required: true },
 });
 
 const IYSCevent = mongoose.model('IYSCevent', IYSCeventSchema);
