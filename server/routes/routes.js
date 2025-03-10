@@ -5,6 +5,8 @@ import { login } from '../controllers/login.js';
 import { getProfile } from '../controllers/profile.js'; // Import the getProfile controller
 import { updateProfile } from '../controllers/editProfile.js';
 import { addIYSCevent } from '../controllers/addIYSCevent.js';
+import { addGCevent } from '../controllers/addGCevent.js';
+import { addIRCCevent } from '../controllers/addIRCCevent.js';
 import { getLiveEvents, getUpcomingEvents, getPastEvents } from '../controllers/events.js';
 import { getIYSCevent } from '../controllers/getIYSCevent.js'; // Import the new controller
 
@@ -16,6 +18,8 @@ router.post("/login", login);
 router.get("/profile", getProfile); // Ensure this is a GET request
 router.patch("/update-profile", updateProfile); // Correct the endpoint to match the frontend
 router.post("/add-IYSCevent", addIYSCevent);
+router.post("/add-GCevent", addGCevent);
+router.post("/add-IRCCevent", addIRCCevent);
 router.get("/live-events", getLiveEvents);
 router.get("/upcoming-events", getUpcomingEvents);
 router.get("/past-events", getPastEvents);
