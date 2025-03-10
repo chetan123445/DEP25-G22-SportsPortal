@@ -70,128 +70,18 @@ class _EventsPageState extends State<EventsPage>
     }
   }
 
-  void _openFilterDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Filter Events'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<String>(
-                value: selectedGender,
-                items:
-                    ['All', 'Male', 'Female']
-                        .map(
-                          (gender) => DropdownMenuItem(
-                            value: gender,
-                            child: Text(gender),
-                          ),
-                        )
-                        .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedGender = value!;
-                  });
-                },
-                decoration: InputDecoration(labelText: 'Gender'),
-              ),
-              DropdownButtonFormField<String>(
-                value: selectedSport,
-                items:
-                    ['All', 'Sport1', 'Sport2'] // Replace with actual sports
-                        .map(
-                          (sport) => DropdownMenuItem(
-                            value: sport,
-                            child: Text(sport),
-                          ),
-                        )
-                        .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedSport = value!;
-                  });
-                },
-                decoration: InputDecoration(labelText: 'Sport'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  final DateTimeRange? picked = await showDateRangePicker(
-                    context: context,
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2101),
-                  );
-                  if (picked != null && picked != selectedDateRange) {
-                    setState(() {
-                      selectedDateRange = picked;
-                    });
-                  }
-                },
-                child: Text(
-                  selectedDateRange == null
-                      ? 'Select Date Range'
-                      : '${DateFormat('yyyy-MM-dd').format(selectedDateRange!.start)} - ${DateFormat('yyyy-MM-dd').format(selectedDateRange!.end)}',
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                fetchEvents();
-              },
-              child: Text('Apply'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight + 50),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color.fromARGB(255, 79, 188, 247),
-                Color.fromARGB(255, 142, 117, 205),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: AppBar(
-            title: Text(
-              'Events',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            actions: [
-              IconButton(
-                icon: Icon(Icons.filter_list),
-                onPressed: _openFilterDialog,
-              ),
-            ],
-            bottom: TabBar(
-              controller: _tabController,
-              tabs: [
-                Tab(text: 'Live'),
-                Tab(text: 'Upcoming'),
-                Tab(text: 'Past'),
-              ],
-            ),
-          ),
+      appBar: AppBar(
+        title: Text('Events'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: [
+            Tab(text: 'Live'),
+            Tab(text: 'Upcoming'),
+            Tab(text: 'Past'),
+          ],
         ),
       ),
       body: Column(
@@ -251,6 +141,7 @@ class _EventsPageState extends State<EventsPage>
             event['type'] ?? 'No Type',
             event['gender'] ?? 'Unknown',
             event['venue'] ?? 'No Venue',
+            event['eventType'] ?? 'No Event Type',
           );
         },
       ),
@@ -266,124 +157,92 @@ class _EventsPageState extends State<EventsPage>
     String type,
     String gender,
     String venue,
+    String eventType,
   ) {
-    bool isFavorite = false; // Replace with actual favorite status
+    bool isFavorite = false;
 
     return Card(
       elevation: 4.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
       child: Container(
+        padding: const EdgeInsets.all(8.0),
         decoration: BoxDecoration(
           border: Border.all(color: Colors.black, width: 2.0),
           borderRadius: BorderRadius.circular(8.0),
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.purple.shade200,
-              Colors.blue.shade200,
-              Colors.pink.shade100,
-            ],
+            colors: [Colors.purple.shade200, Colors.blue.shade200],
           ),
         ),
-        padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            // Teams and type/gender row
+            Text(
+              eventType,
+              style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8.0),
+
+            // Teams
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text(
-                        team1,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text(
-                        team2,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                Expanded(child: Text(team1, textAlign: TextAlign.center)),
+                Expanded(child: Text(team2, textAlign: TextAlign.center)),
               ],
             ),
             SizedBox(height: 8.0),
 
-            // Date and Time centered below
+            // Date and Time
             Column(
               children: [
-                Text(
-                  date,
-                  style: TextStyle(
-                    fontSize: 14.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                Text(
-                  time,
-                  style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
-                ),
+                Text(date, style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(time, style: TextStyle(fontWeight: FontWeight.bold)),
               ],
             ),
             SizedBox(height: 8.0),
 
-            // Type and Gender row above Venue Box
+            // Type and Gender
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  type,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                Text(
-                  gender,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                ),
+                Text(type, style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(gender, style: TextStyle(fontWeight: FontWeight.bold)),
               ],
             ),
             SizedBox(height: 8.0),
 
-            // Venue Box
+            // Fixed Venue Layout
             Container(
               padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
               decoration: BoxDecoration(
                 color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(5),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Venue: $venue',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                ],
+              child: RichText(
+                text: TextSpan(
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
+                  children: [
+                    TextSpan(
+                      text: 'Venue: ',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    WidgetSpan(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: 200),
+                        child: Text(
+                          venue,
+                          style: TextStyle(fontWeight: FontWeight.normal),
+                          overflow: TextOverflow.clip,
+                          softWrap: true,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             SizedBox(height: 8.0),
 
-            // Favorites and Live Indicator
+            // Favorite Button
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -420,10 +279,7 @@ class _BlinkingLiveIndicatorState extends State<BlinkingLiveIndicator>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(seconds: 1),
-      vsync: this,
-    )..repeat(reverse: true);
+    _controller = AnimationController(duration: Duration(seconds: 1), vsync: this)..repeat(reverse: true);
   }
 
   @override
@@ -434,9 +290,6 @@ class _BlinkingLiveIndicatorState extends State<BlinkingLiveIndicator>
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _controller,
-      child: Icon(Icons.circle, color: Colors.red),
-    );
+    return FadeTransition(opacity: _controller, child: Icon(Icons.circle, color: Colors.red));
   }
 }
