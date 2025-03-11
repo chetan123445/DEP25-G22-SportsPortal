@@ -1,18 +1,46 @@
-import IRCCevent from '../models/IRCCevent.js'; // Import the IRCCevent model
+import IRCCevent from '../models/IRCCevent.js';
+import Team from '../models/Team.js';
 
 export const addIRCCevent = async (req, res) => {
-    const { type, date } = req.body; // Include date in destructuring
-
-    if (!type || !date) { // Check for date
-        return res.status(400).json({ message: "Type and date are required" });
-    }
-
     try {
-        const newIRCCevent = new IRCCevent({ type, date }); // Include date in new event
-        await newIRCCevent.save();
-        res.status(201).json({ message: "IRCC event added successfully", event: newIRCCevent });
+        const { gender, type, date, time, venue, description, winner, team1, team2, team1Details, team2Details } = req.body;
+
+        // Validate required fields
+        if (!gender || !type || !date || !time || !venue || !team1 || !team2) {
+            return res.status(400).json({ message: 'Missing required fields' });
+        }
+
+        // Create team1 if details are provided
+        let team1Doc = null;
+        if (team1Details) {
+            const newTeam1 = new Team(team1Details);
+            team1Doc = await newTeam1.save();
+        }
+
+        // Create team2 if details are provided
+        let team2Doc = null;
+        if (team2Details) {
+            const newTeam2 = new Team(team2Details);
+            team2Doc = await newTeam2.save();
+        }
+
+        const newEvent = new IRCCevent({
+            gender,
+            type,
+            date,
+            time,
+            venue,
+            description,
+            winner,
+            team1,
+            team2,
+            team1Details: team1Doc ? team1Doc._id : null,
+            team2Details: team2Doc ? team2Doc._id : null
+        });
+
+        await newEvent.save();
+        res.status(201).json({ message: 'Event added successfully', event: newEvent });
     } catch (error) {
-        console.error('Failed to add IRCC event:', error);
-        res.status(500).json({ error: 'Failed to add IRCC event' });
+        res.status(500).json({ message: 'Error adding event', error });
     }
 };

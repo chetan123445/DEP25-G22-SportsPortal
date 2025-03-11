@@ -64,7 +64,7 @@ class IYSCPage extends StatelessWidget {
   }
 
   Future<void> _fetchIYSCEvents(BuildContext context, String type) async {
-    final response = await http.get(Uri.parse('http://localhost:5000/iyscevents?type=$type'));
+    final response = await http.get(Uri.parse('http://localhost:5000/get-iysc-events?type=$type'));
     if (response.statusCode == 200) {
       final responseBody = json.decode(response.body);
       final events = responseBody['data'];

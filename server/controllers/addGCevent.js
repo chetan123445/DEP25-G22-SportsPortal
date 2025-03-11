@@ -1,18 +1,45 @@
-import GCevent from '../models/GCevent.js'; // Import the GCevent model
+import GCevent from '../models/GCevent.js';
+import Team from '../models/Team.js';
 
-export const addGCevent = async (req, res) => {
-    const { MainType, type, date } = req.body; // Include date in destructuring
-
-    if (!MainType || !type || !date) { // Check for date
-        return res.status(400).json({ message: "MainType, type, and date are required" });
-    }
-
+export async function addGCEvent(req, res) {
     try {
-        const newGCevent = new GCevent({ MainType, type, date }); // Include date in new event
+        const { MainType, type, gender, date, time, venue, description, winner, participants } = req.body;
+
+        // Validate required fields
+        if (!MainType || !type || !date || !time || !venue) {
+            return res.status(400).json({ message: 'Missing required fields' });
+        }
+
+        let teamIds = [];
+        if (participants && participants.length > 0) {
+            // Create teams with members
+            teamIds = await Promise.all(participants.map(async (team) => {
+                const newTeam = new Team({
+                    teamName: team.teamName,
+                    members: team.members // Directly use the members array
+                });
+
+                await newTeam.save();
+                return newTeam._id;
+            }));
+        }
+
+        // Create GC event
+        const newGCevent = new GCevent({
+            MainType,
+            type,
+            gender, // Include gender attribute
+            date,
+            time,
+            venue,
+            description,
+            winner,
+            participants: teamIds
+        });
+
         await newGCevent.save();
-        res.status(201).json({ message: "GC event added successfully", event: newGCevent });
+        res.status(201).json({ message: 'GC event created successfully' });
     } catch (error) {
-        console.error('Failed to add GC event:', error);
-        res.status(500).json({ error: 'Failed to add GC event' });
+        res.status(500).json({ message: 'Failed to add GC event', error });
     }
-};
+}
