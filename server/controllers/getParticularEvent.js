@@ -34,27 +34,12 @@ export const getIYSCevent = async (req, res) => {
 };
 
 export const getGCevent = async (req, res) => {
-    console.log(`Request received: ${JSON.stringify(req.query)}`); // Log the entire query object
-    const { MainType, type } = req.query;
-    console.log(`Received MainType to fetch gcevents: ${MainType}, type: ${type}`);
-  
-    if (!MainType || !type) {
-        return res.status(400).json({ message: "MainType and type parameters are required" }); // Handle missing parameters
-    }
-  
     try {
-        const trimmedMainType = MainType.trim().toLowerCase();
-        const trimmedType = type.trim().toLowerCase();
-        console.log(`Trimmed and lowercased MainType: ${trimmedMainType}, type: ${trimmedType}`);
-  
-        const data = await GCevent.find({ MainType: trimmedMainType, type: trimmedType });
-        const eventsWithTypes = addEventType(data, 'GC');
-        console.log(`Database query result: ${data}`);
-  
-        res.status(200).json({ data: eventsWithTypes });
+        const { MainType } = req.query;
+        const events = await GCevent.find({ MainType });
+        res.status(200).json({ data: events });
     } catch (error) {
-        console.error('Failed to fetch GCevents:', error);
-        res.status(500).json({ error: 'Failed to fetch GCevents' });
+        res.status(500).json({ message: error.message });
     }
 };
 
@@ -79,5 +64,53 @@ export const getIRCCevent = async (req, res) => {
     } catch (error) {
         console.error('Failed to fetch IRCCevents:', error);
         res.status(500).json({ error: 'Failed to fetch IRCCevents' });
+    }
+};
+
+export const getPHLevent = async (req, res) => {
+    console.log(`Request received: ${JSON.stringify(req.query)}`); // Log the entire query object
+    const { type } = req.query;
+    console.log(`Received type to fetch phlevents: ${type}`);
+  
+    if (!type) {
+        return res.status(400).json({ message: "Type parameter is required" }); // Handle missing type parameter
+    }
+  
+    try {
+        const trimmedtype = type.trim().toLowerCase();
+        console.log(`Trimmed and lowercased type: ${trimmedtype}`);
+  
+        const data = await PHLevent.find({ type: trimmedtype });
+        const eventsWithTypes = addEventType(data, 'PHL');
+        console.log(`Database query result: ${data}`);
+  
+        res.status(200).json({ data: eventsWithTypes });
+    } catch (error) {
+        console.error('Failed to fetch PHLevents:', error);
+        res.status(500).json({ error: 'Failed to fetch PHLevents' });
+    }
+};
+
+export const getBasketBrawlevent = async (req, res) => {
+    console.log(`Request received: ${JSON.stringify(req.query)}`); // Log the entire query object
+    const { type } = req.query;
+    console.log(`Received type to fetch BasketBrawlevents: ${type}`);
+  
+    if (!type) {
+        return res.status(400).json({ message: "Type parameter is required" }); // Handle missing type parameter
+    }
+  
+    try {
+        const trimmedtype = type.trim().toLowerCase();
+        console.log(`Trimmed and lowercased type: ${trimmedtype}`);
+  
+        const data = await BasketBrawlevent.find({ type: trimmedtype });
+        const eventsWithTypes = addEventType(data, 'BasketBrawl');
+        console.log(`Database query result: ${data}`);
+  
+        res.status(200).json({ data: eventsWithTypes });
+    } catch (error) {
+        console.error('Failed to fetch BasketBrawlevents:', error);
+        res.status(500).json({ error: 'Failed to fetch BasketBrawlevents' });
     }
 };

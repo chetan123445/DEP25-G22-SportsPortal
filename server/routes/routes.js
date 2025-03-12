@@ -8,7 +8,7 @@ import { addIYSCevent } from '../controllers/addIYSCevent.js';
 import { addGCEvent } from '../controllers/addGCevent.js'; // Correct the import statement
 import { addIRCCevent } from '../controllers/addIRCCevent.js';
 import { getLiveEvents, getUpcomingEvents, getPastEvents } from '../controllers/events.js';
-import { getIYSCevent, getGCevent, getIRCCevent } from '../controllers/getParticularEvent.js'; // Import the new controller
+import { getIYSCevent, getGCevent, getIRCCevent, getPHLevent, getBasketBrawlevent } from '../controllers/getParticularEvent.js'; // Import the new controller
 import { updateIYSCevent, updateGCevent, updateIRCCevent } from '../controllers/updateParticularEvent.js'; // Import the new controller
 import { addFavouriteEvent } from '../controllers/addFavouriteEvent.js';
 import { removeFavouriteEvent } from '../controllers/removeFavouriteEvent.js';
@@ -35,6 +35,8 @@ router.get("/past-events", getPastEvents);
 router.get("/get-iysc-events", getIYSCevent);
 router.get("/get-gc-events", getGCevent);
 router.get("/get-ircc-events", getIRCCevent);
+router.get("/get-phl-events", getPHLevent);
+router.get("/get-basketbrawl-events", getBasketBrawlevent);
 
 router.patch("/update-iysc-event", updateIYSCevent);
 router.patch("/update-gc-event", updateGCevent);

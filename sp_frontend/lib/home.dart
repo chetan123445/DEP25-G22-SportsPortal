@@ -5,6 +5,9 @@ import 'login.dart'; // Import the LoginPage
 import 'IYSC.dart'; // Import the IYSCPage
 import 'Events.dart'; // Import the EventsPage
 import 'GC.dart'; // Import the GCPage
+import 'IRCC.dart'; // Import the IRCCPage
+import 'PHL.dart'; // Import the PHLPage
+import 'BasketBrawl.dart'; // Import the BasketBrawlPage
 import 'Profile.dart'; // Import the ProfilePage
 
 void main() {

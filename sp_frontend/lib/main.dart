@@ -5,6 +5,9 @@ import 'login.dart'; // Import the LoginPage
 import 'IYSC.dart'; // Import the IYSCPage
 import 'Events.dart'; // Import the EventsPage
 import 'GC.dart'; // Import the GCPage
+import 'IRCC.dart'; // Import the IRCCPage
+import 'PHL.dart'; // Import the PHLPage
+import 'BasketBrawl.dart'; // Import the BasketBrawlPage
 
 void main() {
   runApp(SportsPortalApp());
@@ -164,17 +167,34 @@ class HomePage extends StatelessWidget {
               leading: Icon(Icons.sports_cricket),
               title: Text('IRCC'),
               onTap: () {
+                // Navigate to IRCCPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => IRCCPage()),
+                );
               },
             ),
             ListTile(
               leading: Icon(Icons.sports_hockey),
               title: Text('PHL'),
-              onTap: () {},
+              onTap: () {
+                // Navigate to PHLPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => PHLPage()),
+                );
+              },
             ),
             ListTile(
               leading: Icon(Icons.sports_basketball),
               title: Text('BasketBrawl'),
-              onTap: () {},
+              onTap: () {
+                // Navigate to BasketBrawlPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => BasketBrawlPage()),
+                );
+              },
             ),
             ListTile(
               leading: Icon(Icons.emoji_events),

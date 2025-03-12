@@ -1,15 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'constants.dart'; // Import the baseUrl
 
-class IYSCEventsPage extends StatelessWidget {
-  final List<dynamic> events;
+class BasketBrawlPage extends StatefulWidget {
+  @override
+  _BasketBrawlPageState createState() => _BasketBrawlPageState();
+}
 
-  IYSCEventsPage({required this.events});
+class _BasketBrawlPageState extends State<BasketBrawlPage> {
+  List<dynamic> events = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchBasketBrawlEvents();
+  }
+
+  Future<void> _fetchBasketBrawlEvents() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/get-basketbrawl-events?type=Basketball'),
+    );
+    if (response.statusCode == 200) {
+      final responseBody = json.decode(response.body);
+      final fetchedEvents = responseBody['data'];
+      if (fetchedEvents is List) {
+        setState(() {
+          events = fetchedEvents;
+          isLoading = false;
+        });
+      } else {
+        print('Unexpected response format');
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } else {
+      print('Failed to load events');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight + 50),
+        preferredSize: Size.fromHeight(kToolbarHeight),
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -23,7 +62,7 @@ class IYSCEventsPage extends StatelessWidget {
           ),
           child: AppBar(
             title: Text(
-              'IYSC Events',
+              'Basketball Matches',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 20,
@@ -35,28 +74,31 @@ class IYSCEventsPage extends StatelessWidget {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child:
-            events.isEmpty
-                ? Center(child: Text('No events available'))
-                : ListView.builder(
-                  itemCount: events.length,
-                  itemBuilder: (context, index) {
-                    final event = events[index];
-                    return _buildEventCard(
-                      context,
-                      event['team1'] ?? 'Team 1',
-                      event['team2'] ?? 'Team 2',
-                      event['date']?.split('T')[0] ?? 'No Date',
-                      event['time'] ?? 'No Time',
-                      event['type'] ?? 'No Type',
-                      event['gender'] ?? 'Unknown',
-                      event['venue'] ?? 'No Venue',
-                    );
-                  },
-                ),
-      ),
+      body:
+          isLoading
+              ? Center(child: CircularProgressIndicator())
+              : Padding(
+                padding: const EdgeInsets.all(8.0),
+                child:
+                    events.isEmpty
+                        ? Center(child: Text('No basketball matches available'))
+                        : ListView.builder(
+                          itemCount: events.length,
+                          itemBuilder: (context, index) {
+                            final event = events[index];
+                            return _buildEventCard(
+                              context,
+                              event['team1'] ?? 'Team 1',
+                              event['team2'] ?? 'Team 2',
+                              event['date']?.split('T')[0] ?? 'No Date',
+                              event['time'] ?? 'No Time',
+                              event['type'] ?? 'No Type',
+                              event['gender'] ?? 'Unknown',
+                              event['venue'] ?? 'No Venue',
+                            );
+                          },
+                        ),
+              ),
     );
   }
 
@@ -198,7 +240,7 @@ class IYSCEventsPage extends StatelessWidget {
                   onPressed: () {
                     // Handle favorite toggle
                   },
-                )
+                ),
               ],
             ),
           ],
@@ -207,4 +249,3 @@ class IYSCEventsPage extends StatelessWidget {
     );
   }
 }
-

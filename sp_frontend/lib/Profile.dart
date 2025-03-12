@@ -24,6 +24,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String degree = "";
   String department = "";
   String currentYear = "";
+  String profilePic = ""; // Add profilePic variable
   final TextEditingController _phoneNumberController = TextEditingController();
 
   @override
@@ -54,6 +55,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           degree = data['data'][0]['Degree'] ?? "";
           department = data['data'][0]['Department'] ?? "";
           currentYear = data['data'][0]['CurrentYear']?.toString() ?? "";
+          profilePic =
+              data['data'][0]['ProfilePic'] ?? ""; // Extract profilePic
           _phoneNumberController.text = mobileNo;
         });
       } else {
@@ -76,6 +79,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _image = File(pickedFile.path);
       });
+      _uploadProfilePic(_image!);
+    }
+  }
+
+  Future<void> _uploadProfilePic(File image) async {
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/uploadProfilePic'),
+      );
+      request.fields['email'] = widget.email;
+      request.files.add(
+        await http.MultipartFile.fromPath('profilePic', image.path),
+      );
+
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        final responseData = await response.stream.bytesToString();
+        final data = json.decode(responseData);
+        setState(() {
+          profilePic = data['data']['ProfilePic'];
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to upload profile picture')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error uploading profile picture: $e')),
+      );
     }
   }
 
@@ -191,6 +225,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           backgroundImage:
                               _image != null
                                   ? FileImage(_image!)
+                                  : profilePic.isNotEmpty
+                                  ? NetworkImage('$baseUrl/$profilePic')
                                   : AssetImage('assets/profile.png')
                                       as ImageProvider,
                           backgroundColor: Colors.white,

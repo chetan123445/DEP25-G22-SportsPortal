@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // Import FontAwesome package
-import 'Cultural.dart';
-import 'Literary.dart';
-import 'Technical.dart';
-import 'Sports.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'gc_events.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'gc_events.dart';
+import 'constants.dart';
 
 class GCPage extends StatelessWidget {
   @override
@@ -14,7 +15,10 @@ class GCPage extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color.fromARGB(255, 79, 188, 247), Color.fromARGB(255, 142, 117, 205)],
+              colors: [
+                Color.fromARGB(255, 79, 188, 247),
+                Color.fromARGB(255, 142, 117, 205),
+              ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -40,31 +44,81 @@ class GCPage extends StatelessWidget {
           crossAxisSpacing: 8.0,
           mainAxisSpacing: 8.0,
           children: [
-            _buildEventCard(context, FontAwesomeIcons.gamepad, 'eSports'), // eSports icon
-            _buildEventCard(context, FontAwesomeIcons.masksTheater, 'Cultural'), // Cultural icon
-            _buildEventCard(context, FontAwesomeIcons.microchip, 'Technical'), // Technical icon
-            _buildEventCard(context, FontAwesomeIcons.bookOpen, 'Literary'), // Literary icon
-            _buildEventCard(context, FontAwesomeIcons.futbol, 'Sports'), // Sports icon
-            _buildEventCard(context, FontAwesomeIcons.personWalking, 'Dance'), // Dance icon
-            _buildEventCard(context, FontAwesomeIcons.microphone, 'Singing'), // Singing icon
-            _buildEventCard(context, FontAwesomeIcons.dumbbell, 'Weightlifting'), // Weightlifting icon
-            _buildEventCard(context, FontAwesomeIcons.weight, 'Powerlifting'), // Powerlifting icon
-            _buildEventCard(context, FontAwesomeIcons.chess, 'Chess'), // Chess icon
-            _buildEventCard(context, FontAwesomeIcons.handRock, 'Tug of War'), // Tug of War icon
+            _buildEventCard(
+              context,
+              FontAwesomeIcons.gamepad,
+              'eSports',
+              onTap: () => _fetchGCEvents(context, 'eSports'),
+            ),
+            _buildEventCard(
+              context,
+              FontAwesomeIcons.masksTheater,
+              'cultural',
+              onTap: () => _fetchGCEvents(context, 'cultural'),
+            ),
+            _buildEventCard(
+              context,
+              FontAwesomeIcons.microchip,
+              'technical',
+              onTap: () => _fetchGCEvents(context, 'technical'),
+            ),
+            _buildEventCard(
+              context,
+              FontAwesomeIcons.bookOpen,
+              'literary',
+              onTap: () => _fetchGCEvents(context, 'literary'),
+            ),
+            _buildEventCard(
+              context,
+              FontAwesomeIcons.futbol,
+              'sports',
+              onTap: () => _fetchGCEvents(context, 'sports'),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildEventCard(BuildContext context, IconData icon, String title, {VoidCallback? onTap}) {
+  Future<void> _fetchGCEvents(BuildContext context, String MainType) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/get-gc-events?MainType=$MainType'),
+    );
+    if (response.statusCode == 200) {
+      final responseBody = json.decode(response.body);
+      final events = responseBody['data'];
+      if (events is List) {
+        if (events.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('No events found for $MainType')),
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => GCEventsPage(events: events),
+            ),
+          );
+        }
+      } else {
+        print('Unexpected response format');
+      }
+    } else {
+      print('Failed to load events');
+    }
+  }
+
+  Widget _buildEventCard(
+    BuildContext context,
+    IconData icon,
+    String title, {
+    VoidCallback? onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Card(
         elevation: 4.0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(color: Colors.black, width: 2.0),
@@ -84,10 +138,7 @@ class GCPage extends StatelessWidget {
               SizedBox(height: 8.0),
               Text(
                 title,
-                style: TextStyle(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
               ),
             ],
           ),
