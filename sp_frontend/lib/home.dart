@@ -169,19 +169,37 @@ class HomePage extends StatelessWidget {
             ListTile(
               leading: Icon(Icons.sports_cricket),
               title: Text('IRCC'),
-              onTap: () {},
+              onTap: () {
+                // Navigate to IRCCPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => IRCCPage()),
+                );
+              },
             ),
             ListTile(
               leading: Icon(Icons.sports_hockey), // Hockey icon for PHL
               title: Text('PHL'),
-              onTap: () {},
+              onTap: () {
+                // Navigate to PHLPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => PHLPage()),
+                );
+              },
             ),
             ListTile(
               leading: Icon(
                 Icons.sports_basketball,
               ), // Basketball icon for BasketballBrawl
               title: Text('BasketBrawl'),
-              onTap: () {},
+              onTap: () {
+                // Navigate to BasketBrawlPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => BasketBrawlPage()),
+                );
+              },
             ),
             ListTile(
               leading: Icon(Icons.emoji_events),

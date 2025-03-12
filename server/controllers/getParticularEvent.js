@@ -1,5 +1,7 @@
 import IYSCEvent from '../models/IYSCevent.js'; // Import the IYSCEvent model
 import IRCCevent from '../models/IRCCevent.js'; // Import the IRCCevent model
+import PHLevent from '../models/PHLevent.js'; // Import the PHLevent model
+import BasketBrawlevent from '../models/BasketBrawlevent.js'; // Import the BasketBrawlevent model
 import GCevent from '../models/GCevent.js'; // Import the GCevent model
 
 const addEventType = (events, type) => {
