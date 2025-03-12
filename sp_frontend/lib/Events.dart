@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:intl/intl.dart'; // Add this import for date formatting
+import 'package:intl/intl.dart';
+import 'constants.dart';
+
+void main() {
+  runApp(MaterialApp(debugShowCheckedModeBanner: false, home: EventsPage()));
+}
 
 class EventsPage extends StatefulWidget {
   @override
@@ -15,9 +20,7 @@ class _EventsPageState extends State<EventsPage>
   List<dynamic> upcomingEvents = [];
   List<dynamic> pastEvents = [];
   String searchQuery = '';
-  String selectedGender = 'All';
-  String selectedSport = 'All';
-  DateTimeRange? selectedDateRange;
+  bool showFavoritesOnly = false;
 
   @override
   void initState() {
@@ -34,27 +37,15 @@ class _EventsPageState extends State<EventsPage>
 
   Future<void> fetchEvents() async {
     String query = searchQuery.isNotEmpty ? '?search=$searchQuery' : '';
-    if (selectedGender != 'All') {
-      query += '&gender=$selectedGender';
-    }
-    if (selectedSport != 'All') {
-      query += '&sport=$selectedSport';
-    }
-    if (selectedDateRange != null) {
-      query +=
-          '&startDate=${DateFormat('yyyy-MM-dd').format(selectedDateRange!.start)}';
-      query +=
-          '&endDate=${DateFormat('yyyy-MM-dd').format(selectedDateRange!.end)}';
-    }
 
     final liveResponse = await http.get(
-      Uri.parse('http://localhost:5000/live-events$query'),
+      Uri.parse('$baseUrl/live-events$query'),
     );
     final upcomingResponse = await http.get(
-      Uri.parse('http://localhost:5000/upcoming-events$query'),
+      Uri.parse('$baseUrl/upcoming-events$query'),
     );
     final pastResponse = await http.get(
-      Uri.parse('http://localhost:5000/past-events$query'),
+      Uri.parse('$baseUrl/past-events$query'),
     );
 
     if (liveResponse.statusCode == 200 &&
@@ -75,13 +66,19 @@ class _EventsPageState extends State<EventsPage>
     return Scaffold(
       appBar: AppBar(
         title: Text('Events'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.star, color: Colors.yellow, size: 30),
+            onPressed: () {
+              setState(() {
+                showFavoritesOnly = !showFavoritesOnly;
+              });
+            },
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
-          tabs: [
-            Tab(text: 'Live'),
-            Tab(text: 'Upcoming'),
-            Tab(text: 'Past'),
-          ],
+          tabs: [Tab(text: 'Live'), Tab(text: 'Upcoming'), Tab(text: 'Past')],
         ),
       ),
       body: Column(
@@ -105,7 +102,7 @@ class _EventsPageState extends State<EventsPage>
             child: TabBarView(
               controller: _tabController,
               children: [
-                _buildEventsList(context, liveEvents),
+                _buildEventsList(context, liveEvents, isLive: true),
                 _buildEventsList(context, upcomingEvents),
                 _buildEventsList(context, pastEvents),
               ],
@@ -116,7 +113,11 @@ class _EventsPageState extends State<EventsPage>
     );
   }
 
-  Widget _buildEventsList(BuildContext context, List<dynamic> events) {
+  Widget _buildEventsList(
+    BuildContext context,
+    List<dynamic> events, {
+    bool isLive = false,
+  }) {
     if (events.isEmpty) {
       return Center(
         child: Text(
@@ -142,6 +143,7 @@ class _EventsPageState extends State<EventsPage>
             event['gender'] ?? 'Unknown',
             event['venue'] ?? 'No Venue',
             event['eventType'] ?? 'No Event Type',
+            isLive,
           );
         },
       ),
@@ -158,111 +160,149 @@ class _EventsPageState extends State<EventsPage>
     String gender,
     String venue,
     String eventType,
+    bool isLive,
   ) {
     bool isFavorite = false;
 
-    return Card(
-      elevation: 4.0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-      child: Container(
-        padding: const EdgeInsets.all(8.0),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.black, width: 2.0),
-          borderRadius: BorderRadius.circular(8.0),
-          gradient: LinearGradient(
-            colors: [Colors.purple.shade200, Colors.blue.shade200],
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Card(
+          elevation: 4.0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
           ),
-        ),
-        child: Column(
-          children: [
-            Text(
-              eventType,
-              style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8.0),
-
-            // Teams
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(child: Text(team1, textAlign: TextAlign.center)),
-                Expanded(child: Text(team2, textAlign: TextAlign.center)),
-              ],
-            ),
-            SizedBox(height: 8.0),
-
-            // Date and Time
-            Column(
-              children: [
-                Text(date, style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(time, style: TextStyle(fontWeight: FontWeight.bold)),
-              ],
-            ),
-            SizedBox(height: 8.0),
-
-            // Type and Gender
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(type, style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(gender, style: TextStyle(fontWeight: FontWeight.bold)),
-              ],
-            ),
-            SizedBox(height: 8.0),
-
-            // Fixed Venue Layout
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(5),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black, width: 2.0),
+              borderRadius: BorderRadius.circular(8.0),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.purple.shade200,
+                  Colors.blue.shade200,
+                  Colors.pink.shade100,
+                ],
               ),
-              child: RichText(
-                text: TextSpan(
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
+            ),
+            padding: const EdgeInsets.all(8.0),
+            child: Stack(
+              children: [
+                Column(
                   children: [
-                    TextSpan(
-                      text: 'Venue: ',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    Text(
+                      eventType,
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
-                    WidgetSpan(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: 200),
-                        child: Text(
-                          venue,
-                          style: TextStyle(fontWeight: FontWeight.normal),
-                          overflow: TextOverflow.clip,
-                          softWrap: true,
+                    SizedBox(height: 8.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            team1,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            team2,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8.0),
+                    Text(
+                      date,
+                      style: TextStyle(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      time,
+                      style: TextStyle(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          type,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          gender,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8.0),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 4.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Text(
+                        'Venue: $venue',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
+                    SizedBox(height: 8.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            isFavorite ? Icons.star : Icons.star_border,
+                            color: isFavorite ? Colors.yellow : null,
+                            size: 30,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              isFavorite = !isFavorite;
+                            });
+                          },
+                        ),
+                        if (isLive) BlinkingLiveIndicator(),
+                      ],
+                    ),
                   ],
                 ),
-              ),
-            ),
-            SizedBox(height: 8.0),
-
-            // Favorite Button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: Icon(
-                    isFavorite ? Icons.star : Icons.star_border,
-                    color: isFavorite ? Colors.yellow : null,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      isFavorite = !isFavorite;
-                    });
-                  },
-                ),
-                if (type.toLowerCase() == 'live') BlinkingLiveIndicator(),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -279,7 +319,10 @@ class _BlinkingLiveIndicatorState extends State<BlinkingLiveIndicator>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(duration: Duration(seconds: 1), vsync: this)..repeat(reverse: true);
+    _controller = AnimationController(
+      duration: Duration(milliseconds: 500),
+      vsync: this,
+    )..repeat(reverse: true);
   }
 
   @override
@@ -290,6 +333,13 @@ class _BlinkingLiveIndicatorState extends State<BlinkingLiveIndicator>
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(opacity: _controller, child: Icon(Icons.circle, color: Colors.red));
+    return FadeTransition(
+      opacity: _controller,
+      child: Container(
+        width: 12,
+        height: 12,
+        decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+      ),
+    );
   }
 }

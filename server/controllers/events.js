@@ -3,26 +3,35 @@ import GCevent from '../models/GCevent.js';
 import IRCCevent from '../models/IRCCevent.js';
 import moment from 'moment';
 
-const addEventType = (events, type) => {
+const addEventType = (events, type, isLive = false) => {
     return events.map(event => ({
         ...event.toObject(),
-        eventType: type
+        eventType: type,
+        isLive: isLive
     }));
+};
+
+const buildQuery = (req) => {
+    const { search } = req.query;
+    const query = {};
+
+    if (search) {
+        query.$or = [
+            { type: new RegExp(search, 'i') },
+            { gender: new RegExp(search, 'i') }, // Added gender search
+        ];
+    }
+
+    return query;
 };
 
 export const getLiveEvents = async (req, res) => {
     try {
-        const { search } = req.query;
+        const query = buildQuery(req);
         const startOfDay = moment().startOf('day').toDate();
         const endOfDay = moment().endOf('day').toDate();
+        query.date = { $gte: startOfDay, $lte: endOfDay };
 
-        const query = { date: { $gte: startOfDay, $lte: endOfDay } };
-        if (search) {
-            query.$or = [
-                { type:  new RegExp(search, 'i')  },
-            ];
-        }
-        
         const [iyscEvents, gcEvents, irccEvents] = await Promise.all([
             IYSCevent.find(query),
             GCevent.find(query),
@@ -30,9 +39,9 @@ export const getLiveEvents = async (req, res) => {
         ]);
 
         const liveEvents = [
-            ...addEventType(iyscEvents, 'IYSC'),
-            ...addEventType(gcEvents, 'GC'),
-            ...addEventType(irccEvents, 'IRCC')
+            ...addEventType(iyscEvents, 'IYSC', true),
+            ...addEventType(gcEvents, 'GC', true),
+            ...addEventType(irccEvents, 'IRCC', true)
         ];
 
         res.status(200).json(liveEvents);
@@ -43,15 +52,9 @@ export const getLiveEvents = async (req, res) => {
 
 export const getUpcomingEvents = async (req, res) => {
     try {
-        const { search } = req.query;
+        const query = buildQuery(req);
         const tomorrow = moment().add(1, 'days').startOf('day').toDate();
-
-        const query = { date: { $gte: tomorrow } };
-        if (search) {
-            query.$or = [
-                { type:  new RegExp(search, 'i')  },
-            ];
-        }
+        query.date = { $gte: tomorrow };
 
         const [iyscEvents, gcEvents, irccEvents] = await Promise.all([
             IYSCevent.find(query),
@@ -73,16 +76,10 @@ export const getUpcomingEvents = async (req, res) => {
 
 export const getPastEvents = async (req, res) => {
     try {
-        const { search } = req.query;
+        const query = buildQuery(req);
         const lastWeek = moment().subtract(1, 'weeks').startOf('day').toDate();
         const today = moment().startOf('day').toDate();
-
-        const query = {date: { $gte: lastWeek, $lt: today }};
-        if (search) {
-            query.$or = [
-                { type:  new RegExp(search, 'i')  },
-            ];
-        }
+        query.date = { $gte: lastWeek, $lt: today };
 
         const [iyscEvents, gcEvents, irccEvents] = await Promise.all([
             IYSCevent.find(query),
