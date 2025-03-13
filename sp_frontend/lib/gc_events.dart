@@ -85,7 +85,7 @@ class GCEventsPage extends StatelessWidget {
             ],
           ),
         ),
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
         child: Column(
           children: [
             // Main Type and Type row
@@ -94,15 +94,15 @@ class GCEventsPage extends StatelessWidget {
               children: [
                 Text(
                   MainType,
-                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.bold),
                 ),
                 Text(
                   type,
-                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
-            SizedBox(height: 8.0),
+            SizedBox(height: 4.0),
 
             // Date and Time centered below
             Column(
@@ -110,42 +110,37 @@ class GCEventsPage extends StatelessWidget {
                 Text(
                   date,
                   style: TextStyle(
-                    fontSize: 14.0,
+                    fontSize: 13.0,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
                 ),
                 Text(
                   time,
-                  style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
-            SizedBox(height: 8.0),
+            SizedBox(height: 4.0),
 
             // Venue Box
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
               decoration: BoxDecoration(
                 color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(5),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Venue: $venue',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                ],
+              child: Text(
+                'Venue: $venue',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
               ),
             ),
-            SizedBox(height: 8.0),
+            SizedBox(height: 4.0),
 
             // Description
             Text(
               description,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
             ),
           ],
         ),

@@ -103,149 +103,118 @@ class _IRCCPageState extends State<IRCCPage> {
   }
 
   Widget _buildEventCard(
-    BuildContext context,
-    String team1,
-    String team2,
-    String date,
-    String time,
-    String type,
-    String gender,
-    String venue,
-  ) {
-    bool isFavorite = false; // Replace with actual favorite status
+  BuildContext context,
+  String team1,
+  String team2,
+  String date,
+  String time,
+  String type,
+  String gender,
+  String venue,
+) {
+  bool isFavorite = false; // Replace with actual favorite status
 
-    return Card(
-      elevation: 4.0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.black, width: 2.0),
-          borderRadius: BorderRadius.circular(8.0),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.purple.shade200,
-              Colors.blue.shade200,
-              Colors.pink.shade100,
-            ],
-          ),
-        ),
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            // Teams and type/gender row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text(
-                        team1,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text(
-                        team2,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8.0),
-
-            // Date and Time centered below
-            Column(
-              children: [
-                Text(
-                  date,
-                  style: TextStyle(
-                    fontSize: 14.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                Text(
-                  time,
-                  style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            SizedBox(height: 8.0),
-
-            // Type and Gender row above Venue Box
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  type,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                Text(
-                  gender,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            SizedBox(height: 8.0),
-
-            // Venue Box
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Venue: $venue',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 8.0),
-
-            // Favorites and Live Indicator
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: Icon(
-                    isFavorite ? Icons.star : Icons.star_border,
-                    color: isFavorite ? Colors.yellow : null,
-                  ),
-                  onPressed: () {
-                    // Handle favorite toggle
-                  },
-                ),
-              ],
-            ),
+  return Card(
+    elevation: 4.0,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+    child: Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black, width: 2.0),
+        borderRadius: BorderRadius.circular(8.0),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.purple.shade200,
+            Colors.blue.shade200,
+            Colors.pink.shade100,
           ],
         ),
       ),
-    );
-  }
+      padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0), // Reduced padding
+      child: Column(
+        children: [
+          // Teams Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  team1,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Text(
+                'v/s',
+                style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+              ),
+              Expanded(
+                child: Text(
+                  team2,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 4.0), // Reduced spacing
+
+          // Date and Time
+          Column(
+            children: [
+              Text(
+                date,
+                style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                time,
+                style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          SizedBox(height: 4.0),
+
+          // Type and Gender
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(type, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+              Text(gender, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          SizedBox(height: 4.0),
+
+          // Venue Box
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: Text(
+              'Venue: $venue',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+            ),
+          ),
+          SizedBox(height: 4.0),
+
+          // Favorite Button
+          Align(
+            alignment: Alignment.centerRight,
+            child: IconButton(
+              icon: Icon(
+                isFavorite ? Icons.star : Icons.star_border,
+                color: isFavorite ? Colors.yellow : null,
+              ),
+              onPressed: () {
+                // Handle favorite toggle
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 }
