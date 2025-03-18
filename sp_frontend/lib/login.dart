@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'home.dart'; // Import the HomePage
 import 'signup.dart'; // Import the SignUpPage
 import 'constants.dart'; // Import the constants file
+import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
 
 void main() {
   runApp(MyApp());
@@ -45,6 +46,16 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      final userId = responseData['userId']; // Get userId from response
+      
+      // Save userId to SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userId', userId);
+      
+      // Debug print to verify userId is saved
+      print('Saved userId in prefs: ${prefs.getString('userId')}');
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(

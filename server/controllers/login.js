@@ -18,8 +18,14 @@ export const login = async (req, res) => {
 
         const token = generateToken(user);
 
-        res.status(200).json({ message: "Login successful", token });
+        // Include userId in response
+        res.status(200).json({ 
+            message: "Login successful", 
+            token,
+            userId: user._id // Add user ID to response
+        });
     } catch (error) {
+        console.error('Login error:', error); // Add error logging
         res.status(500).json({ message: "Server error" });
     }
 };

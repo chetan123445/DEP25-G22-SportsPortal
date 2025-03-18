@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'constants.dart';
+import 'services/favorite_service.dart';
 
 void main() {
   runApp(MaterialApp(debugShowCheckedModeBanner: false, home: EventsPage()));
@@ -21,12 +23,83 @@ class _EventsPageState extends State<EventsPage>
   List<dynamic> pastEvents = [];
   String searchQuery = '';
   bool showFavoritesOnly = false;
+  Map<String, bool> favoriteStatus = {};
+  String? userId;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    fetchEvents();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    await _getUserId();
+    await fetchEvents();
+  }
+
+  Future<void> _getUserId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final storedUserId = prefs.getString('userId');
+      print('Retrieved userId from SharedPreferences: $storedUserId');
+      
+      if (storedUserId != null && storedUserId.isNotEmpty) {
+        setState(() {
+          userId = storedUserId;
+        });
+      } else {
+        print('No valid user ID found in SharedPreferences');
+      }
+    } catch (e) {
+      print('Error getting userId: $e');
+    }
+  }
+
+  Future<void> _loadFavoriteStatus(List<dynamic> events) async {
+    if (userId == null || userId!.isEmpty || events.isEmpty) {
+      print('Cannot load favorites: userId=$userId, events.length=${events.length}');
+      return;
+    }
+    
+    print('Loading favorites for user: $userId');
+    try {
+      for (var event in events) {
+        if (event['_id'] == null) continue;
+        
+        String eventId = event['_id'];
+        String eventType = event['eventType'] ?? 'Unknown';
+        print('Checking favorite for event: $eventId of type: $eventType');
+        
+        bool isFavorite = await FavoriteService.verifyFavorite(eventType, eventId, userId!);
+        print('Favorite status for $eventId: $isFavorite');
+        
+        if (mounted) {
+          setState(() {
+            favoriteStatus[eventId] = isFavorite;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading favorites: $e');
+    }
+  }
+
+  Future<void> _toggleFavorite(String eventId, String eventType, bool currentStatus) async {
+    if (userId == null) return;
+    
+    bool success;
+    if (currentStatus) {
+      success = await FavoriteService.removeFavorite(eventType, eventId, userId!);
+    } else {
+      success = await FavoriteService.addFavorite(eventType, eventId, userId!);
+    }
+
+    if (success && mounted) {
+      setState(() {
+        favoriteStatus[eventId] = !currentStatus;
+      });
+    }
   }
 
   @override
@@ -56,6 +129,11 @@ class _EventsPageState extends State<EventsPage>
         upcomingEvents = json.decode(upcomingResponse.body);
         pastEvents = json.decode(pastResponse.body);
       });
+      
+      // Load favorites for all event lists
+      await _loadFavoriteStatus(liveEvents);
+      await _loadFavoriteStatus(upcomingEvents);
+      await _loadFavoriteStatus(pastEvents);
     } else {
       print('Failed to load events');
     }
@@ -144,6 +222,7 @@ class _EventsPageState extends State<EventsPage>
             event['venue'] ?? 'No Venue',
             event['eventType'] ?? 'No Event Type',
             isLive,
+            event['_id'], // Pass the event ID
           );
         },
       ),
@@ -161,8 +240,9 @@ class _EventsPageState extends State<EventsPage>
   String venue,
   String eventType,
   bool isLive,
+  String eventId,  // Add eventId parameter
 ) {
-  bool isFavorite = false;
+  bool isFavorite = favoriteStatus[eventId] ?? false;
 
   return StatefulBuilder(
     builder: (context, setState) {
@@ -261,11 +341,7 @@ class _EventsPageState extends State<EventsPage>
                       color: isFavorite ? Colors.yellow : null,
                       size: 20, // Reduced icon size
                     ),
-                    onPressed: () {
-                      setState(() {
-                        isFavorite = !isFavorite;
-                      });
-                    },
+                    onPressed: () => _toggleFavorite(eventId, eventType, isFavorite),
                   ),
                   if (isLive) BlinkingLiveIndicator(), // Blinking Red Circle
                 ],

@@ -1,9 +1,86 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'services/favorite_service.dart';
 
-class GCEventsPage extends StatelessWidget {
+class GCEventsPage extends StatefulWidget {
   final List<dynamic> events;
-
   GCEventsPage({required this.events});
+
+  @override
+  _GCEventsPageState createState() => _GCEventsPageState();
+}
+
+class _GCEventsPageState extends State<GCEventsPage> {
+  Map<String, bool> favoriteStatus = {};
+  String? userId;
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserIdAndLoadFavorites();
+  }
+
+  Future<void> _getUserIdAndLoadFavorites() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final storedUserId = prefs.getString('userId');
+      print('Retrieved userId from SharedPreferences: $storedUserId');
+      
+      if (storedUserId != null && storedUserId.isNotEmpty) {
+        setState(() {
+          userId = storedUserId;
+        });
+        await _loadFavoriteStatus();
+      } else {
+        print('No valid user ID found in SharedPreferences');
+      }
+    } catch (e) {
+      print('Error getting userId: $e');
+    }
+  }
+
+  Future<void> _loadFavoriteStatus() async {
+    if (userId == null || userId!.isEmpty) {
+      print('Cannot load favorites: No valid userId');
+      return;
+    }
+    
+    print('Starting to load favorites for user: $userId');
+    try {
+      for (var event in widget.events) {
+        String eventId = event['_id'];
+        print('Verifying favorite for event: $eventId');
+        
+        bool isFavorite = await FavoriteService.verifyFavorite('GC', eventId, userId!);
+        print('Received favorite status for $eventId: $isFavorite');
+        
+        if (mounted) {
+          setState(() {
+            favoriteStatus[eventId] = isFavorite;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading favorites: $e');
+    }
+  }
+
+  Future<void> _toggleFavorite(String eventId, bool currentStatus) async {
+    if (userId == null) return;
+    
+    bool success;
+    if (currentStatus) {
+      success = await FavoriteService.removeFavorite('GC', eventId, userId!);
+    } else {
+      success = await FavoriteService.addFavorite('GC', eventId, userId!);
+    }
+
+    if (success && mounted) {
+      setState(() {
+        favoriteStatus[eventId] = !currentStatus;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,12 +115,12 @@ class GCEventsPage extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child:
-            events.isEmpty
+            widget.events.isEmpty
                 ? Center(child: Text('No events available'))
                 : ListView.builder(
-                  itemCount: events.length,
+                  itemCount: widget.events.length,
                   itemBuilder: (context, index) {
-                    final event = events[index];
+                    final event = widget.events[index];
                     return _buildEventCard(
                       context,
                       event['MainType'] ?? 'Main Type',
@@ -52,6 +129,7 @@ class GCEventsPage extends StatelessWidget {
                       event['time'] ?? 'No Time',
                       event['venue'] ?? 'No Venue',
                       event['description'] ?? 'No Description',
+                      event['_id'], // Add event ID parameter
                     );
                   },
                 ),
@@ -67,7 +145,10 @@ class GCEventsPage extends StatelessWidget {
     String time,
     String venue,
     String description,
+    String eventId, // Add event ID parameter
   ) {
+    bool isFavorite = favoriteStatus[eventId] ?? false;
+
     return Card(
       elevation: 4.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
@@ -141,6 +222,19 @@ class GCEventsPage extends StatelessWidget {
             Text(
               description,
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+            ),
+
+            // Add Favorite Button as last child in Column
+            Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                icon: Icon(
+                  isFavorite ? Icons.star : Icons.star_border,
+                  color: isFavorite ? Colors.yellow : null,
+                  size: 18,
+                ),
+                onPressed: () => _toggleFavorite(eventId, isFavorite),
+              ),
             ),
           ],
         ),

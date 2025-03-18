@@ -1,6 +1,8 @@
 import userIYSCfavEvent from '../models/userIYSCfavEvent.js';
 import userGCfavEvent from '../models/userGCfavEvent.js';
 import userIRCCfavEvent from '../models/userIRCCfavEvent.js';
+import userBasketBrawlfavEvent from '../models/userBasketBrawlfavEvent.js';
+import userPHLfavEvent from '../models/userPHLfavEvent.js';
 
 export const removeFavouriteEvent = async (req, res) => {
     const { eventType, userId, eventId } = req.body;
@@ -16,6 +18,12 @@ export const removeFavouriteEvent = async (req, res) => {
                 break;
             case 'IRCC':
                 favEventModel = userIRCCfavEvent;
+                break;
+            case 'BasketBrawl':
+                favEventModel = userBasketBrawlfavEvent;
+                break;
+            case 'PHL':
+                favEventModel = userPHLfavEvent;
                 break;
             default:
                 return res.status(400).json({ message: 'Invalid event type' });

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'constants.dart'; // Import the baseUrl
+import 'constants.dart';
+import 'services/favorite_service.dart';
 
 class PHLPage extends StatefulWidget {
   @override
@@ -11,11 +13,82 @@ class PHLPage extends StatefulWidget {
 class _PHLPageState extends State<PHLPage> {
   List<dynamic> events = [];
   bool isLoading = true;
+  Map<String, bool> favoriteStatus = {};
+  String? userId;
 
   @override
   void initState() {
     super.initState();
-    _fetchPHLEvents();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    await _getUserId();
+    await _fetchPHLEvents();
+    await _loadFavoriteStatus();
+  }
+
+  Future<void> _getUserId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final storedUserId = prefs.getString('userId');
+      print('Retrieved userId from SharedPreferences: $storedUserId');
+      
+      if (storedUserId != null && storedUserId.isNotEmpty) {
+        setState(() {
+          userId = storedUserId;
+        });
+      } else {
+        print('No valid user ID found in SharedPreferences');
+      }
+    } catch (e) {
+      print('Error getting userId: $e');
+    }
+  }
+
+  Future<void> _loadFavoriteStatus() async {
+    if (userId == null || userId!.isEmpty || events.isEmpty) {
+      print('Cannot load favorites: userId=$userId, events.length=${events.length}');
+      return;
+    }
+    
+    print('Loading favorites for user: $userId');
+    try {
+      for (var event in events) {
+        if (event['_id'] == null) continue;
+        
+        String eventId = event['_id'];
+        print('Checking favorite for event: $eventId');
+        
+        bool isFavorite = await FavoriteService.verifyFavorite('PHL', eventId, userId!);
+        print('Favorite status for $eventId: $isFavorite');
+        
+        if (mounted) {
+          setState(() {
+            favoriteStatus[eventId] = isFavorite;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading favorites: $e');
+    }
+  }
+
+  Future<void> _toggleFavorite(String eventId, bool currentStatus) async {
+    if (userId == null) return;
+    
+    bool success;
+    if (currentStatus) {
+      success = await FavoriteService.removeFavorite('PHL', eventId, userId!);
+    } else {
+      success = await FavoriteService.addFavorite('PHL', eventId, userId!);
+    }
+
+    if (success && mounted) {
+      setState(() {
+        favoriteStatus[eventId] = !currentStatus;
+      });
+    }
   }
 
   Future<void> _fetchPHLEvents() async {
@@ -95,6 +168,7 @@ class _PHLPageState extends State<PHLPage> {
                               event['type'] ?? 'No Type',
                               event['gender'] ?? 'Unknown',
                               event['venue'] ?? 'No Venue',
+                              event['_id'], // Pass the event ID
                             );
                           },
                         ),
@@ -111,8 +185,9 @@ class _PHLPageState extends State<PHLPage> {
   String type,
   String gender,
   String venue,
+  String eventId,
 ) {
-  bool isFavorite = false; // Replace with actual favorite status
+  bool isFavorite = favoriteStatus[eventId] ?? false;
 
   return Card(
     elevation: 4.0,
@@ -207,9 +282,7 @@ class _PHLPageState extends State<PHLPage> {
                 isFavorite ? Icons.star : Icons.star_border,
                 color: isFavorite ? Colors.yellow : null,
               ),
-              onPressed: () {
-                // Handle favorite toggle
-              },
+              onPressed: () => _toggleFavorite(eventId, isFavorite),
             ),
           ),
         ],

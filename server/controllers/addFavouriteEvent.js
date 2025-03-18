@@ -1,6 +1,8 @@
 import userIYSCfavEvent from '../models/userIYSCfavEvent.js';
 import userGCfavEvent from '../models/userGCfavEvent.js';
 import userIRCCfavEvent from '../models/userIRCCfavEvent.js';
+import userBasketBrawlfavEvent from '../models/userBasketBrawlfavEvent.js';
+import userPHLfavEvent from '../models/userPHLfavEvent.js';
 
 export const addFavouriteEvent = async (req, res) => {
     const { eventType, userId, eventId } = req.body;
@@ -16,6 +18,12 @@ export const addFavouriteEvent = async (req, res) => {
                 break;
             case 'IRCC':
                 favEvent = new userIRCCfavEvent({ userId, eventId });
+                break;
+            case 'BasketBrawl':
+                favEvent = new userBasketBrawlfavEvent({ userId, eventId });
+                break;
+            case 'PHL':
+                favEvent = new userPHLfavEvent({ userId, eventId });
                 break;
             default:
                 return res.status(400).json({ message: 'Invalid event type' });
