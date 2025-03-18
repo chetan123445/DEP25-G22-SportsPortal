@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'home.dart';
 import 'login.dart'; // Import the LoginPage
 import 'IYSC.dart'; // Import the IYSCPage
 import 'Events.dart'; // Import the EventsPage
@@ -14,13 +16,35 @@ void main() {
 }
 
 class SportsPortalApp extends StatelessWidget {
+  Future<Widget> _checkLoginState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId');
+    final emailId = prefs.getString('email');
+
+    if (userId != null && emailId != null) {
+      return HomePage(email: emailId);
+    }
+    return MainPage();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false, home: HomePage());
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: FutureBuilder<Widget>(
+        future: _checkLoginState(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          return snapshot.data ?? MainPage();
+        },
+      ),
+    );
   }
 }
 
-class HomePage extends StatelessWidget {
+class MainPage extends StatelessWidget {
   final bool isLoggedIn = false; // Change this based on user authentication
 
   void _launchURL(String url) async {

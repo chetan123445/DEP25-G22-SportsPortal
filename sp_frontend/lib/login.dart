@@ -47,20 +47,23 @@ class _LoginPageState extends State<LoginPage> {
 
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
-      final userId = responseData['userId']; // Get userId from response
+      final userId = responseData['userId'];
+      final email = responseData['email']; // Get email from response
       
-      // Save userId to SharedPreferences
+      // Save userId and email to SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('userId', userId);
+      await prefs.setString('email', email); // Store email
       
-      // Debug print to verify userId is saved
+      // Debug print to verify data is saved
       print('Saved userId in prefs: ${prefs.getString('userId')}');
+      print('Saved email in prefs: ${prefs.getString('email')}');
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => HomePage(email: email),
-        ), // Pass email to HomePage
+        ),
       );
     } else {
       ScaffoldMessenger.of(

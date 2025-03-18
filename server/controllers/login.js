@@ -18,11 +18,12 @@ export const login = async (req, res) => {
 
         const token = generateToken(user);
 
-        // Include userId in response
+        // Include userId and email in response
         res.status(200).json({ 
             message: "Login successful", 
             token,
-            userId: user._id // Add user ID to response
+            userId: user._id,
+            email: user.email // Add email to response
         });
     } catch (error) {
         console.error('Login error:', error); // Add error logging

@@ -10,6 +10,7 @@ import 'IRCC.dart'; // Import the IRCCPage
 import 'PHL.dart'; // Import the PHLPage
 import 'BasketBrawl.dart'; // Import the BasketBrawlPage
 import 'Profile.dart'; // Import the ProfilePage
+import 'main.dart'; // Import MainPage
 
 void main() {
   runApp(SportsPortalApp());
@@ -79,15 +80,15 @@ class HomePage extends StatelessWidget {
         });
   }
 
-  // Add logout method
+  // Update logout method
   Future<void> _logout(BuildContext context) async {
     // Clear SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();  // This removes all data from SharedPreferences
 
-    // Navigate to login page and remove all previous routes
+    // Navigate to main page and remove all previous routes
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => LoginPage()),
+      MaterialPageRoute(builder: (context) => MainPage()),
       (Route<dynamic> route) => false,
     );
   }
