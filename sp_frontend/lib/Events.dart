@@ -43,7 +43,7 @@ class _EventsPageState extends State<EventsPage>
       final prefs = await SharedPreferences.getInstance();
       final storedUserId = prefs.getString('userId');
       print('Retrieved userId from SharedPreferences: $storedUserId');
-      
+
       if (storedUserId != null && storedUserId.isNotEmpty) {
         setState(() {
           userId = storedUserId;
@@ -58,22 +58,28 @@ class _EventsPageState extends State<EventsPage>
 
   Future<void> _loadFavoriteStatus(List<dynamic> events) async {
     if (userId == null || userId!.isEmpty || events.isEmpty) {
-      print('Cannot load favorites: userId=$userId, events.length=${events.length}');
+      print(
+        'Cannot load favorites: userId=$userId, events.length=${events.length}',
+      );
       return;
     }
-    
+
     print('Loading favorites for user: $userId');
     try {
       for (var event in events) {
         if (event['_id'] == null) continue;
-        
+
         String eventId = event['_id'];
         String eventType = event['eventType'] ?? 'Unknown';
         print('Checking favorite for event: $eventId of type: $eventType');
-        
-        bool isFavorite = await FavoriteService.verifyFavorite(eventType, eventId, userId!);
+
+        bool isFavorite = await FavoriteService.verifyFavorite(
+          eventType,
+          eventId,
+          userId!,
+        );
         print('Favorite status for $eventId: $isFavorite');
-        
+
         if (mounted) {
           setState(() {
             favoriteStatus[eventId] = isFavorite;
@@ -85,12 +91,20 @@ class _EventsPageState extends State<EventsPage>
     }
   }
 
-  Future<void> _toggleFavorite(String eventId, String eventType, bool currentStatus) async {
+  Future<void> _toggleFavorite(
+    String eventId,
+    String eventType,
+    bool currentStatus,
+  ) async {
     if (userId == null) return;
-    
+
     bool success;
     if (currentStatus) {
-      success = await FavoriteService.removeFavorite(eventType, eventId, userId!);
+      success = await FavoriteService.removeFavorite(
+        eventType,
+        eventId,
+        userId!,
+      );
     } else {
       success = await FavoriteService.addFavorite(eventType, eventId, userId!);
     }
@@ -129,7 +143,7 @@ class _EventsPageState extends State<EventsPage>
         upcomingEvents = json.decode(upcomingResponse.body);
         pastEvents = json.decode(pastResponse.body);
       });
-      
+
       // Load favorites for all event lists
       await _loadFavoriteStatus(liveEvents);
       await _loadFavoriteStatus(upcomingEvents);
@@ -165,8 +179,9 @@ class _EventsPageState extends State<EventsPage>
             padding: const EdgeInsets.all(8.0),
             child: TextField(
               decoration: InputDecoration(
-                labelText: 'Search by gender or type',
+                labelText: 'Search',
                 border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search), // Added search icon
               ),
               onChanged: (value) {
                 setState(() {
@@ -230,129 +245,171 @@ class _EventsPageState extends State<EventsPage>
   }
 
   Widget _buildEventCard(
-  BuildContext context,
-  String team1,
-  String team2,
-  String date,
-  String time,
-  String type,
-  String gender,
-  String venue,
-  String eventType,
-  bool isLive,
-  String eventId,  // Add eventId parameter
-) {
-  bool isFavorite = favoriteStatus[eventId] ?? false;
+    BuildContext context,
+    String team1,
+    String team2,
+    String date,
+    String time,
+    String type,
+    String gender,
+    String venue,
+    String eventType,
+    bool isLive,
+    String eventId, // Add eventId parameter
+  ) {
+    bool isFavorite = favoriteStatus[eventId] ?? false;
 
-  return StatefulBuilder(
-    builder: (context, setState) {
-      return Card(
-        elevation: 3.0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.black, width: 1.5),
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Card(
+          elevation: 3.0,
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.0),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.purple.shade200,
-                Colors.blue.shade200,
-                Colors.pink.shade100,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black, width: 1.5),
+              borderRadius: BorderRadius.circular(8.0),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.purple.shade200,
+                  Colors.blue.shade200,
+                  Colors.pink.shade100,
+                ],
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(
+              vertical: 6.0,
+              horizontal: 8.0,
+            ), // Reduced padding
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // Ensures a minimal height layout
+              children: [
+                // Event Type
+                Text(
+                  eventType,
+                  style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 4.0),
+
+                // Teams Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        team1,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      "vs",
+                      style: TextStyle(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        team2,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4.0),
+
+                // Date & Time Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text(
+                      date,
+                      style: TextStyle(
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      time,
+                      style: TextStyle(
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4.0),
+
+                // Type & Gender Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      type,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      gender,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4.0),
+
+                // Venue Box
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    'Venue: $venue',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                SizedBox(height: 4.0),
+
+                // Favorite Icon & Blinking Live Indicator in Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        isFavorite ? Icons.star : Icons.star_border,
+                        color: isFavorite ? Colors.yellow : null,
+                        size: 20, // Reduced icon size
+                      ),
+                      onPressed:
+                          () => _toggleFavorite(eventId, eventType, isFavorite),
+                    ),
+                    if (isLive) BlinkingLiveIndicator(), // Blinking Red Circle
+                  ],
+                ),
               ],
             ),
           ),
-          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0), // Reduced padding
-          child: Column(
-            mainAxisSize: MainAxisSize.min, // Ensures a minimal height layout
-            children: [
-              // Event Type
-              Text(
-                eventType,
-                style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 4.0),
-
-              // Teams Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      team1,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Text("vs", style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold)),
-                  Expanded(
-                    child: Text(
-                      team2,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 4.0),
-
-              // Date & Time Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Text(date, style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold)),
-                  Text(time, style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold)),
-                ],
-              ),
-              SizedBox(height: 4.0),
-
-              // Type & Gender Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(type, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  Text(gender, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                ],
-              ),
-              SizedBox(height: 4.0),
-
-              // Venue Box
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Text(
-                  'Venue: $venue',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-              ),
-              SizedBox(height: 4.0),
-
-              // Favorite Icon & Blinking Live Indicator in Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      isFavorite ? Icons.star : Icons.star_border,
-                      color: isFavorite ? Colors.yellow : null,
-                      size: 20, // Reduced icon size
-                    ),
-                    onPressed: () => _toggleFavorite(eventId, eventType, isFavorite),
-                  ),
-                  if (isLive) BlinkingLiveIndicator(), // Blinking Red Circle
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 }
 
 class BlinkingLiveIndicator extends StatefulWidget {

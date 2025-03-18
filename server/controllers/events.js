@@ -18,9 +18,16 @@ const buildQuery = (req) => {
     const query = {};
 
     if (search) {
+        const dateSearch = moment(search, 'YYYY-MM-DD', true).isValid() ? new Date(search) : null;
+
         query.$or = [
             { type: new RegExp(search, 'i') },
-            { gender: new RegExp(search, 'i') }, // Added gender search
+            { gender: new RegExp(search, 'i') },
+            ...(dateSearch ? [{ date: dateSearch }] : []), // Handle date as a Date object
+            { time: new RegExp(search, 'i') },
+            { venue: new RegExp(search, 'i') },
+            { team1: new RegExp(search, 'i') },
+            { team2: new RegExp(search, 'i') },
         ];
     }
 
