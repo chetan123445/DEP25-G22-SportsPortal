@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'login.dart'; // Import the LoginPage
 import 'IYSC.dart'; // Import the IYSCPage
 import 'Events.dart'; // Import the EventsPage
@@ -76,6 +77,19 @@ class HomePage extends StatelessWidget {
             ),
           );
         });
+  }
+
+  // Add logout method
+  Future<void> _logout(BuildContext context) async {
+    // Clear SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();  // This removes all data from SharedPreferences
+
+    // Navigate to login page and remove all previous routes
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => LoginPage()),
+      (Route<dynamic> route) => false,
+    );
   }
 
   @override
@@ -221,6 +235,38 @@ class HomePage extends StatelessWidget {
               leading: Icon(Icons.people),
               title: Text('Players'),
               onTap: () {},
+            ),
+            Divider(thickness: 1),
+            ListTile(
+              leading: Icon(Icons.logout, color: Colors.red),
+              title: Text('Logout', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                // Show confirmation dialog
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Logout'),
+                      content: Text('Are you sure you want to logout?'),
+                      actions: <Widget>[
+                        TextButton(
+                          child: Text('Cancel'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        TextButton(
+                          child: Text('Logout', style: TextStyle(color: Colors.red)),
+                          onPressed: () {
+                            Navigator.of(context).pop(); // Close dialog
+                            _logout(context); // Perform logout
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
             ),
           ],
         ),
