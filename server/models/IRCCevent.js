@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 const IRCCeventSchema = new mongoose.Schema({
     gender: { type: String, required: true },
+    eventType: { type: String, required: true },
     type: { type: String, required: true },
     date: { type: Date, required: true },
     time: { type: String, required: true },

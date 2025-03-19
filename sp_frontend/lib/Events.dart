@@ -25,6 +25,7 @@ class _EventsPageState extends State<EventsPage>
   bool showFavoritesOnly = false;
   Map<String, bool> favoriteStatus = {};
   String? userId;
+  Map<String, dynamic> filters = {'eventType': [], 'gender': [], 'year': []};
 
   @override
   void initState() {
@@ -116,6 +117,211 @@ class _EventsPageState extends State<EventsPage>
     }
   }
 
+  Future<void> _showFilterDialog() async {
+    Map<String, dynamic> tempFilters = Map.from(filters);
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor:
+                  Colors.transparent, // Make the dialog background transparent
+              contentPadding: EdgeInsets.zero, // Remove default padding
+              content: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12.0),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.purple.shade200,
+                      Colors.blue.shade200,
+                      Colors.pink.shade100,
+                    ],
+                  ),
+                ),
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.filter_list, size: 24, color: Colors.black),
+                        SizedBox(width: 8),
+                        Text(
+                          'Filter Events',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Event Type',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Wrap(
+                            spacing: 8.0,
+                            runSpacing: 8.0,
+                            children:
+                                ['IYSC', 'GC', 'IRCC', 'PHL', 'BasketBrawl']
+                                    .map(
+                                      (type) => FilterChip(
+                                        label: Text(type),
+                                        selected: tempFilters['eventType']
+                                            .contains(type),
+                                        onSelected: (selected) {
+                                          setState(() {
+                                            if (selected) {
+                                              tempFilters['eventType'].add(
+                                                type,
+                                              );
+                                            } else {
+                                              tempFilters['eventType'].remove(
+                                                type,
+                                              );
+                                            }
+                                          });
+                                        },
+                                        backgroundColor: Colors.orange.shade200,
+                                        selectedColor: Colors.orange.shade400,
+                                      ),
+                                    )
+                                    .toList(),
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            'Gender',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Wrap(
+                            spacing: 8.0,
+                            runSpacing: 8.0,
+                            children:
+                                ['Male', 'Female', 'Neutral']
+                                    .map(
+                                      (gender) => FilterChip(
+                                        label: Text(gender),
+                                        selected: tempFilters['gender']
+                                            .contains(gender),
+                                        onSelected: (selected) {
+                                          setState(() {
+                                            if (selected) {
+                                              tempFilters['gender'].add(gender);
+                                            } else {
+                                              tempFilters['gender'].remove(
+                                                gender,
+                                              );
+                                            }
+                                          });
+                                        },
+                                        backgroundColor: Colors.orange.shade200,
+                                        selectedColor: Colors.orange.shade400,
+                                      ),
+                                    )
+                                    .toList(),
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            'Year',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Wrap(
+                            spacing: 8.0,
+                            runSpacing: 8.0,
+                            children:
+                                ['2025', '2024', '2023', 'Older']
+                                    .map(
+                                      (year) => FilterChip(
+                                        label: Text(year),
+                                        selected: tempFilters['year'].contains(
+                                          year,
+                                        ),
+                                        onSelected: (selected) {
+                                          setState(() {
+                                            if (selected) {
+                                              tempFilters['year'].add(year);
+                                            } else {
+                                              tempFilters['year'].remove(year);
+                                            }
+                                          });
+                                        },
+                                        backgroundColor: Colors.orange.shade200,
+                                        selectedColor: Colors.orange.shade400,
+                                      ),
+                                    )
+                                    .toList(),
+                          ),
+                          SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.black,
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    filters = {
+                                      'eventType': [],
+                                      'gender': [],
+                                      'year': [],
+                                    }; // Reset filters
+                                    fetchEvents(); // Fetch all events
+                                  });
+                                  Navigator.pop(context); // Close the dialog
+                                },
+                                child: Text('Cancel'),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.black,
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    filters = tempFilters;
+                                    fetchEvents(); // Re-fetch events with filters
+                                  });
+                                  Navigator.pop(context);
+                                },
+                                child: Text('Apply'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -123,7 +329,19 @@ class _EventsPageState extends State<EventsPage>
   }
 
   Future<void> fetchEvents() async {
-    String query = searchQuery.isNotEmpty ? '?search=$searchQuery' : '';
+    String query = '?';
+    if (searchQuery.isNotEmpty) {
+      query += 'search=$searchQuery&';
+    }
+    if (filters['eventType'].isNotEmpty) {
+      query += 'eventType=${filters['eventType'].join(',')}&';
+    }
+    if (filters['gender'].isNotEmpty) {
+      query += 'gender=${filters['gender'].join(',')}&';
+    }
+    if (filters['year'].isNotEmpty) {
+      query += 'year=${filters['year'].join(',')}&';
+    }
 
     final liveResponse = await http.get(
       Uri.parse('$baseUrl/live-events$query'),
@@ -166,6 +384,10 @@ class _EventsPageState extends State<EventsPage>
                 showFavoritesOnly = !showFavoritesOnly;
               });
             },
+          ),
+          IconButton(
+            icon: Icon(Icons.filter_list, size: 30),
+            onPressed: _showFilterDialog,
           ),
         ],
         bottom: TabBar(
@@ -284,123 +506,155 @@ class _EventsPageState extends State<EventsPage>
               vertical: 6.0,
               horizontal: 8.0,
             ), // Reduced padding
-            child: Column(
-              mainAxisSize: MainAxisSize.min, // Ensures a minimal height layout
+            child: Stack(
               children: [
-                // Event Type
-                Text(
-                  eventType,
-                  style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 4.0),
-
-                // Teams Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        team1,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                // Event Type in the center of the box
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 6.0,
+                      vertical: 3.0,
                     ),
-                    Text(
-                      "vs",
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: Text(
+                      eventType,
                       style: TextStyle(
-                        fontSize: 14.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        team2,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 4.0),
-
-                // Date & Time Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text(
-                      date,
-                      style: TextStyle(
+                        color: Colors.white,
                         fontSize: 12.0,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Text(
-                      time,
-                      style: TextStyle(
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 4.0),
-
-                // Type & Gender Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      type,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      gender,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 4.0),
-
-                // Venue Box
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Text(
-                    'Venue: $venue',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                 ),
-                SizedBox(height: 4.0),
-
-                // Favorite Icon & Blinking Live Indicator in Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Column(
+                  mainAxisSize:
+                      MainAxisSize.min, // Ensures a minimal height layout
                   children: [
-                    IconButton(
-                      icon: Icon(
-                        isFavorite ? Icons.star : Icons.star_border,
-                        color: isFavorite ? Colors.yellow : null,
-                        size: 20, // Reduced icon size
-                      ),
-                      onPressed:
-                          () => _toggleFavorite(eventId, eventType, isFavorite),
+                    SizedBox(height: 20.0), // Adjust spacing for eventType
+                    // Teams Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            team1,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          "vs",
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            team2,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    if (isLive) BlinkingLiveIndicator(), // Blinking Red Circle
+                    SizedBox(height: 4.0),
+
+                    // Date & Time Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text(
+                          date,
+                          style: TextStyle(
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          time,
+                          style: TextStyle(
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 4.0),
+
+                    // Type & Gender Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          type,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          gender,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 4.0),
+
+                    // Venue Box
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 6.0,
+                        vertical: 3.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Text(
+                        'Venue: $venue',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 4.0),
+
+                    // Favorite Icon & Blinking Live Indicator in Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            isFavorite ? Icons.star : Icons.star_border,
+                            color: isFavorite ? Colors.yellow : null,
+                            size: 20, // Reduced icon size
+                          ),
+                          onPressed:
+                              () => _toggleFavorite(
+                                eventId,
+                                eventType,
+                                isFavorite,
+                              ),
+                        ),
+                        if (isLive)
+                          BlinkingLiveIndicator(), // Blinking Red Circle
+                      ],
+                    ),
                   ],
                 ),
               ],

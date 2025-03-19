@@ -3,10 +3,10 @@ import Team from '../models/Team.js';
 
 export async function addGCEvent(req, res) {
     try {
-        const { MainType, type, gender, date, time, venue, description, winner, participants } = req.body;
+        const { MainType,eventType, type, gender, date, time, venue, description, winner, participants } = req.body;
 
         // Validate required fields
-        if (!MainType || !type || !date || !time || !venue) {
+        if (!MainType || !eventType || !type || !date || !time || !venue) {
             return res.status(400).json({ message: 'Missing required fields' });
         }
 
@@ -27,6 +27,7 @@ export async function addGCEvent(req, res) {
         // Create GC event
         const newGCevent = new GCevent({
             MainType,
+            eventType,
             type,
             gender, // Include gender attribute
             date,

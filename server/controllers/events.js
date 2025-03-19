@@ -14,7 +14,7 @@ const addEventType = (events, type, isLive = false) => {
 };
 
 const buildQuery = (req) => {
-    const { search } = req.query;
+    const { search, eventType, gender, year } = req.query;
     const query = {};
 
     if (search) {
@@ -22,13 +22,37 @@ const buildQuery = (req) => {
 
         query.$or = [
             { type: new RegExp(search, 'i') },
+            { eventType: new RegExp(search, 'i') },
             { gender: new RegExp(search, 'i') },
-            ...(dateSearch ? [{ date: dateSearch }] : []), // Handle date as a Date object
+            ...(dateSearch ? [{ date: dateSearch }] : []),
             { time: new RegExp(search, 'i') },
             { venue: new RegExp(search, 'i') },
             { team1: new RegExp(search, 'i') },
             { team2: new RegExp(search, 'i') },
         ];
+    }
+
+    if (eventType) {
+        query.eventType = { $in: eventType.split(',') };
+    }
+
+    if (gender) {
+        query.gender = { $in: gender.split(',') };
+    }
+
+    if (year) {
+        const years = year.split(',');
+        const yearConditions = years.map((y) => {
+            if (y === 'Older') {
+                return { date: { $lt: new Date('2023-01-01') } };
+            }
+            return {
+                $expr: {
+                    $eq: [{ $year: "$date" }, parseInt(y)], // Extract year from date
+                },
+            };
+        });
+        query.$and = [...(query.$and || []), { $or: yearConditions }];
     }
 
     return query;
@@ -94,9 +118,8 @@ export const getUpcomingEvents = async (req, res) => {
 export const getPastEvents = async (req, res) => {
     try {
         const query = buildQuery(req);
-        const lastWeek = moment().subtract(1, 'weeks').startOf('day').toDate();
         const today = moment().startOf('day').toDate();
-        query.date = { $gte: lastWeek, $lt: today };
+        query.date = { $lt: today }; // Fetch all events before today
 
         const [iyscEvents, gcEvents, irccEvents, phlEvents, basketbrawlEvents] = await Promise.all([
             IYSCevent.find(query),

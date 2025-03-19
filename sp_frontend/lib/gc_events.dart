@@ -25,7 +25,7 @@ class _GCEventsPageState extends State<GCEventsPage> {
       final prefs = await SharedPreferences.getInstance();
       final storedUserId = prefs.getString('userId');
       print('Retrieved userId from SharedPreferences: $storedUserId');
-      
+
       if (storedUserId != null && storedUserId.isNotEmpty) {
         setState(() {
           userId = storedUserId;
@@ -44,16 +44,20 @@ class _GCEventsPageState extends State<GCEventsPage> {
       print('Cannot load favorites: No valid userId');
       return;
     }
-    
+
     print('Starting to load favorites for user: $userId');
     try {
       for (var event in widget.events) {
         String eventId = event['_id'];
         print('Verifying favorite for event: $eventId');
-        
-        bool isFavorite = await FavoriteService.verifyFavorite('GC', eventId, userId!);
+
+        bool isFavorite = await FavoriteService.verifyFavorite(
+          'GC',
+          eventId,
+          userId!,
+        );
         print('Received favorite status for $eventId: $isFavorite');
-        
+
         if (mounted) {
           setState(() {
             favoriteStatus[eventId] = isFavorite;
@@ -67,7 +71,7 @@ class _GCEventsPageState extends State<GCEventsPage> {
 
   Future<void> _toggleFavorite(String eventId, bool currentStatus) async {
     if (userId == null) return;
-    
+
     bool success;
     if (currentStatus) {
       success = await FavoriteService.removeFavorite('GC', eventId, userId!);
@@ -130,6 +134,8 @@ class _GCEventsPageState extends State<GCEventsPage> {
                       event['venue'] ?? 'No Venue',
                       event['description'] ?? 'No Description',
                       event['_id'], // Add event ID parameter
+                      event['eventType'] ??
+                          'Event Type', // Add eventType parameter
                     );
                   },
                 ),
@@ -146,98 +152,131 @@ class _GCEventsPageState extends State<GCEventsPage> {
     String venue,
     String description,
     String eventId, // Add event ID parameter
+    String eventType, // Add eventType parameter
   ) {
     bool isFavorite = favoriteStatus[eventId] ?? false;
 
     return Card(
       elevation: 4.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.black, width: 2.0),
-          borderRadius: BorderRadius.circular(8.0),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.purple.shade200,
-              Colors.blue.shade200,
-              Colors.pink.shade100,
-            ],
-          ),
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
-        child: Column(
-          children: [
-            // Main Type and Type row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  MainType,
-                  style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  type,
-                  style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.bold),
-                ),
-              ],
+      child: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black, width: 2.0),
+              borderRadius: BorderRadius.circular(8.0),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.purple.shade200,
+                  Colors.blue.shade200,
+                  Colors.pink.shade100,
+                ],
+              ),
             ),
-            SizedBox(height: 4.0),
-
-            // Date and Time centered below
-            Column(
+            padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
+            child: Column(
               children: [
-                Text(
-                  date,
-                  style: TextStyle(
-                    fontSize: 13.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                // Main Type and Type row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      MainType,
+                      style: TextStyle(
+                        fontSize: 15.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      type,
+                      style: TextStyle(
+                        fontSize: 15.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4.0),
+
+                // Date and Time centered below
+                Column(
+                  children: [
+                    Text(
+                      date,
+                      style: TextStyle(
+                        fontSize: 13.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    Text(
+                      time,
+                      style: TextStyle(
+                        fontSize: 13.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4.0),
+
+                // Venue Box
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    'Venue: $venue',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                 ),
+                SizedBox(height: 4.0),
+
+                // Description
                 Text(
-                  time,
-                  style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),
+                  description,
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+
+                // Add Favorite Button as last child in Column
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    icon: Icon(
+                      isFavorite ? Icons.star : Icons.star_border,
+                      color: isFavorite ? Colors.yellow : null,
+                      size: 18,
+                    ),
+                    onPressed: () => _toggleFavorite(eventId, isFavorite),
+                  ),
                 ),
               ],
             ),
-            SizedBox(height: 4.0),
-
-            // Venue Box
-            Container(
+          ),
+          Positioned(
+            top: 8.0,
+            right: 8.0,
+            child: Container(
               padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
               decoration: BoxDecoration(
-                color: Colors.grey[200],
+                color: Colors.black,
                 borderRadius: BorderRadius.circular(5),
               ),
               child: Text(
-                'Venue: $venue',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-              ),
-            ),
-            SizedBox(height: 4.0),
-
-            // Description
-            Text(
-              description,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-            ),
-
-            // Add Favorite Button as last child in Column
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                icon: Icon(
-                  isFavorite ? Icons.star : Icons.star_border,
-                  color: isFavorite ? Colors.yellow : null,
-                  size: 18,
+                eventType,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12.0,
+                  fontWeight: FontWeight.bold,
                 ),
-                onPressed: () => _toggleFavorite(eventId, isFavorite),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

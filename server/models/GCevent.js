@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 const GCeventSchema = new mongoose.Schema({
     MainType: { type: String, required: true },
+    eventType: { type: String, required: true },
     type: { type: String, required: true },
     gender: { type: String, required: false },
     date: { type: Date, required: true },

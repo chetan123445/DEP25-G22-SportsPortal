@@ -3,10 +3,10 @@ import Team from '../models/Team.js';
 
 export const addIYSCevent = async (req, res) => {
     try {
-        const { gender, type, date, time, venue, description, winner, team1, team2, team1Details, team2Details } = req.body;
+        const { gender, eventType, type, date, time, venue, description, winner, team1, team2, team1Details, team2Details } = req.body;
 
         // Validate required fields
-        if (!gender || !type || !date || !time || !venue || !team1 || !team2) {
+        if (!gender || !eventType || !type || !date || !time || !venue || !team1 || !team2) {
             return res.status(400).json({ message: 'Missing required fields' });
         }
 
@@ -26,6 +26,7 @@ export const addIYSCevent = async (req, res) => {
 
         const newEvent = new IYSCevent({
             gender,
+            eventType,
             type,
             date,
             time,
