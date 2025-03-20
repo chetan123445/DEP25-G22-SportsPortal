@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'Profile.dart';
 import 'home.dart';
 import 'constants.dart'; // Import the constants file
+import 'FullImageScreen.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String email;
@@ -33,7 +34,6 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  File? _image;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _mobileNoController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
@@ -50,109 +50,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _degreeController.text = widget.degree;
     _departmentController.text = widget.department;
     _currentYearController.text = widget.currentYear;
-    if (widget.profilePicture != null) {
-      _image = File(widget.profilePicture!);
-    }
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
-    final pickedFile = await ImagePicker().pickImage(source: source);
-    if (pickedFile != null) {
-      setState(() {
-        _image = File(pickedFile.path);
-      });
-    }
-  }
-
-  Future<void> _removeProfilePic() async {
-    try {
-      final response = await http.patch(
-        Uri.parse('$baseUrl/remove-profile-pic'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': widget.email}),
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          _image = null;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Profile picture removed successfully')),
-        );
-      } else {
-        throw Exception('Failed to remove profile picture');
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error removing profile picture: $e')),
-      );
-    }
-  }
-
-  void _showImagePicker() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Wrap(
-          children: [
-            ListTile(
-              leading: Icon(Icons.camera),
-              title: Text('Take a Photo'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.photo_library),
-              title: Text('Choose from Gallery'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.gallery);
-              },
-            ),
-            if (_image != null) ...[
-              ListTile(
-                leading: Icon(Icons.delete),
-                title: Text('Remove Profile Picture'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _removeProfilePic();
-                },
-              ),
-            ],
-          ],
-        );
-      },
-    );
   }
 
   Future<void> _updateProfile() async {
     try {
-      // First upload the image if it exists
-      if (_image != null) {
-        var request = http.MultipartRequest(
-          'POST',
-          Uri.parse('$baseUrl/upload-profile-pic'),
-        );
-
-        request.fields['email'] = widget.email;
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'profilePic',
-            _image!.path,
-          ),
-        );
-
-        var streamedResponse = await request.send();
-        var imageResponse = await http.Response.fromStream(streamedResponse);
-
-        if (imageResponse.statusCode != 200) {
-          throw Exception('Failed to upload profile picture');
-        }
-      }
-
-      // Then update other profile information
       final Map<String, dynamic> updateData = {
         'email': widget.email,
         if (_nameController.text.isNotEmpty) 'name': _nameController.text,
@@ -160,7 +61,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         if (_dobController.text.isNotEmpty) 'DOB': _dobController.text,
         if (_degreeController.text.isNotEmpty) 'Degree': _degreeController.text,
         if (_departmentController.text.isNotEmpty) 'Department': _departmentController.text,
-        if (_currentYearController.text.isNotEmpty) 'CurrentYear': _currentYearController.text,
+        if (_currentYearController.text.isNotEmpty) 
+          'CurrentYear': int.tryParse(_currentYearController.text) ?? _currentYearController.text,
       };
 
       final response = await http.patch(
@@ -181,7 +83,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           (route) => false,
         );
       } else {
-        throw Exception('Failed to update profile');
+        final responseData = jsonDecode(response.body);
+        throw Exception(responseData['error']);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -233,31 +136,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             padding: EdgeInsets.symmetric(vertical: 20),
             child: Center(
-              child: Stack(
-                alignment: Alignment.bottomRight,
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundImage:
-                        _image != null
-                            ? FileImage(_image!)
-                            : AssetImage('assets/profile.png') // Fallback image
-                                as ImageProvider,
-                    backgroundColor: Colors.white,
-                  ),
-                  GestureDetector(
-                    onTap: _showImagePicker,
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundColor: Colors.black,
-                      child: Icon(
-                        Icons.camera_alt,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                    ),
-                  ),
-                ],
+              child: CircleAvatar(
+                radius: 50,
+                backgroundImage: AssetImage('assets/profile.png'), // Always show asset image
+                backgroundColor: Colors.white,
               ),
             ),
           ),
