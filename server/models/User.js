@@ -9,7 +9,17 @@ const userSchema = new mongoose.Schema({
     DOB: { type: Date, required: false },
     Degree: { type: String, required: false },
     Department: { type: String, required: false },
-    CurrentYear: { type: Number, required: false },
+    CurrentYear: { 
+        type: Number, 
+        required: false,
+        validate: {
+            validator: function(v) {
+                // Ensure the value is a number
+                return !isNaN(v);
+            },
+            message: 'CurrentYear must be a number'
+        }
+    },
     ProfilePic: { 
         type: String, 
         required: false,

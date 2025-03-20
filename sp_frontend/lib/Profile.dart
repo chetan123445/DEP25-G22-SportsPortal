@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'EditProfile.dart';
 import 'home.dart';
 import 'constants.dart'; // Import the constants file
+import 'FullImageScreen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String email; // Add email parameter
@@ -25,7 +26,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String department = "";
   String currentYear = "";
   String profilePic = ""; // Add profilePic variable
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _departmentController = TextEditingController();
+  final TextEditingController _degreeController = TextEditingController();
+  final TextEditingController _currentYearController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
 
   @override
   void initState() {
@@ -147,6 +153,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _updateProfile() async {
+    try {
+      final Map<String, dynamic> updateData = {
+        'email': widget.email,
+        if (_nameController.text.isNotEmpty) 'name': _nameController.text,
+        if (_phoneNumberController.text.isNotEmpty) 'mobileNo': _phoneNumberController.text,
+        if (_dobController.text.isNotEmpty) 'DOB': _dobController.text,
+        if (_degreeController.text.isNotEmpty) 'Degree': _degreeController.text,
+        if (_departmentController.text.isNotEmpty) 'Department': _departmentController.text,
+        if (_currentYearController.text.isNotEmpty) ...{
+          'CurrentYear': int.tryParse(_currentYearController.text) ?? _currentYearController.text
+        },
+      };
+
+      final response = await http.patch(
+        Uri.parse('$baseUrl/update-profile'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(updateData),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Profile updated successfully')),
+        );
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfileScreen(email: widget.email),
+          ),
+          (route) => false,
+        );
+      } else {
+        final responseData = jsonDecode(response.body);
+        throw Exception(responseData['error']);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating profile: $e')),
+      );
+    }
+  }
+
   void _showImagePicker() {
     showModalBottomSheet(
       context: context,
@@ -183,6 +231,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       },
     );
+  }
+
+  void _showFullImage() {
+    if (profilePic.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FullImageScreen(imageUrl: '$baseUrl/$profilePic'),
+        ),
+      );
+    }
   }
 
   @override
@@ -264,16 +323,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Stack(
                       alignment: Alignment.bottomRight,
                       children: [
-                        CircleAvatar(
-                          radius: 50,
-                          backgroundImage:
-                              _image != null
-                                  ? FileImage(_image!)
-                                  : profilePic.isNotEmpty
-                                  ? NetworkImage('$baseUrl/$profilePic')
-                                  : AssetImage('assets/profile.png') // Fallback image
-                                      as ImageProvider,
-                          backgroundColor: Colors.white,
+                        GestureDetector(
+                          onTap: _showFullImage,
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundImage:
+                                _image != null
+                                    ? FileImage(_image!)
+                                    : profilePic.isNotEmpty
+                                    ? NetworkImage('$baseUrl/$profilePic')
+                                    : AssetImage('assets/profile.png') // Fallback image
+                                        as ImageProvider,
+                            backgroundColor: Colors.white,
+                          ),
                         ),
                         GestureDetector(
                           onTap: _showImagePicker,
@@ -344,6 +406,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           decoration: InputDecoration(
                             hintText: "Enter your mobile number",
                           ),
+                          readOnly: true, // Make the field read-only
                         ),
                         SizedBox(height: 10),
                       ],

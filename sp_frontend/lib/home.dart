@@ -298,7 +298,7 @@ class HomePage extends StatelessWidget {
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Image.asset('lib/pngsport.png', fit: BoxFit.cover),
+                  child: Image.asset('assets/pngsport.png', fit: BoxFit.cover),
                 ),
               ),
             ),
