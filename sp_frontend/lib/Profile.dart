@@ -7,6 +7,7 @@ import 'EditProfile.dart';
 import 'home.dart';
 import 'constants.dart'; // Import the constants file
 import 'FullImageScreen.dart';
+import 'package:jwt_decoder/jwt_decoder.dart'; // Import jwt_decoder package
 
 class ProfileScreen extends StatefulWidget {
   final String email; // Add email parameter
@@ -26,6 +27,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String department = "";
   String currentYear = "";
   String profilePic = ""; // Add profilePic variable
+  bool isAdmin = false; // Add isAdmin variable
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _departmentController = TextEditingController();
@@ -37,6 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _fetchProfileData();
+    _checkAdminStatus(); // Check admin status
   }
 
   Future<void> _fetchProfileData() async {
@@ -75,6 +78,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching profile data: $e')),
+      );
+    }
+  }
+
+  Future<void> _checkAdminStatus() async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/verify-admin'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({'email': widget.email}),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        String token = data['token'];
+        Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+        setState(() {
+          isAdmin = decodedToken['isAdmin'] ?? false;
+        });
+      } else {
+        throw Exception('Failed to verify admin status');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error verifying admin status: $e')),
       );
     }
   }
@@ -477,6 +506,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           readOnly: true,
                         ),
                         SizedBox(height: 20),
+                      ],
+                      if (isAdmin) ...[
+                        SizedBox(height: 20),
+                        Text(
+                          "Admin",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.teal,
+                          ),
+                        ),
+                        Card(
+                          elevation: 5,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: ListTile(
+                            leading: Icon(Icons.admin_panel_settings, color: Colors.teal),
+                            title: Text(
+                              'Admin Dashboard',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.teal,
+                              ),
+                            ),
+                            trailing: Icon(Icons.arrow_forward, color: Colors.teal),
+                            onTap: () {
+                              // Navigate to Admin Dashboard
+                            },
+                          ),
+                        ),
                       ],
                     ],
                   ),
