@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'services/favorite_service.dart';
+import 'dart:async'; // Add this import for blinking animation
 // Add any authentication imports here
 
 class IYSCEventsPage extends StatefulWidget {
@@ -15,11 +16,26 @@ class IYSCEventsPage extends StatefulWidget {
 class _IYSCEventsPageState extends State<IYSCEventsPage> {
   Map<String, bool> favoriteStatus = {};
   String? userId;
+  String _searchQuery = ''; // Add search query state
+  bool _isBlinking = true; // Add blinking state
 
   @override
   void initState() {
     super.initState();
+    _startBlinking(); // Start blinking animation
     _getUserIdAndLoadFavorites();
+  }
+
+  void _startBlinking() {
+    Timer.periodic(Duration(milliseconds: 500), (timer) {
+      if (!mounted) {
+        timer.cancel();
+      } else {
+        setState(() {
+          _isBlinking = !_isBlinking;
+        });
+      }
+    });
   }
 
   Future<void> _getUserIdAndLoadFavorites() async {
@@ -98,6 +114,19 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final filteredEvents =
+        widget.events.where((event) {
+          final query = _searchQuery.toLowerCase();
+          return (event['gender']?.toLowerCase() ==
+                  query) || // Exact match for gender
+              (event['date'] ?? '').toLowerCase().contains(query) ||
+              (event['time'] ?? '').toLowerCase().contains(query) ||
+              (event['team1'] ?? '').toLowerCase().contains(query) ||
+              (event['team2'] ?? '').toLowerCase().contains(query) ||
+              (event['venue'] ?? '').toLowerCase().contains(query) ||
+              (event['type'] ?? '').toLowerCase().contains(query);
+        }).toList();
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight + 50),
@@ -126,29 +155,53 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child:
-            widget.events.isEmpty
-                ? Center(child: Text('No events available'))
-                : ListView.builder(
-                  itemCount: widget.events.length,
-                  itemBuilder: (context, index) {
-                    final event = widget.events[index];
-                    return _buildEventCard(
-                      context,
-                      event['team1'] ?? 'Team 1',
-                      event['team2'] ?? 'Team 2',
-                      event['date']?.split('T')[0] ?? 'No Date',
-                      event['time'] ?? 'No Time',
-                      event['type'] ?? 'No Type',
-                      event['gender'] ?? 'Unknown',
-                      event['venue'] ?? 'No Venue',
-                      event['_id'], // Pass the event ID
-                      event['eventType'] ?? 'Unknown', // Pass the eventType
-                    );
-                  },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Search by gender, date, time, teams and Venue...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child:
+                  filteredEvents.isEmpty
+                      ? Center(child: Text('No events match your search'))
+                      : ListView.builder(
+                        itemCount: filteredEvents.length,
+                        itemBuilder: (context, index) {
+                          final event = filteredEvents[index];
+                          return _buildEventCard(
+                            context,
+                            event['team1'] ?? 'Team 1',
+                            event['team2'] ?? 'Team 2',
+                            event['date']?.split('T')[0] ?? 'No Date',
+                            event['time'] ?? 'No Time',
+                            event['type'] ?? 'No Type',
+                            event['gender'] ?? 'Unknown',
+                            event['venue'] ?? 'No Venue',
+                            event['_id'], // Pass the event ID
+                            event['eventType'] ??
+                                'Unknown', // Pass the eventType
+                          );
+                        },
+                      ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -166,6 +219,11 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
     String eventType, // Add eventType parameter
   ) {
     bool isFavorite = favoriteStatus[eventId] ?? false;
+    bool isLive =
+        date ==
+        DateTime.now().toIso8601String().split(
+          'T',
+        )[0]; // Check if the event is live
 
     return Card(
       elevation: 3.0,
@@ -191,8 +249,30 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
               horizontal: 8.0,
             ), // Reduced padding
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // Event Type at the top center
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 6.0,
+                      vertical: 3.0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: Text(
+                      eventType,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 4.0), // Add spacing below eventType
                 // Teams Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -300,25 +380,23 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
               ],
             ),
           ),
-          Positioned(
-            top: 8.0,
-            right: 8.0,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: Text(
-                eventType,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12.0,
-                  fontWeight: FontWeight.bold,
+          if (isLive) // Add red blinking circle for live events
+            Positioned(
+              bottom: 8.0,
+              left: 8.0, // Change from right to left
+              child: AnimatedOpacity(
+                opacity: _isBlinking ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Container(
+                  width: 12.0,
+                  height: 12.0,
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:async'; // Add this import for blinking animation
 import 'constants.dart';
 import 'services/favorite_service.dart';
 
@@ -15,11 +16,26 @@ class _BasketBrawlPageState extends State<BasketBrawlPage> {
   bool isLoading = true;
   Map<String, bool> favoriteStatus = {};
   String? userId;
+  String _searchQuery = ''; // Add search query state
+  bool _isBlinking = true; // Add blinking state
 
   @override
   void initState() {
     super.initState();
+    _startBlinking(); // Start blinking animation
     _initializeData();
+  }
+
+  void _startBlinking() {
+    Timer.periodic(Duration(milliseconds: 500), (timer) {
+      if (!mounted) {
+        timer.cancel();
+      } else {
+        setState(() {
+          _isBlinking = !_isBlinking;
+        });
+      }
+    });
   }
 
   Future<void> _initializeData() async {
@@ -133,6 +149,19 @@ class _BasketBrawlPageState extends State<BasketBrawlPage> {
 
   @override
   Widget build(BuildContext context) {
+    final filteredEvents =
+        events.where((event) {
+          final query = _searchQuery.toLowerCase();
+          return (event['gender']?.toLowerCase() ==
+                  query) || // Exact match for gender
+              (event['date'] ?? '').toLowerCase().contains(query) ||
+              (event['time'] ?? '').toLowerCase().contains(query) ||
+              (event['team1'] ?? '').toLowerCase().contains(query) ||
+              (event['team2'] ?? '').toLowerCase().contains(query) ||
+              (event['venue'] ?? '').toLowerCase().contains(query) ||
+              (event['type'] ?? '').toLowerCase().contains(query);
+        }).toList();
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight),
@@ -161,34 +190,54 @@ class _BasketBrawlPageState extends State<BasketBrawlPage> {
           ),
         ),
       ),
-      body:
-          isLoading
-              ? Center(child: CircularProgressIndicator())
-              : Padding(
-                padding: const EdgeInsets.all(8.0),
-                child:
-                    events.isEmpty
-                        ? Center(child: Text('No basketball matches available'))
-                        : ListView.builder(
-                          itemCount: events.length,
-                          itemBuilder: (context, index) {
-                            final event = events[index];
-                            return _buildEventCard(
-                              context,
-                              event['team1'] ?? 'Team 1',
-                              event['team2'] ?? 'Team 2',
-                              event['date']?.split('T')[0] ?? 'No Date',
-                              event['time'] ?? 'No Time',
-                              event['type'] ?? 'No Type',
-                              event['gender'] ?? 'Unknown',
-                              event['venue'] ?? 'No Venue',
-                              event['_id'], // Pass the event ID
-                              event['eventType'] ??
-                                  'No Type', // Pass the eventType
-                            );
-                          },
-                        ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Search by gender, date, time, teams and Venue...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
               ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+            ),
+          ),
+          Expanded(
+            child:
+                isLoading
+                    ? Center(child: CircularProgressIndicator())
+                    : filteredEvents.isEmpty
+                    ? Center(
+                      child: Text('No basketball matches match your search'),
+                    )
+                    : ListView.builder(
+                      itemCount: filteredEvents.length,
+                      itemBuilder: (context, index) {
+                        final event = filteredEvents[index];
+                        return _buildEventCard(
+                          context,
+                          event['team1'] ?? 'Team 1',
+                          event['team2'] ?? 'Team 2',
+                          event['date']?.split('T')[0] ?? 'No Date',
+                          event['time'] ?? 'No Time',
+                          event['type'] ?? 'No Type',
+                          event['gender'] ?? 'Unknown',
+                          event['venue'] ?? 'No Venue',
+                          event['_id'], // Pass the event ID
+                          event['eventType'] ?? 'No Type', // Pass the eventType
+                        );
+                      },
+                    ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -205,6 +254,11 @@ class _BasketBrawlPageState extends State<BasketBrawlPage> {
     String eventType, // Add eventType parameter
   ) {
     bool isFavorite = favoriteStatus[eventId] ?? false;
+    bool isLive =
+        date ==
+        DateTime.now().toIso8601String().split(
+          'T',
+        )[0]; // Check if the event is live
 
     return Card(
       elevation: 4.0,
@@ -231,6 +285,29 @@ class _BasketBrawlPageState extends State<BasketBrawlPage> {
             ), // Reduced padding
             child: Column(
               children: [
+                // Event Type at the top center
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 6.0,
+                      vertical: 3.0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: Text(
+                      eventType,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 4.0), // Add spacing below eventType
                 // Teams Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -336,25 +413,23 @@ class _BasketBrawlPageState extends State<BasketBrawlPage> {
               ],
             ),
           ),
-          Positioned(
-            top: 8.0,
-            right: 8.0,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: Text(
-                eventType,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12.0,
-                  fontWeight: FontWeight.bold,
+          if (isLive) // Add red blinking circle for live events
+            Positioned(
+              bottom: 8.0,
+              left: 8.0, // Change from right to left
+              child: AnimatedOpacity(
+                opacity: _isBlinking ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Container(
+                  width: 12.0,
+                  height: 12.0,
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );

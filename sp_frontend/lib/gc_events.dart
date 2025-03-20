@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'services/favorite_service.dart';
+import 'dart:async'; // Add this import for blinking animation
 
 class GCEventsPage extends StatefulWidget {
   final List<dynamic> events;
@@ -13,11 +14,25 @@ class GCEventsPage extends StatefulWidget {
 class _GCEventsPageState extends State<GCEventsPage> {
   Map<String, bool> favoriteStatus = {};
   String? userId;
+  bool _isBlinking = true; // Add blinking state
 
   @override
   void initState() {
     super.initState();
+    _startBlinking(); // Start blinking animation
     _getUserIdAndLoadFavorites();
+  }
+
+  void _startBlinking() {
+    Timer.periodic(Duration(milliseconds: 500), (timer) {
+      if (!mounted) {
+        timer.cancel();
+      } else {
+        setState(() {
+          _isBlinking = !_isBlinking;
+        });
+      }
+    });
   }
 
   Future<void> _getUserIdAndLoadFavorites() async {
@@ -155,6 +170,11 @@ class _GCEventsPageState extends State<GCEventsPage> {
     String eventType, // Add eventType parameter
   ) {
     bool isFavorite = favoriteStatus[eventId] ?? false;
+    bool isLive =
+        date ==
+        DateTime.now().toIso8601String().split(
+          'T',
+        )[0]; // Check if the event is live
 
     return Card(
       elevation: 4.0,
@@ -178,6 +198,29 @@ class _GCEventsPageState extends State<GCEventsPage> {
             padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
             child: Column(
               children: [
+                // Event Type at the top center
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 6.0,
+                      vertical: 3.0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: Text(
+                      eventType,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 4.0), // Add spacing below eventType
                 // Main Type and Type row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -257,25 +300,23 @@ class _GCEventsPageState extends State<GCEventsPage> {
               ],
             ),
           ),
-          Positioned(
-            top: 8.0,
-            right: 8.0,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: Text(
-                eventType,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12.0,
-                  fontWeight: FontWeight.bold,
+          if (isLive) // Add red blinking circle for live events
+            Positioned(
+              bottom: 8.0,
+              left: 8.0, // Change from right to left
+              child: AnimatedOpacity(
+                opacity: _isBlinking ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: Container(
+                  width: 12.0,
+                  height: 12.0,
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );

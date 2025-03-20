@@ -6,9 +6,41 @@ import 'dart:convert';
 import 'iysc_events_page.dart'; // Import the new IYSCEventsPage
 import 'constants.dart'; // Import the baseUrl
 
-class IYSCPage extends StatelessWidget {
+class IYSCPage extends StatefulWidget {
+  @override
+  _IYSCPageState createState() => _IYSCPageState();
+}
+
+class _IYSCPageState extends State<IYSCPage> {
+  TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
   @override
   Widget build(BuildContext context) {
+    final events = [
+      {'icon': Icons.sports_cricket, 'title': 'Cricket'},
+      {'icon': Icons.sports_soccer, 'title': 'Football'},
+      {'icon': Icons.sports_tennis, 'title': 'Table Tennis'},
+      {'icon': Icons.sports_tennis, 'title': 'Tennis'},
+      {'icon': Icons.sports_hockey, 'title': 'Hockey'},
+      {'icon': Icons.directions_run, 'title': 'Field Athletics'},
+      {'icon': FontAwesomeIcons.dumbbell, 'title': 'Weightlifting'},
+      {'icon': FontAwesomeIcons.weight, 'title': 'Powerlifting'},
+      {'icon': FontAwesomeIcons.chess, 'title': 'Chess'},
+      {'icon': FontAwesomeIcons.feather, 'title': 'Badminton'},
+      {'icon': FontAwesomeIcons.basketballBall, 'title': 'Basketball'},
+      {'icon': FontAwesomeIcons.volleyballBall, 'title': 'Volleyball'},
+    ];
+
+    final filteredEvents =
+        events
+            .where(
+              (event) => (event['title'] as String).toLowerCase().contains(
+                _searchQuery.toLowerCase(),
+              ),
+            )
+            .toList();
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight),
@@ -37,92 +69,73 @@ class IYSCPage extends StatelessWidget {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 8.0,
-          mainAxisSpacing: 8.0,
-          children: [
-            _buildEventCard(
-              context,
-              Icons.sports_cricket,
-              'Cricket',
-              onTap: () => _fetchIYSCEvents(context, 'Cricket'),
-            ),
-            _buildEventCard(
-              context,
-              Icons.sports_soccer,
-              'Football',
-              onTap: () => _fetchIYSCEvents(context, 'Football'),
-            ),
-            _buildEventCard(
-              context,
-              Icons.sports_tennis,
-              'Table Tennis',
-              onTap: () => _fetchIYSCEvents(context, 'Table Tennis'),
-            ),
-            _buildEventCard(
-              context,
-              Icons.sports_tennis,
-              'Tennis',
-              onTap: () => _fetchIYSCEvents(context, 'Tennis'),
-            ),
-            _buildEventCard(
-              context,
-              Icons.sports_hockey,
-              'Hockey',
-              onTap: () => _fetchIYSCEvents(context, 'Hockey'),
-            ),
-            _buildEventCard(
-              context,
-              Icons.directions_run,
-              'Field Athletics',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => FieldAthleticsPage()),
-                );
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search your Sport',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
               },
             ),
-            _buildEventCard(
-              context,
-              FontAwesomeIcons.dumbbell,
-              'Weightlifting',
-              onTap: () => _fetchIYSCEvents(context, 'Weightlifting'),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child:
+                  filteredEvents.isEmpty
+                      ? Center(
+                        child: Text(
+                          'No such sport found',
+                          style: TextStyle(
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      )
+                      : GridView.count(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 8.0,
+                        mainAxisSpacing: 8.0,
+                        children:
+                            filteredEvents.map((event) {
+                              return _buildEventCard(
+                                context,
+                                event['icon'] as IconData,
+                                event['title'] as String,
+                                onTap: () {
+                                  if (event['title'] == 'Field Athletics') {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => FieldAthleticsPage(),
+                                      ),
+                                    );
+                                  } else {
+                                    _fetchIYSCEvents(
+                                      context,
+                                      event['title'] as String,
+                                    );
+                                  }
+                                },
+                              );
+                            }).toList(),
+                      ),
             ),
-            _buildEventCard(
-              context,
-              FontAwesomeIcons.weight,
-              'Powerlifting',
-              onTap: () => _fetchIYSCEvents(context, 'Powerlifting'),
-            ),
-            _buildEventCard(
-              context,
-              FontAwesomeIcons.chess,
-              'Chess',
-              onTap: () => _fetchIYSCEvents(context, 'Chess'),
-            ),
-            _buildEventCard(
-              context,
-              FontAwesomeIcons.feather,
-              'Badminton',
-              onTap: () => _fetchIYSCEvents(context, 'Badminton'),
-            ), // Badminton icon
-            _buildEventCard(
-              context,
-              FontAwesomeIcons.basketballBall,
-              'Basketball',
-              onTap: () => _fetchIYSCEvents(context, 'Basketball'),
-            ), // Basketball icon
-            _buildEventCard(
-              context,
-              FontAwesomeIcons.volleyballBall,
-              'Volleyball',
-              onTap: () => _fetchIYSCEvents(context, 'Volleyball'),
-            ), // Volleyball icon
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
