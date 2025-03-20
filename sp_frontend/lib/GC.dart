@@ -6,9 +6,34 @@ import 'dart:convert';
 import 'gc_events.dart';
 import 'constants.dart';
 
-class GCPage extends StatelessWidget {
+class GCPage extends StatefulWidget {
+  @override
+  _GCPageState createState() => _GCPageState();
+}
+
+class _GCPageState extends State<GCPage> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
   @override
   Widget build(BuildContext context) {
+    final events = [
+      {'icon': FontAwesomeIcons.gamepad, 'title': 'eSports'},
+      {'icon': FontAwesomeIcons.masksTheater, 'title': 'cultural'},
+      {'icon': FontAwesomeIcons.microchip, 'title': 'technical'},
+      {'icon': FontAwesomeIcons.bookOpen, 'title': 'literary'},
+      {'icon': FontAwesomeIcons.futbol, 'title': 'sports'},
+    ];
+
+    final filteredEvents =
+        events
+            .where(
+              (event) => (event['title'] as String).toLowerCase().contains(
+                _searchQuery.toLowerCase(),
+              ),
+            )
+            .toList();
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight),
@@ -37,45 +62,50 @@ class GCPage extends StatelessWidget {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 8.0,
-          mainAxisSpacing: 8.0,
-          children: [
-            _buildEventCard(
-              context,
-              FontAwesomeIcons.gamepad,
-              'eSports',
-              onTap: () => _fetchGCEvents(context, 'eSports'),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Search your Event',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
             ),
-            _buildEventCard(
-              context,
-              FontAwesomeIcons.masksTheater,
-              'cultural',
-              onTap: () => _fetchGCEvents(context, 'cultural'),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 8.0,
+                mainAxisSpacing: 8.0,
+                children:
+                    filteredEvents.map((event) {
+                      return _buildEventCard(
+                        context,
+                        event['icon'] as IconData,
+                        event['title'] as String,
+                        onTap:
+                            () => _fetchGCEvents(
+                              context,
+                              event['title'] as String,
+                            ),
+                      );
+                    }).toList(),
+              ),
             ),
-            _buildEventCard(
-              context,
-              FontAwesomeIcons.microchip,
-              'technical',
-              onTap: () => _fetchGCEvents(context, 'technical'),
-            ),
-            _buildEventCard(
-              context,
-              FontAwesomeIcons.bookOpen,
-              'literary',
-              onTap: () => _fetchGCEvents(context, 'literary'),
-            ),
-            _buildEventCard(
-              context,
-              FontAwesomeIcons.futbol,
-              'sports',
-              onTap: () => _fetchGCEvents(context, 'sports'),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

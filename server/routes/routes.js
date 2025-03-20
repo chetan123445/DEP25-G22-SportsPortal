@@ -16,6 +16,7 @@ import { addFavouriteEvent } from '../controllers/addFavouriteEvent.js';
 import { removeFavouriteEvent } from '../controllers/removeFavouriteEvent.js';
 import { verifyFavouriteEvent } from '../controllers/verifyFavouriteEvent.js';
 import { getFavouriteEvent } from '../controllers/getFavouriteEvent.js';
+import { getTeamDetails } from '../controllers/teamController.js'; // Import the new controller
 
 const router = express.Router();
 
@@ -55,5 +56,7 @@ router.get("/get-favourite-events", getFavouriteEvent);
 
 router.post("/upload-profile-pic", upload.single('profilePic'), uploadProfilePic);
 router.patch("/remove-profile-pic", removeProfilePic);
+
+router.get("/get-team-details/:teamId", getTeamDetails); // Add route for fetching team details
 
 export default router;

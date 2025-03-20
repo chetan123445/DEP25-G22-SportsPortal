@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'services/favorite_service.dart';
-import 'dart:async'; // Add this import for blinking animation
 
 class GCEventsPage extends StatefulWidget {
   final List<dynamic> events;
@@ -14,25 +13,12 @@ class GCEventsPage extends StatefulWidget {
 class _GCEventsPageState extends State<GCEventsPage> {
   Map<String, bool> favoriteStatus = {};
   String? userId;
-  bool _isBlinking = true; // Add blinking state
+  String _searchQuery = ''; // Add search query state
 
   @override
   void initState() {
     super.initState();
-    _startBlinking(); // Start blinking animation
     _getUserIdAndLoadFavorites();
-  }
-
-  void _startBlinking() {
-    Timer.periodic(Duration(milliseconds: 500), (timer) {
-      if (!mounted) {
-        timer.cancel();
-      } else {
-        setState(() {
-          _isBlinking = !_isBlinking;
-        });
-      }
-    });
   }
 
   Future<void> _getUserIdAndLoadFavorites() async {
@@ -103,6 +89,15 @@ class _GCEventsPageState extends State<GCEventsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final filteredEvents =
+        widget.events.where((event) {
+          final query = _searchQuery.toLowerCase();
+          return (event['type'] ?? '').toLowerCase().contains(query) ||
+              (event['time'] ?? '').toLowerCase().contains(query) ||
+              (event['date'] ?? '').toLowerCase().contains(query) ||
+              (event['venue'] ?? '').toLowerCase().contains(query);
+        }).toList();
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight + 50),
@@ -131,29 +126,50 @@ class _GCEventsPageState extends State<GCEventsPage> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child:
-            widget.events.isEmpty
-                ? Center(child: Text('No events available'))
-                : ListView.builder(
-                  itemCount: widget.events.length,
-                  itemBuilder: (context, index) {
-                    final event = widget.events[index];
-                    return _buildEventCard(
-                      context,
-                      event['MainType'] ?? 'Main Type',
-                      event['type'] ?? 'Type',
-                      event['date']?.split('T')[0] ?? 'No Date',
-                      event['time'] ?? 'No Time',
-                      event['venue'] ?? 'No Venue',
-                      event['description'] ?? 'No Description',
-                      event['_id'], // Add event ID parameter
-                      event['eventType'] ??
-                          'Event Type', // Add eventType parameter
-                    );
-                  },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Search by type, time, date, or venue...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child:
+                  filteredEvents.isEmpty
+                      ? Center(child: Text('No events match your search'))
+                      : ListView.builder(
+                        itemCount: filteredEvents.length,
+                        itemBuilder: (context, index) {
+                          final event = filteredEvents[index];
+                          return _buildEventCard(
+                            context,
+                            event['MainType'] ?? 'Main Type',
+                            event['type'] ?? 'Type',
+                            event['date']?.split('T')[0] ?? 'No Date',
+                            event['time'] ?? 'No Time',
+                            event['venue'] ?? 'No Venue',
+                            event['description'] ?? 'No Description',
+                            event['_id'], // Add event ID parameter
+                          );
+                        },
+                      ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -167,157 +183,98 @@ class _GCEventsPageState extends State<GCEventsPage> {
     String venue,
     String description,
     String eventId, // Add event ID parameter
-    String eventType, // Add eventType parameter
   ) {
     bool isFavorite = favoriteStatus[eventId] ?? false;
-    bool isLive =
-        date ==
-        DateTime.now().toIso8601String().split(
-          'T',
-        )[0]; // Check if the event is live
 
     return Card(
       elevation: 4.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-      child: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black, width: 2.0),
-              borderRadius: BorderRadius.circular(8.0),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.purple.shade200,
-                  Colors.blue.shade200,
-                  Colors.pink.shade100,
-                ],
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
-            child: Column(
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black, width: 2.0),
+          borderRadius: BorderRadius.circular(8.0),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.purple.shade200,
+              Colors.blue.shade200,
+              Colors.pink.shade100,
+            ],
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
+        child: Column(
+          children: [
+            // Main Type and Type row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Event Type at the top center
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 6.0,
-                      vertical: 3.0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Text(
-                      eventType,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 4.0), // Add spacing below eventType
-                // Main Type and Type row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      MainType,
-                      style: TextStyle(
-                        fontSize: 15.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      type,
-                      style: TextStyle(
-                        fontSize: 15.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 4.0),
-
-                // Date and Time centered below
-                Column(
-                  children: [
-                    Text(
-                      date,
-                      style: TextStyle(
-                        fontSize: 13.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    Text(
-                      time,
-                      style: TextStyle(
-                        fontSize: 13.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 4.0),
-
-                // Venue Box
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Text(
-                    'Venue: $venue',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                SizedBox(height: 4.0),
-
-                // Description
                 Text(
-                  description,
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  MainType,
+                  style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.bold),
                 ),
-
-                // Add Favorite Button as last child in Column
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: IconButton(
-                    icon: Icon(
-                      isFavorite ? Icons.star : Icons.star_border,
-                      color: isFavorite ? Colors.yellow : null,
-                      size: 18,
-                    ),
-                    onPressed: () => _toggleFavorite(eventId, isFavorite),
-                  ),
+                Text(
+                  type,
+                  style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
-          ),
-          if (isLive) // Add red blinking circle for live events
-            Positioned(
-              bottom: 8.0,
-              left: 8.0, // Change from right to left
-              child: AnimatedOpacity(
-                opacity: _isBlinking ? 1.0 : 0.0,
-                duration: Duration(milliseconds: 500),
-                child: Container(
-                  width: 12.0,
-                  height: 12.0,
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
+            SizedBox(height: 4.0),
+
+            // Date and Time centered below
+            Column(
+              children: [
+                Text(
+                  date,
+                  style: TextStyle(
+                    fontSize: 13.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                 ),
+                Text(
+                  time,
+                  style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            SizedBox(height: 4.0),
+
+            // Venue Box
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: Text(
+                'Venue: $venue',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
               ),
             ),
-        ],
+            SizedBox(height: 4.0),
+
+            // Description
+            Text(
+              description,
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+            ),
+
+            // Add Favorite Button as last child in Column
+            Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                icon: Icon(
+                  isFavorite ? Icons.star : Icons.star_border,
+                  color: isFavorite ? Colors.yellow : null,
+                  size: 18,
+                ),
+                onPressed: () => _toggleFavorite(eventId, isFavorite),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
