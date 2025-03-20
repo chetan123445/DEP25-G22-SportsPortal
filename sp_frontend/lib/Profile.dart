@@ -85,30 +85,64 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _uploadProfilePic(File image) async {
     try {
-      final request = http.MultipartRequest(
+      var request = http.MultipartRequest(
         'POST',
-        Uri.parse('$baseUrl/uploadProfilePic'),
-      );
-      request.fields['email'] = widget.email;
-      request.files.add(
-        await http.MultipartFile.fromPath('profilePic', image.path),
+        Uri.parse('$baseUrl/upload-profile-pic'),
       );
 
-      final response = await request.send();
+      request.fields['email'] = widget.email;
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'profilePic',
+          image.path,
+        ),
+      );
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
       if (response.statusCode == 200) {
-        final responseData = await response.stream.bytesToString();
-        final data = json.decode(responseData);
+        var data = json.decode(response.body);
         setState(() {
           profilePic = data['data']['ProfilePic'];
         });
-      } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to upload profile picture')),
+          SnackBar(content: Text('Profile picture uploaded successfully')),
         );
+        // Refresh profile data
+        _fetchProfileData();
+      } else {
+        throw Exception('Failed to upload profile picture');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error uploading profile picture: $e')),
+      );
+    }
+  }
+
+  Future<void> _removeProfilePic() async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$baseUrl/remove-profile-pic'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': widget.email}),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          profilePic = '';
+          _image = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Profile picture removed successfully')),
+        );
+      } else {
+        throw Exception('Failed to remove profile picture');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error removing profile picture: $e')),
       );
     }
   }
@@ -135,6 +169,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _pickImage(ImageSource.gallery);
               },
             ),
+            if (profilePic.isNotEmpty || _image != null) ...[
+              ListTile(
+                leading: Icon(Icons.delete),
+                title: Text('Remove Profile Picture'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _removeProfilePic();
+                },
+              ),
+            ],
           ],
         );
       },
@@ -227,7 +271,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ? FileImage(_image!)
                                   : profilePic.isNotEmpty
                                   ? NetworkImage('$baseUrl/$profilePic')
-                                  : AssetImage('assets/profile.png')
+                                  : AssetImage('assets/profile.png') // Fallback image
                                       as ImageProvider,
                           backgroundColor: Colors.white,
                         ),

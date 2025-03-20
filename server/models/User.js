@@ -10,7 +10,19 @@ const userSchema = new mongoose.Schema({
     Degree: { type: String, required: false },
     Department: { type: String, required: false },
     CurrentYear: { type: Number, required: false },
-    ProfilePic: { type: String, required: false },
+    ProfilePic: { 
+        type: String, 
+        required: false,
+        validate: {
+            validator: function(v) {
+                // Allow null/empty values since it's not required
+                if (!v) return true;
+                // Basic path validation
+                return v.match(/^uploads\/.*\.(jpg|jpeg|png|gif)$/i);
+            },
+            message: 'Invalid profile picture path format'
+        }
+    },
 });
 
 const User = mongoose.model('User', userSchema);

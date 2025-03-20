@@ -64,6 +64,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  Future<void> _removeProfilePic() async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$baseUrl/remove-profile-pic'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': widget.email}),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _image = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Profile picture removed successfully')),
+        );
+      } else {
+        throw Exception('Failed to remove profile picture');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error removing profile picture: $e')),
+      );
+    }
+  }
+
   void _showImagePicker() {
     showModalBottomSheet(
       context: context,
@@ -86,6 +111,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 _pickImage(ImageSource.gallery);
               },
             ),
+            if (_image != null) ...[
+              ListTile(
+                leading: Icon(Icons.delete),
+                title: Text('Remove Profile Picture'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _removeProfilePic();
+                },
+              ),
+            ],
           ],
         );
       },
@@ -94,52 +129,64 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _updateProfile() async {
     try {
-      final Map<String, dynamic> updateData = {'email': widget.email};
+      // First upload the image if it exists
+      if (_image != null) {
+        var request = http.MultipartRequest(
+          'POST',
+          Uri.parse('$baseUrl/upload-profile-pic'),
+        );
 
-      if (_nameController.text.isNotEmpty)
-        updateData['name'] = _nameController.text;
-      if (_mobileNoController.text.isNotEmpty)
-        updateData['mobileNo'] = _mobileNoController.text;
-      if (_dobController.text.isNotEmpty)
-        updateData['DOB'] = _dobController.text;
-      if (_degreeController.text.isNotEmpty)
-        updateData['Degree'] = _degreeController.text;
-      if (_departmentController.text.isNotEmpty)
-        updateData['Department'] = _departmentController.text;
-      if (_currentYearController.text.isNotEmpty)
-        updateData['CurrentYear'] = _currentYearController.text;
-      if (_image != null) updateData['profilePicture'] = _image!.path;
+        request.fields['email'] = widget.email;
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'profilePic',
+            _image!.path,
+          ),
+        );
+
+        var streamedResponse = await request.send();
+        var imageResponse = await http.Response.fromStream(streamedResponse);
+
+        if (imageResponse.statusCode != 200) {
+          throw Exception('Failed to upload profile picture');
+        }
+      }
+
+      // Then update other profile information
+      final Map<String, dynamic> updateData = {
+        'email': widget.email,
+        if (_nameController.text.isNotEmpty) 'name': _nameController.text,
+        if (_mobileNoController.text.isNotEmpty) 'mobileNo': _mobileNoController.text,
+        if (_dobController.text.isNotEmpty) 'DOB': _dobController.text,
+        if (_degreeController.text.isNotEmpty) 'Degree': _degreeController.text,
+        if (_departmentController.text.isNotEmpty) 'Department': _departmentController.text,
+        if (_currentYearController.text.isNotEmpty) 'CurrentYear': _currentYearController.text,
+      };
 
       final response = await http.patch(
-        Uri.parse(
-          '$baseUrl/update-profile', // Use baseUrl for the endpoint
-        ),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
+        Uri.parse('$baseUrl/update-profile'),
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode(updateData),
       );
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Profile updated successfully')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Profile updated successfully')),
+        );
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
             builder: (context) => ProfileScreen(email: widget.email),
           ),
-          (route) => route.isFirst,
+          (route) => false,
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update profile: ${response.body}')),
-        );
+        throw Exception('Failed to update profile');
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error updating profile: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating profile: $e')),
+      );
     }
   }
 
@@ -194,7 +241,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     backgroundImage:
                         _image != null
                             ? FileImage(_image!)
-                            : AssetImage('assets/profile_pic.png')
+                            : AssetImage('assets/profile.png') // Fallback image
                                 as ImageProvider,
                     backgroundColor: Colors.white,
                   ),
