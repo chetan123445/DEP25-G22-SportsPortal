@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'services/favorite_service.dart';
+import 'participants_page.dart'; // Import ParticipantsPage
 
 class GCEventsPage extends StatefulWidget {
   final List<dynamic> events;
@@ -14,11 +15,13 @@ class _GCEventsPageState extends State<GCEventsPage> {
   Map<String, bool> favoriteStatus = {};
   String? userId;
   String _searchQuery = ''; // Add search query state
+  bool _isBlinking = true; // Add blinking state
 
   @override
   void initState() {
     super.initState();
     _getUserIdAndLoadFavorites();
+    _startBlinking(); // Start blinking animation
   }
 
   Future<void> _getUserIdAndLoadFavorites() async {
@@ -85,6 +88,17 @@ class _GCEventsPageState extends State<GCEventsPage> {
         favoriteStatus[eventId] = !currentStatus;
       });
     }
+  }
+
+  void _startBlinking() {
+    Future.delayed(Duration(milliseconds: 500), () {
+      if (mounted) {
+        setState(() {
+          _isBlinking = !_isBlinking;
+        });
+        _startBlinking();
+      }
+    });
   }
 
   @override
@@ -185,6 +199,11 @@ class _GCEventsPageState extends State<GCEventsPage> {
     String eventId, // Add event ID parameter
   ) {
     bool isFavorite = favoriteStatus[eventId] ?? false;
+    bool isLive =
+        date ==
+        DateTime.now().toIso8601String().split(
+          'T',
+        )[0]; // Check if the event is live
 
     return Card(
       elevation: 4.0,
@@ -261,17 +280,57 @@ class _GCEventsPageState extends State<GCEventsPage> {
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
             ),
 
-            // Add Favorite Button as last child in Column
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                icon: Icon(
-                  isFavorite ? Icons.star : Icons.star_border,
-                  color: isFavorite ? Colors.yellow : null,
-                  size: 18,
+            // Favorites, View Participants, and Live Indicator Row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Red blinking circle for live events
+                if (isLive)
+                  AnimatedOpacity(
+                    opacity: _isBlinking ? 1.0 : 0.0,
+                    duration: Duration(milliseconds: 500),
+                    child: Container(
+                      width: 12.0,
+                      height: 12.0,
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  )
+                else
+                  SizedBox(width: 12.0), // Placeholder for alignment
+                // View Participants Button
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => ParticipantsPage(eventId: eventId),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    'View Participants',
+                    style: TextStyle(
+                      fontSize: 13.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
                 ),
-                onPressed: () => _toggleFavorite(eventId, isFavorite),
-              ),
+
+                // Favorite Button
+                IconButton(
+                  icon: Icon(
+                    isFavorite ? Icons.star : Icons.star_border,
+                    color: isFavorite ? Colors.yellow : null,
+                    size: 18,
+                  ),
+                  onPressed: () => _toggleFavorite(eventId, isFavorite),
+                ),
+              ],
             ),
           ],
         ),

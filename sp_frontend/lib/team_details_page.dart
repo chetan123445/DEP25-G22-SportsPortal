@@ -1,20 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'constants.dart'; // Import the baseUrl
 
-class TeamDetailsPage extends StatelessWidget {
+class TeamDetailsPage extends StatefulWidget {
   final String teamId;
 
   TeamDetailsPage({required this.teamId});
 
-  Future<Map<String, dynamic>> fetchTeamDetails() async {
-    final response = await http.get(
-      Uri.parse('http://<your-server-url>/get-team-details/$teamId'),
-    );
-    if (response.statusCode == 200) {
-      return json.decode(response.body)['team'];
-    } else {
-      throw Exception('Failed to load team details');
+  @override
+  _TeamDetailsPageState createState() => _TeamDetailsPageState();
+}
+
+class _TeamDetailsPageState extends State<TeamDetailsPage> {
+  Map<String, dynamic>? teamDetails;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTeamDetails();
+  }
+
+  Future<void> _fetchTeamDetails() async {
+    try {
+      print('Fetching details for teamId: ${widget.teamId}');
+      final response = await http.get(
+        Uri.parse('$baseUrl/get-team-details/${widget.teamId}'), // Use baseUrl
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          teamDetails = json.decode(response.body)['team'];
+          isLoading = false;
+        });
+      } else {
+        print('Failed to load team details');
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error fetching team details: $e');
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -22,80 +52,110 @@ class TeamDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Team Details')),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: fetchTeamDetails(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else {
-            final teamDetails = snapshot.data!;
-            return Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.purple.shade200,
-                    Colors.blue.shade200,
-                    Colors.pink.shade100,
-                  ],
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.purple.shade200,
+              Colors.blue.shade200,
+              Colors.pink.shade100,
+            ],
+          ),
+        ),
+        child:
+            isLoading
+                ? Center(child: CircularProgressIndicator())
+                : teamDetails == null
+                ? Center(child: Text('Failed to load team details'))
+                : ListView(
+                  padding: EdgeInsets.all(16.0),
                   children: [
-                    Text(
-                      'Team Name: ${teamDetails['teamName']}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          'Team Name: ',
+                          style: TextStyle(
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '${teamDetails!['teamName']}',
+                          style: TextStyle(
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange,
+                          ),
+                        ),
+                      ],
                     ),
                     SizedBox(height: 8.0),
+                    Divider(
+                      color: Colors.black,
+                      thickness: 2.0,
+                      indent: 0,
+                      endIndent: 0,
+                      height: 20,
+                    ),
                     Text(
                       'Players:',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 18.0,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Expanded(
-                      child: ListView.separated(
-                        itemCount: (teamDetails['members'] as List).length,
-                        separatorBuilder:
-                            (context, index) => Divider(color: Colors.black),
-                        itemBuilder: (context, index) {
-                          final member = teamDetails['members'][index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 8.0,
-                              horizontal: 16.0,
-                            ),
-                            child: Row(
+                    if (teamDetails!['members'] == null ||
+                        teamDetails!['members'].isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16.0),
+                        child: Text(
+                          'No team members have been added yet.',
+                          style: TextStyle(fontSize: 16.0, color: Colors.grey),
+                        ),
+                      )
+                    else
+                      ...teamDetails!['members'].asMap().entries.map<Widget>((
+                        entry,
+                      ) {
+                        int index = entry.key + 1;
+                        var member = entry.value;
+                        return Column(
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  '${index + 1}.',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                Text('$index.'),
+                                SizedBox(width: 8.0),
+                                Expanded(
+                                  child: Text(
+                                    member['name'],
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    softWrap: true,
+                                  ),
                                 ),
-                                SizedBox(width: 16),
-                                Expanded(child: Text(member['name'])),
-                                Text(member['email']),
+                                SizedBox(width: 8.0),
+                                Expanded(
+                                  child: Text(
+                                    member['email'],
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                    softWrap: true,
+                                  ),
+                                ),
                               ],
                             ),
-                          );
-                        },
-                      ),
-                    ),
+                            Divider(color: Colors.black, thickness: 1.0),
+                          ],
+                        );
+                      }).toList(),
                   ],
                 ),
-              ),
-            );
-          }
-        },
       ),
     );
   }
