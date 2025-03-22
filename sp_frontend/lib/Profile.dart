@@ -509,14 +509,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                       if (isAdmin) ...[
                         SizedBox(height: 20),
-                        Text(
-                          "Admin",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            color: Colors.teal,
-                          ),
-                        ),
+                        // Text(
+                        //   "Admin",
+                        //   style: TextStyle(
+                        //     fontWeight: FontWeight.bold,
+                        //     fontSize: 18,
+                        //     color: Colors.teal,
+                        //   ),
+                        // ),
                         Card(
                           elevation: 5,
                           shape: RoundedRectangleBorder(
