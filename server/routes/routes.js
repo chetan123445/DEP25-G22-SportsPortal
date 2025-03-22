@@ -18,6 +18,7 @@ import { verifyFavouriteEvent } from '../controllers/verifyFavouriteEvent.js';
 import { getFavouriteEvent } from '../controllers/getFavouriteEvent.js';
 import { getTeamDetails } from '../controllers/teamController.js'; // Import the new controller
 import { getEventParticipants } from '../controllers/participantsController.js'; // Import the new controller
+import { addAdmin, verifyAdmin } from '../controllers/Admin.js'; // Import the verifyAdmin controller
 
 const router = express.Router();
 
@@ -60,5 +61,7 @@ router.patch("/remove-profile-pic", removeProfilePic);
 
 router.get("/get-team-details/:teamId", getTeamDetails); // Add route for fetching team details
 router.get("/get-event-participants/:eventId", getEventParticipants); // Add route for fetching event participants
+router.post("/add-admin", addAdmin); // Add route for adding an admin
+router.post("/verify-admin", verifyAdmin); // Add route for verifying an admin
 
 export default router;
