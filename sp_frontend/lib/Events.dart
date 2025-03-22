@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'constants.dart';
 import 'services/favorite_service.dart';
+import 'team_details_page.dart'; // Import TeamDetailsPage
+import 'participants_page.dart'; // Import ParticipantsPage
 
 void main() {
   runApp(MaterialApp(debugShowCheckedModeBanner: false, home: EventsPage()));
@@ -450,6 +452,7 @@ class _EventsPageState extends State<EventsPage>
           final event = events[index];
           return _buildEventCard(
             context,
+            event, // Pass the entire event object
             event['team1'] ?? 'Team 1',
             event['team2'] ?? 'Team 2',
             event['date']?.split('T')[0] ?? 'No Date',
@@ -468,6 +471,7 @@ class _EventsPageState extends State<EventsPage>
 
   Widget _buildEventCard(
     BuildContext context,
+    Map<String, dynamic> event, // Pass the entire event object
     String team1,
     String team2,
     String date,
@@ -481,187 +485,249 @@ class _EventsPageState extends State<EventsPage>
   ) {
     bool isFavorite = favoriteStatus[eventId] ?? false;
 
-    return StatefulBuilder(
-      builder: (context, setState) {
-        return Card(
-          elevation: 3.0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
+    return Card(
+      elevation: 3.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black, width: 1.5),
+          borderRadius: BorderRadius.circular(8.0),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.purple.shade200,
+              Colors.blue.shade200,
+              Colors.pink.shade100,
+            ],
           ),
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black, width: 1.5),
-              borderRadius: BorderRadius.circular(8.0),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.purple.shade200,
-                  Colors.blue.shade200,
-                  Colors.pink.shade100,
-                ],
+        ),
+        padding: const EdgeInsets.symmetric(
+          vertical: 6.0,
+          horizontal: 8.0,
+        ), // Reduced padding
+        child: Stack(
+          children: [
+            // Event Type in the center of the box
+            Align(
+              alignment: Alignment.topCenter,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Text(
+                  eventType,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
-            padding: const EdgeInsets.symmetric(
-              vertical: 6.0,
-              horizontal: 8.0,
-            ), // Reduced padding
-            child: Stack(
+            Column(
+              mainAxisSize: MainAxisSize.min, // Ensures a minimal height layout
               children: [
-                // Event Type in the center of the box
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 6.0,
-                      vertical: 3.0,
+                SizedBox(height: 20.0), // Adjust spacing for eventType
+                // Teams Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          if ([
+                            'IRCC',
+                            'PHL',
+                            'IYSC',
+                            'BasketBrawl',
+                          ].contains(eventType)) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => TeamDetailsPage(
+                                      teamId:
+                                          event['team1Details'], // Corrected reference to event
+                                    ),
+                              ),
+                            );
+                          }
+                        },
+                        child: Text(
+                          team1,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.bold,
+                            color:
+                                [
+                                      'IRCC',
+                                      'PHL',
+                                      'IYSC',
+                                      'BasketBrawl',
+                                    ].contains(eventType)
+                                    ? Colors.blue
+                                    : Colors.black,
+                          ),
+                        ),
+                      ),
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Text(
-                      eventType,
+                    Text(
+                      "vs",
                       style: TextStyle(
-                        color: Colors.white,
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          if ([
+                            'IRCC',
+                            'PHL',
+                            'IYSC',
+                            'BasketBrawl',
+                          ].contains(eventType)) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => TeamDetailsPage(
+                                      teamId:
+                                          event['team2Details'], // Corrected reference to event
+                                    ),
+                              ),
+                            );
+                          }
+                        },
+                        child: Text(
+                          team2,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.bold,
+                            color:
+                                [
+                                      'IRCC',
+                                      'PHL',
+                                      'IYSC',
+                                      'BasketBrawl',
+                                    ].contains(eventType)
+                                    ? Colors.blue
+                                    : Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4.0),
+
+                // Date & Time Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text(
+                      date,
+                      style: TextStyle(
                         fontSize: 12.0,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    Text(
+                      time,
+                      style: TextStyle(
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4.0),
+
+                // Type & Gender Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      type,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      gender,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4.0),
+
+                // Venue Box
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    'Venue: $venue',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                 ),
-                Column(
-                  mainAxisSize:
-                      MainAxisSize.min, // Ensures a minimal height layout
+                SizedBox(height: 4.0),
+
+                // Favorite Icon, View Participants (for GC), & Blinking Live Indicator in Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    SizedBox(height: 20.0), // Adjust spacing for eventType
-                    // Teams Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            team1,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.bold,
+                    IconButton(
+                      icon: Icon(
+                        isFavorite ? Icons.star : Icons.star_border,
+                        color: isFavorite ? Colors.yellow : null,
+                        size: 20, // Reduced icon size
+                      ),
+                      onPressed:
+                          () => _toggleFavorite(eventId, eventType, isFavorite),
+                    ),
+                    if (eventType == 'GC') // Show only for "GC" events
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => ParticipantsPage(
+                                    eventId: eventId, // Pass event ID
+                                  ),
                             ),
-                          ),
-                        ),
-                        Text(
-                          "vs",
+                          );
+                        },
+                        child: Text(
+                          'View Participants',
                           style: TextStyle(
                             fontSize: 14.0,
                             fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
                           ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            team2,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 4.0),
-
-                    // Date & Time Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Text(
-                          date,
-                          style: TextStyle(
-                            fontSize: 12.0,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          time,
-                          style: TextStyle(
-                            fontSize: 12.0,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 4.0),
-
-                    // Type & Gender Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          type,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          gender,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 4.0),
-
-                    // Venue Box
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 6.0,
-                        vertical: 3.0,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      child: Text(
-                        'Venue: $venue',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                    SizedBox(height: 4.0),
-
-                    // Favorite Icon & Blinking Live Indicator in Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            isFavorite ? Icons.star : Icons.star_border,
-                            color: isFavorite ? Colors.yellow : null,
-                            size: 20, // Reduced icon size
-                          ),
-                          onPressed:
-                              () => _toggleFavorite(
-                                eventId,
-                                eventType,
-                                isFavorite,
-                              ),
-                        ),
-                        if (isLive)
-                          BlinkingLiveIndicator(), // Blinking Red Circle
-                      ],
-                    ),
+                    if (isLive) BlinkingLiveIndicator(), // Blinking Red Circle
                   ],
                 ),
               ],
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 }

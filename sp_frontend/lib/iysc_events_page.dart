@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'services/favorite_service.dart';
 import 'dart:async'; // Add this import for blinking animation
+import 'team_details_page.dart'; // Import TeamDetailsPage
 // Add any authentication imports here
 
 class IYSCEventsPage extends StatefulWidget {
@@ -184,19 +185,7 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
                         itemCount: filteredEvents.length,
                         itemBuilder: (context, index) {
                           final event = filteredEvents[index];
-                          return _buildEventCard(
-                            context,
-                            event['team1'] ?? 'Team 1',
-                            event['team2'] ?? 'Team 2',
-                            event['date']?.split('T')[0] ?? 'No Date',
-                            event['time'] ?? 'No Time',
-                            event['type'] ?? 'No Type',
-                            event['gender'] ?? 'Unknown',
-                            event['venue'] ?? 'No Venue',
-                            event['_id'], // Pass the event ID
-                            event['eventType'] ??
-                                'Unknown', // Pass the eventType
-                          );
+                          return _buildEventCard(context, event);
                         },
                       ),
             ),
@@ -206,24 +195,18 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
     );
   }
 
-  Widget _buildEventCard(
-    BuildContext context,
-    String team1,
-    String team2,
-    String date,
-    String time,
-    String type,
-    String gender,
-    String venue,
-    String eventId,
-    String eventType, // Add eventType parameter
-  ) {
+  Widget _buildEventCard(BuildContext context, Map<String, dynamic> event) {
+    String team1 = event['team1'] ?? 'Team 1';
+    String team2 = event['team2'] ?? 'Team 2';
+    String date = event['date']?.split('T')[0] ?? 'No Date';
+    String time = event['time'] ?? 'No Time';
+    String type = event['type'] ?? 'No Type';
+    String gender = event['gender'] ?? 'Unknown';
+    String venue = event['venue'] ?? 'No Venue';
+    String eventId = event['_id'] ?? '';
+    String eventType = event['eventType'] ?? 'No Type';
     bool isFavorite = favoriteStatus[eventId] ?? false;
-    bool isLive =
-        date ==
-        DateTime.now().toIso8601String().split(
-          'T',
-        )[0]; // Check if the event is live
+    bool isLive = date == DateTime.now().toIso8601String().split('T')[0];
 
     return Card(
       elevation: 3.0,
@@ -244,13 +227,9 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
                 ],
               ),
             ),
-            padding: const EdgeInsets.symmetric(
-              vertical: 6.0,
-              horizontal: 8.0,
-            ), // Reduced padding
+            padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
             child: Column(
               children: [
-                // Event Type at the top center
                 Align(
                   alignment: Alignment.topCenter,
                   child: Container(
@@ -272,18 +251,34 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
                     ),
                   ),
                 ),
-                SizedBox(height: 4.0), // Add spacing below eventType
-                // Teams Row
+                SizedBox(height: 4.0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(
-                        team1,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.bold,
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => TeamDetailsPage(
+                                      teamId: event['team1Details'],
+                                    ),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            team1,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue, // Match color from IRCC.dart
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -295,63 +290,74 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
                       ),
                     ),
                     Expanded(
-                      child: Text(
-                        team2,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.bold,
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => TeamDetailsPage(
+                                      teamId: event['team2Details'],
+                                    ),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            team2,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue, // Match color from IRCC.dart
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 4.0), // Reduced spacing
-                // Date and Time Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                SizedBox(height: 4.0),
+                Column(
                   children: [
                     Text(
                       date,
                       style: TextStyle(
-                        fontSize: 12.0,
+                        fontSize: 13.0,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
                       time,
                       style: TextStyle(
-                        fontSize: 12.0,
+                        fontSize: 13.0,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
                 SizedBox(height: 4.0),
-
-                // Type and Gender Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       type,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
                       gender,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
                 SizedBox(height: 4.0),
-
-                // Venue Box
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
                   decoration: BoxDecoration(
@@ -360,19 +366,17 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
                   ),
                   child: Text(
                     'Venue: $venue',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                 ),
                 SizedBox(height: 4.0),
-
-                // Favorite Button
                 Align(
                   alignment: Alignment.centerRight,
                   child: IconButton(
                     icon: Icon(
                       isFavorite ? Icons.star : Icons.star_border,
                       color: isFavorite ? Colors.yellow : null,
-                      size: 18, // Reduced icon size
+                      size: 18,
                     ),
                     onPressed: () => _toggleFavorite(eventId, isFavorite),
                   ),
@@ -380,10 +384,10 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
               ],
             ),
           ),
-          if (isLive) // Add red blinking circle for live events
+          if (isLive)
             Positioned(
               bottom: 8.0,
-              left: 8.0, // Change from right to left
+              left: 8.0,
               child: AnimatedOpacity(
                 opacity: _isBlinking ? 1.0 : 0.0,
                 duration: Duration(milliseconds: 500),

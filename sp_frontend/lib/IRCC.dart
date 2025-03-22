@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:async'; // Add this import for blinking animation
 import 'constants.dart';
 import 'services/favorite_service.dart';
+import 'team_details_page.dart'; // Import the new page
 
 class IRCCPage extends StatefulWidget {
   @override
@@ -220,6 +221,7 @@ class _IRCCPageState extends State<IRCCPage> {
                         final event = filteredEvents[index];
                         return _buildEventCard(
                           context,
+                          event,
                           event['team1'] ?? 'Team 1',
                           event['team2'] ?? 'Team 2',
                           event['date']?.split('T')[0] ?? 'No Date',
@@ -240,6 +242,7 @@ class _IRCCPageState extends State<IRCCPage> {
 
   Widget _buildEventCard(
     BuildContext context,
+    Map<String, dynamic> event, // Add event parameter
     String team1,
     String team2,
     String date,
@@ -310,12 +313,25 @@ class _IRCCPageState extends State<IRCCPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(
-                        team1,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.bold,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => TeamDetailsPage(
+                                    teamId: event['team1Details'],
+                                  ),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          team1,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -327,12 +343,25 @@ class _IRCCPageState extends State<IRCCPage> {
                       ),
                     ),
                     Expanded(
-                      child: Text(
-                        team2,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.bold,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => TeamDetailsPage(
+                                    teamId: event['team2Details'],
+                                  ),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          team2,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
