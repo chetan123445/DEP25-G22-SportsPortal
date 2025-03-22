@@ -260,15 +260,35 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
                         cursor: SystemMouseCursors.click,
                         child: GestureDetector(
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
+                            if (event['team1Details'] == null) {
+                              showDialog(
+                                context: context,
                                 builder:
-                                    (context) => TeamDetailsPage(
-                                      teamId: event['team1Details'],
+                                    (context) => AlertDialog(
+                                      title: Text('Team Details Not Available'),
+                                      content: Text(
+                                        'Team member details for "${event['team1'] ?? 'Team 1'}" have not been added yet.',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.pop(context),
+                                          child: Text('OK'),
+                                        ),
+                                      ],
                                     ),
-                              ),
-                            );
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => TeamDetailsPage(
+                                        teamId: event['team1Details'],
+                                      ),
+                                ),
+                              );
+                            }
                           },
                           child: Text(
                             team1,
@@ -276,7 +296,7 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
                             style: TextStyle(
                               fontSize: 14.0,
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue, // Match color from IRCC.dart
+                              color: Colors.blue,
                             ),
                           ),
                         ),
@@ -294,15 +314,35 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
                         cursor: SystemMouseCursors.click,
                         child: GestureDetector(
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
+                            if (event['team2Details'] == null) {
+                              showDialog(
+                                context: context,
                                 builder:
-                                    (context) => TeamDetailsPage(
-                                      teamId: event['team2Details'],
+                                    (context) => AlertDialog(
+                                      title: Text('Team Details Not Available'),
+                                      content: Text(
+                                        'Team member details for "${event['team2'] ?? 'Team 2'}" have not been added yet.',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.pop(context),
+                                          child: Text('OK'),
+                                        ),
+                                      ],
                                     ),
-                              ),
-                            );
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => TeamDetailsPage(
+                                        teamId: event['team2Details'],
+                                      ),
+                                ),
+                              );
+                            }
                           },
                           child: Text(
                             team2,
@@ -310,7 +350,7 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
                             style: TextStyle(
                               fontSize: 14.0,
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue, // Match color from IRCC.dart
+                              color: Colors.blue,
                             ),
                           ),
                         ),

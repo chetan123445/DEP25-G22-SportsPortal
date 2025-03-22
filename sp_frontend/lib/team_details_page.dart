@@ -86,7 +86,7 @@ class _TeamDetailsPageState extends State<TeamDetailsPage> {
                           style: TextStyle(
                             fontSize: 20.0,
                             fontWeight: FontWeight.bold,
-                            color: Colors.orange,
+                            color: Colors.blue, // Changed color to blue
                           ),
                         ),
                       ],
@@ -121,37 +121,52 @@ class _TeamDetailsPageState extends State<TeamDetailsPage> {
                       ) {
                         int index = entry.key + 1;
                         var member = entry.value;
-                        return Column(
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('$index.'),
-                                SizedBox(width: 8.0),
-                                Expanded(
-                                  child: Text(
-                                    member['name'],
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    softWrap: true,
-                                  ),
+                        return Container(
+                          margin: EdgeInsets.symmetric(vertical: 8.0),
+                          padding: EdgeInsets.all(12.0),
+                          decoration: BoxDecoration(
+                            color:
+                                Colors
+                                    .lightGreen
+                                    .shade100, // Changed color to light green
+                            borderRadius: BorderRadius.circular(12.0),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 2,
+                                blurRadius: 5,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '$index.',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(width: 8.0),
+                              Expanded(
+                                child: Text(
+                                  member['name'],
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  softWrap: true,
                                 ),
-                                SizedBox(width: 8.0),
-                                Expanded(
-                                  child: Text(
-                                    member['email'],
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                    softWrap: true,
+                              ),
+                              SizedBox(width: 8.0),
+                              Expanded(
+                                child: Text(
+                                  member['email'],
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
                                   ),
+                                  softWrap: true,
                                 ),
-                              ],
-                            ),
-                            Divider(color: Colors.black, thickness: 1.0),
-                          ],
+                              ),
+                            ],
+                          ),
                         );
                       }).toList(),
                   ],

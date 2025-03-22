@@ -94,11 +94,29 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Team ${index + 1}: ${team['teamName'] ?? 'No Name'}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18.0,
+                          Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'Team ${index + 1}: ',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18.0,
+                                    color:
+                                        Colors
+                                            .black, // "Team Name" text in black
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: '${team['teamName'] ?? 'No Name'}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18.0,
+                                    color:
+                                        Colors.blue, // Actual team name in blue
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           SizedBox(height: 8.0),
@@ -121,52 +139,56 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                           ) {
                             final memberIndex = entry.key + 1;
                             final member = entry.value;
-                            return Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 4.0,
+                            return Container(
+                              margin: EdgeInsets.symmetric(vertical: 8.0),
+                              padding: EdgeInsets.all(12.0),
+                              decoration: BoxDecoration(
+                                color:
+                                    Colors
+                                        .lightGreen
+                                        .shade100, // Changed color to light green
+                                borderRadius: BorderRadius.circular(12.0),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 2,
+                                    blurRadius: 5,
+                                    offset: Offset(0, 3),
                                   ),
-                                  child: Row(
-                                    children: [
-                                      SizedBox(
-                                        width:
-                                            30.0, // Fixed width for serial number
-                                        child: Text(
-                                          '$memberIndex.',
-                                          style: TextStyle(fontSize: 14.0),
-                                          textAlign: TextAlign.left,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 10.0,
-                                      ), // Space between serial number and name
-                                      Expanded(
-                                        flex: 3,
-                                        child: Text(
-                                          member['name'],
-                                          style: TextStyle(fontSize: 14.0),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 10.0,
-                                      ), // Space between name and email
-                                      Expanded(
-                                        flex: 4,
-                                        child: Text(
-                                          member['email'],
-                                          style: TextStyle(fontSize: 14.0),
-                                        ),
-                                      ),
-                                    ],
+                                ],
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '$memberIndex.',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                                if (entry.key < team['members'].length - 1)
-                                  Divider(
-                                    color: Colors.black45, // Light black line
-                                    thickness: 1.0,
+                                  SizedBox(width: 8.0),
+                                  Expanded(
+                                    child: Text(
+                                      member['name'],
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      softWrap: true,
+                                    ),
                                   ),
-                              ],
+                                  SizedBox(width: 8.0),
+                                  Expanded(
+                                    child: Text(
+                                      member['email'],
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                      softWrap: true,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             );
                           }).toList(),
                         ],
