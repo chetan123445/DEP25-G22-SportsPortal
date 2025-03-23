@@ -51,7 +51,10 @@ class _TeamDetailsPageState extends State<TeamDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Team Details')),
+      appBar: AppBar(
+        title: Text('Team Details'),
+        // Removed PopupMenuButton
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -86,7 +89,7 @@ class _TeamDetailsPageState extends State<TeamDetailsPage> {
                           style: TextStyle(
                             fontSize: 20.0,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue, // Changed color to blue
+                            color: Colors.blue,
                           ),
                         ),
                       ],
@@ -106,72 +109,108 @@ class _TeamDetailsPageState extends State<TeamDetailsPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (teamDetails!['members'] == null ||
-                        teamDetails!['members'].isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 16.0),
-                        child: Text(
-                          'No team members have been added yet.',
-                          style: TextStyle(fontSize: 16.0, color: Colors.grey),
-                        ),
-                      )
-                    else
-                      ...teamDetails!['members'].asMap().entries.map<Widget>((
-                        entry,
-                      ) {
-                        int index = entry.key + 1;
-                        var member = entry.value;
-                        return Container(
-                          margin: EdgeInsets.symmetric(vertical: 8.0),
-                          padding: EdgeInsets.all(12.0),
-                          decoration: BoxDecoration(
-                            color:
-                                Colors
-                                    .lightGreen
-                                    .shade100, // Changed color to light green
-                            borderRadius: BorderRadius.circular(12.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.5),
-                                spreadRadius: 2,
-                                blurRadius: 5,
-                                offset: Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '$index.',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              SizedBox(width: 8.0),
-                              Expanded(
-                                child: Text(
-                                  member['name'],
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                  softWrap: true,
-                                ),
-                              ),
-                              SizedBox(width: 8.0),
-                              Expanded(
-                                child: Text(
-                                  member['email'],
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
+                    SizedBox(height: 8.0),
+                    CustomPaint(
+                      size: Size(double.infinity, 1),
+                      painter: DashPainter(), // Dotted line
+                    ),
+                    Container(
+                      color: Colors.white, // Background color below the line
+                      child: Column(
+                        children:
+                            teamDetails!['members'].asMap().entries.map<Widget>(
+                              (entry) {
+                                int index = entry.key + 1;
+                                var member = entry.value;
+                                return Container(
+                                  margin: EdgeInsets.symmetric(vertical: 8.0),
+                                  padding: EdgeInsets.all(12.0),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Colors.purple.shade200,
+                                        Colors.blue.shade200,
+                                        Colors.pink.shade100,
+                                      ],
+                                    ), // Player box gradient
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.5),
+                                        spreadRadius: 2,
+                                        blurRadius: 5,
+                                        offset: Offset(0, 3),
+                                      ),
+                                    ],
                                   ),
-                                  softWrap: true,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '$index.',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8.0),
+                                      Expanded(
+                                        child: Text(
+                                          member['name'],
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          softWrap: true,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8.0),
+                                      Expanded(
+                                        child: Text(
+                                          member['email'],
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                          softWrap: true,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ).toList(),
+                      ),
+                    ),
                   ],
                 ),
       ),
     );
+  }
+}
+
+class DashPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..color = Colors.black
+          ..strokeWidth = 1
+          ..style = PaintingStyle.stroke;
+
+    const dashWidth = 5.0;
+    const dashSpace = 3.0;
+    double startX = 0;
+
+    while (startX < size.width) {
+      canvas.drawLine(Offset(startX, 0), Offset(startX + dashWidth, 0), paint);
+      startX += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
   }
 }

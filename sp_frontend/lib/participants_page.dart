@@ -55,33 +55,41 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
     return Scaffold(
       appBar: AppBar(title: Text('Participants')),
       body: Container(
-        color: Colors.white, // Set background color to white
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.purple.shade200,
+              Colors.blue.shade200,
+              Colors.pink.shade100,
+            ],
+          ),
+        ),
         child:
             isLoading
                 ? Center(child: CircularProgressIndicator())
                 : teamDetails.isEmpty
                 ? Center(child: Text('No participants found'))
-                : ListView.separated(
+                : ListView.builder(
                   itemCount: teamDetails.length,
-                  separatorBuilder: (context, index) => SizedBox(height: 16.0),
                   itemBuilder: (context, index) {
                     final team = teamDetails[index];
                     return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
                       padding: const EdgeInsets.all(16.0),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          // Apply gradient to the box
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
                           colors: [
                             Colors.purple.shade200,
                             Colors.blue.shade200,
                             Colors.pink.shade100,
                           ],
-                        ),
+                        ), // Gradient border for team box
                         borderRadius: BorderRadius.circular(8.0),
-                        border: Border.all(color: Colors.black), // Black border
                         boxShadow: [
                           BoxShadow(
                             color: Colors.grey.withOpacity(0.5),
@@ -91,32 +99,18 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                           ),
                         ],
                       ),
+                      height:
+                          MediaQuery.of(context).size.height /
+                          2.2, // Two boxes fit on screen
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text.rich(
-                            TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: 'Team ${index + 1}: ',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18.0,
-                                    color:
-                                        Colors
-                                            .black, // "Team Name" text in black
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: '${team['teamName'] ?? 'No Name'}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18.0,
-                                    color:
-                                        Colors.blue, // Actual team name in blue
-                                  ),
-                                ),
-                              ],
+                          Text(
+                            'Team ${index + 1}: ${team['teamName'] ?? 'No Name'}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18.0,
+                              color: Colors.black,
                             ),
                           ),
                           SizedBox(height: 8.0),
@@ -128,69 +122,81 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                             ),
                           ),
                           SizedBox(height: 8.0),
-                          Divider(
-                            color: Colors.black45, // Dashed line
-                            thickness: 1.0,
-                            height: 1.0,
+                          CustomPaint(
+                            size: Size(double.infinity, 1),
+                            painter: DashPainter(), // Dotted line
                           ),
                           SizedBox(height: 8.0),
-                          ...?team['members']?.asMap().entries.map<Widget>((
-                            entry,
-                          ) {
-                            final memberIndex = entry.key + 1;
-                            final member = entry.value;
-                            return Container(
-                              margin: EdgeInsets.symmetric(vertical: 8.0),
-                              padding: EdgeInsets.all(12.0),
-                              decoration: BoxDecoration(
-                                color:
-                                    Colors
-                                        .lightGreen
-                                        .shade100, // Changed color to light green
-                                borderRadius: BorderRadius.circular(12.0),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
-                                    spreadRadius: 2,
-                                    blurRadius: 5,
-                                    offset: Offset(0, 3),
-                                  ),
-                                ],
+                          Expanded(
+                            child: Container(
+                              color:
+                                  Colors
+                                      .white, // Background color after dotted line
+                              child: ListView.builder(
+                                itemCount: team['members']?.length ?? 0,
+                                itemBuilder: (context, memberIndex) {
+                                  final member = team['members'][memberIndex];
+                                  return Container(
+                                    margin: EdgeInsets.symmetric(vertical: 8.0),
+                                    padding: EdgeInsets.all(12.0),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          Colors.purple.shade200,
+                                          Colors.blue.shade200,
+                                          Colors.pink.shade100,
+                                        ],
+                                      ), // Player box gradient
+                                      borderRadius: BorderRadius.circular(12.0),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.5),
+                                          spreadRadius: 2,
+                                          blurRadius: 5,
+                                          offset: Offset(0, 3),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '${memberIndex + 1}.',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(width: 8.0),
+                                        Expanded(
+                                          child: Text(
+                                            member['name'],
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            softWrap: true,
+                                          ),
+                                        ),
+                                        SizedBox(width: 8.0),
+                                        Expanded(
+                                          child: Text(
+                                            member['email'],
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                            ),
+                                            softWrap: true,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
                               ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '$memberIndex.',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8.0),
-                                  Expanded(
-                                    child: Text(
-                                      member['name'],
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      softWrap: true,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8.0),
-                                  Expanded(
-                                    child: Text(
-                                      member['email'],
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                      softWrap: true,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
+                            ),
+                          ),
                         ],
                       ),
                     );
@@ -198,5 +204,30 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                 ),
       ),
     );
+  }
+}
+
+class DashPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..color = Colors.black
+          ..strokeWidth = 1
+          ..style = PaintingStyle.stroke;
+
+    const dashWidth = 5.0;
+    const dashSpace = 3.0;
+    double startX = 0;
+
+    while (startX < size.width) {
+      canvas.drawLine(Offset(startX, 0), Offset(startX + dashWidth, 0), paint);
+      startX += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
   }
 }
