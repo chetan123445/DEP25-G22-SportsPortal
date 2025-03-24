@@ -75,6 +75,9 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                   itemCount: teamDetails.length,
                   itemBuilder: (context, index) {
                     final team = teamDetails[index];
+                    final memberCount = team['members']?.length ?? 0;
+                    final isScrollable = memberCount > 3;
+
                     return Container(
                       margin: const EdgeInsets.symmetric(
                         horizontal: 16.0,
@@ -100,8 +103,11 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                         ],
                       ),
                       height:
-                          MediaQuery.of(context).size.height /
-                          2.2, // Two boxes fit on screen
+                          isScrollable
+                              ? MediaQuery.of(context).size.height /
+                                  2.2 // Two boxes fit on screen
+                              : (memberCount * 80.0) +
+                                  100.0, // Adjust height for fewer members
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -132,69 +138,152 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                               color:
                                   Colors
                                       .white, // Background color after dotted line
-                              child: ListView.builder(
-                                itemCount: team['members']?.length ?? 0,
-                                itemBuilder: (context, memberIndex) {
-                                  final member = team['members'][memberIndex];
-                                  return Container(
-                                    margin: EdgeInsets.symmetric(vertical: 8.0),
-                                    padding: EdgeInsets.all(12.0),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                        colors: [
-                                          Colors.purple.shade200,
-                                          Colors.blue.shade200,
-                                          Colors.pink.shade100,
-                                        ],
-                                      ), // Player box gradient
-                                      borderRadius: BorderRadius.circular(12.0),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.grey.withOpacity(0.5),
-                                          spreadRadius: 2,
-                                          blurRadius: 5,
-                                          offset: Offset(0, 3),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '${memberIndex + 1}.',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        SizedBox(width: 8.0),
-                                        Expanded(
-                                          child: Text(
-                                            member['name'],
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
+                              child:
+                                  isScrollable
+                                      ? ListView.builder(
+                                        itemCount: memberCount,
+                                        itemBuilder: (context, memberIndex) {
+                                          final member =
+                                              team['members'][memberIndex];
+                                          return Container(
+                                            margin: EdgeInsets.symmetric(
+                                              vertical: 8.0,
                                             ),
-                                            softWrap: true,
-                                          ),
-                                        ),
-                                        SizedBox(width: 8.0),
-                                        Expanded(
-                                          child: Text(
-                                            member['email'],
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
+                                            padding: EdgeInsets.all(12.0),
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                                colors: [
+                                                  Colors.purple.shade200,
+                                                  Colors.blue.shade200,
+                                                  Colors.pink.shade100,
+                                                ],
+                                              ), // Player box gradient
+                                              borderRadius:
+                                                  BorderRadius.circular(12.0),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.grey
+                                                      .withOpacity(0.5),
+                                                  spreadRadius: 2,
+                                                  blurRadius: 5,
+                                                  offset: Offset(0, 3),
+                                                ),
+                                              ],
                                             ),
-                                            softWrap: true,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  '${memberIndex + 1}.',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                SizedBox(width: 8.0),
+                                                Expanded(
+                                                  child: Text(
+                                                    member['name'],
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                    softWrap: true,
+                                                  ),
+                                                ),
+                                                SizedBox(width: 8.0),
+                                                Expanded(
+                                                  child: Text(
+                                                    member['email'],
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.black,
+                                                    ),
+                                                    softWrap: true,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      )
+                                      : Column(
+                                        children:
+                                            team['members']?.map<Widget>((
+                                              member,
+                                            ) {
+                                              return Container(
+                                                margin: EdgeInsets.symmetric(
+                                                  vertical: 8.0,
+                                                ),
+                                                padding: EdgeInsets.all(12.0),
+                                                decoration: BoxDecoration(
+                                                  gradient: LinearGradient(
+                                                    begin: Alignment.topLeft,
+                                                    end: Alignment.bottomRight,
+                                                    colors: [
+                                                      Colors.purple.shade200,
+                                                      Colors.blue.shade200,
+                                                      Colors.pink.shade100,
+                                                    ],
+                                                  ), // Player box gradient
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        12.0,
+                                                      ),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.grey
+                                                          .withOpacity(0.5),
+                                                      spreadRadius: 2,
+                                                      blurRadius: 5,
+                                                      offset: Offset(0, 3),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      '${team['members'].indexOf(member) + 1}.',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    SizedBox(width: 8.0),
+                                                    Expanded(
+                                                      child: Text(
+                                                        member['name'],
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                        softWrap: true,
+                                                      ),
+                                                    ),
+                                                    SizedBox(width: 8.0),
+                                                    Expanded(
+                                                      child: Text(
+                                                        member['email'],
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Colors.black,
+                                                        ),
+                                                        softWrap: true,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            }).toList() ??
+                                            [],
+                                      ),
                             ),
                           ),
                         ],
