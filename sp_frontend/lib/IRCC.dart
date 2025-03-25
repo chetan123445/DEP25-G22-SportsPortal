@@ -313,24 +313,48 @@ class _IRCCPageState extends State<IRCCPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => TeamDetailsPage(
-                                    teamId: event['team1Details'],
-                                  ),
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () {
+                            if (event['team1Details'] == null) {
+                              showDialog(
+                                context: context,
+                                builder:
+                                    (context) => AlertDialog(
+                                      title: Text('Team Details Not Available'),
+                                      content: Text(
+                                        'Team member details for "${event['team1'] ?? 'Team 1'}" have not been added yet.',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.pop(context),
+                                          child: Text('OK'),
+                                        ),
+                                      ],
+                                    ),
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => TeamDetailsPage(
+                                        teamId: event['team1Details'],
+                                      ),
+                                ),
+                              );
+                            }
+                          },
+                          child: Text(
+                            team1,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
                             ),
-                          );
-                        },
-                        child: Text(
-                          team1,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
@@ -343,24 +367,48 @@ class _IRCCPageState extends State<IRCCPage> {
                       ),
                     ),
                     Expanded(
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => TeamDetailsPage(
-                                    teamId: event['team2Details'],
-                                  ),
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () {
+                            if (event['team2Details'] == null) {
+                              showDialog(
+                                context: context,
+                                builder:
+                                    (context) => AlertDialog(
+                                      title: Text('Team Details Not Available'),
+                                      content: Text(
+                                        'Team member details for "${event['team2'] ?? 'Team 2'}" have not been added yet.',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.pop(context),
+                                          child: Text('OK'),
+                                        ),
+                                      ],
+                                    ),
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => TeamDetailsPage(
+                                        teamId: event['team2Details'],
+                                      ),
+                                ),
+                              );
+                            }
+                          },
+                          child: Text(
+                            team2,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
                             ),
-                          );
-                        },
-                        child: Text(
-                          team2,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),

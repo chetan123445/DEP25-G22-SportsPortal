@@ -531,99 +531,149 @@ class _EventsPageState extends State<EventsPage>
               mainAxisSize: MainAxisSize.min, // Ensures a minimal height layout
               children: [
                 SizedBox(height: 20.0), // Adjust spacing for eventType
-                // Teams Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          if ([
-                            'IRCC',
-                            'PHL',
-                            'IYSC',
-                            'BasketBrawl',
-                          ].contains(eventType)) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => TeamDetailsPage(
-                                      teamId:
-                                          event['team1Details'], // Corrected reference to event
-                                    ),
+                if (['IYSC', 'IRCC', 'PHL', 'BasketBrawl'].contains(eventType))
+                  Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: () {
+                                  if (event['team1Details'] == null) {
+                                    showDialog(
+                                      context: context,
+                                      builder:
+                                          (context) => AlertDialog(
+                                            title: Text(
+                                              'Team Details Not Available',
+                                            ),
+                                            content: Text(
+                                              'Team member details for "$team1" have not been added yet.',
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed:
+                                                    () =>
+                                                        Navigator.pop(context),
+                                                child: Text('OK'),
+                                              ),
+                                            ],
+                                          ),
+                                    );
+                                  } else {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => TeamDetailsPage(
+                                              teamId: event['team1Details'],
+                                            ),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: Text(
+                                  team1,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 14.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue,
+                                  ),
+                                ),
                               ),
-                            );
-                          }
-                        },
-                        child: Text(
-                          team1,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.bold,
-                            color:
-                                [
-                                      'IRCC',
-                                      'PHL',
-                                      'IYSC',
-                                      'BasketBrawl',
-                                    ].contains(eventType)
-                                    ? Colors.blue
-                                    : Colors.black,
+                            ),
                           ),
-                        ),
-                      ),
-                    ),
-                    Text(
-                      "vs",
-                      style: TextStyle(
-                        fontSize: 14.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          if ([
-                            'IRCC',
-                            'PHL',
-                            'IYSC',
-                            'BasketBrawl',
-                          ].contains(eventType)) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => TeamDetailsPage(
-                                      teamId:
-                                          event['team2Details'], // Corrected reference to event
-                                    ),
+                          Text(
+                            "vs",
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Expanded(
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: () {
+                                  if (event['team2Details'] == null) {
+                                    showDialog(
+                                      context: context,
+                                      builder:
+                                          (context) => AlertDialog(
+                                            title: Text(
+                                              'Team Details Not Available',
+                                            ),
+                                            content: Text(
+                                              'Team member details for "$team2" have not been added yet.',
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed:
+                                                    () =>
+                                                        Navigator.pop(context),
+                                                child: Text('OK'),
+                                              ),
+                                            ],
+                                          ),
+                                    );
+                                  } else {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => TeamDetailsPage(
+                                              teamId: event['team2Details'],
+                                            ),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: Text(
+                                  team2,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 14.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue,
+                                  ),
+                                ),
                               ),
-                            );
-                          }
-                        },
-                        child: Text(
-                          team2,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.bold,
-                            color:
-                                [
-                                      'IRCC',
-                                      'PHL',
-                                      'IYSC',
-                                      'BasketBrawl',
-                                    ].contains(eventType)
-                                    ? Colors.blue
-                                    : Colors.black,
+                            ),
                           ),
-                        ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
+                      SizedBox(height: 8.0),
+                      Wrap(
+                        spacing: 8.0,
+                        runSpacing: 8.0,
+                        children:
+                            (event['players'] ?? []).map<Widget>((player) {
+                              return Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8.0,
+                                  vertical: 4.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(5.0),
+                                  border: Border.all(color: Colors.black),
+                                ),
+                                child: Text(
+                                  player,
+                                  style: TextStyle(
+                                    fontSize: 12.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                      ),
+                    ],
+                  ),
                 SizedBox(height: 4.0),
 
                 // Date & Time Row
@@ -698,25 +748,49 @@ class _EventsPageState extends State<EventsPage>
                           () => _toggleFavorite(eventId, eventType, isFavorite),
                     ),
                     if (eventType == 'GC') // Show only for "GC" events
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => ParticipantsPage(
-                                    eventId: eventId, // Pass event ID
-                                  ),
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () {
+                            if (event['participants'] == null ||
+                                event['participants'].isEmpty) {
+                              showDialog(
+                                context: context,
+                                builder:
+                                    (context) => AlertDialog(
+                                      title: Text('Participants Not Available'),
+                                      content: Text(
+                                        'No participants have been added for this event yet.',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.pop(context),
+                                          child: Text('OK'),
+                                        ),
+                                      ],
+                                    ),
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => ParticipantsPage(
+                                        eventId: eventId, // Pass event ID
+                                      ),
+                                ),
+                              );
+                            }
+                          },
+                          child: Text(
+                            'View Participants',
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
                             ),
-                          );
-                        },
-                        child: Text(
-                          'View Participants',
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                            decoration: TextDecoration.underline,
                           ),
                         ),
                       ),

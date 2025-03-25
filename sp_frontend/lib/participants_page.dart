@@ -55,33 +55,44 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
     return Scaffold(
       appBar: AppBar(title: Text('Participants')),
       body: Container(
-        color: Colors.white, // Set background color to white
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.purple.shade200,
+              Colors.blue.shade200,
+              Colors.pink.shade100,
+            ],
+          ),
+        ),
         child:
             isLoading
                 ? Center(child: CircularProgressIndicator())
                 : teamDetails.isEmpty
                 ? Center(child: Text('No participants found'))
-                : ListView.separated(
+                : ListView.builder(
                   itemCount: teamDetails.length,
-                  separatorBuilder: (context, index) => SizedBox(height: 16.0),
                   itemBuilder: (context, index) {
                     final team = teamDetails[index];
+                    final memberCount = team['members']?.length ?? 0;
+                    final isScrollable = memberCount > 3;
+
                     return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
                       padding: const EdgeInsets.all(16.0),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          // Apply gradient to the box
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
                           colors: [
                             Colors.purple.shade200,
                             Colors.blue.shade200,
                             Colors.pink.shade100,
                           ],
-                        ),
+                        ), // Gradient border for team box
                         borderRadius: BorderRadius.circular(8.0),
-                        border: Border.all(color: Colors.black), // Black border
                         boxShadow: [
                           BoxShadow(
                             color: Colors.grey.withOpacity(0.5),
@@ -91,6 +102,12 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                           ),
                         ],
                       ),
+                      height:
+                          isScrollable
+                              ? MediaQuery.of(context).size.height /
+                                  2.2 // Two boxes fit on screen
+                              : (memberCount * 80.0) +
+                                  100.0, // Adjust height for fewer members
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -99,6 +116,7 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18.0,
+                              color: Colors.black,
                             ),
                           ),
                           SizedBox(height: 8.0),
@@ -110,65 +128,164 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                             ),
                           ),
                           SizedBox(height: 8.0),
-                          Divider(
-                            color: Colors.black45, // Dashed line
-                            thickness: 1.0,
-                            height: 1.0,
+                          CustomPaint(
+                            size: Size(double.infinity, 1),
+                            painter: DashPainter(), // Dotted line
                           ),
                           SizedBox(height: 8.0),
-                          ...?team['members']?.asMap().entries.map<Widget>((
-                            entry,
-                          ) {
-                            final memberIndex = entry.key + 1;
-                            final member = entry.value;
-                            return Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 4.0,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      SizedBox(
-                                        width:
-                                            30.0, // Fixed width for serial number
-                                        child: Text(
-                                          '$memberIndex.',
-                                          style: TextStyle(fontSize: 14.0),
-                                          textAlign: TextAlign.left,
-                                        ),
+                          Expanded(
+                            child: Container(
+                              color:
+                                  Colors
+                                      .white, // Background color after dotted line
+                              child:
+                                  isScrollable
+                                      ? ListView.builder(
+                                        itemCount: memberCount,
+                                        itemBuilder: (context, memberIndex) {
+                                          final member =
+                                              team['members'][memberIndex];
+                                          return Container(
+                                            margin: EdgeInsets.symmetric(
+                                              vertical: 8.0,
+                                            ),
+                                            padding: EdgeInsets.all(12.0),
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                                colors: [
+                                                  Colors.purple.shade200,
+                                                  Colors.blue.shade200,
+                                                  Colors.pink.shade100,
+                                                ],
+                                              ), // Player box gradient
+                                              borderRadius:
+                                                  BorderRadius.circular(12.0),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.grey
+                                                      .withOpacity(0.5),
+                                                  spreadRadius: 2,
+                                                  blurRadius: 5,
+                                                  offset: Offset(0, 3),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  '${memberIndex + 1}.',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                SizedBox(width: 8.0),
+                                                Expanded(
+                                                  child: Text(
+                                                    member['name'],
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                    softWrap: true,
+                                                  ),
+                                                ),
+                                                SizedBox(width: 8.0),
+                                                Expanded(
+                                                  child: Text(
+                                                    member['email'],
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.black,
+                                                    ),
+                                                    softWrap: true,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      )
+                                      : Column(
+                                        children:
+                                            team['members']?.map<Widget>((
+                                              member,
+                                            ) {
+                                              return Container(
+                                                margin: EdgeInsets.symmetric(
+                                                  vertical: 8.0,
+                                                ),
+                                                padding: EdgeInsets.all(12.0),
+                                                decoration: BoxDecoration(
+                                                  gradient: LinearGradient(
+                                                    begin: Alignment.topLeft,
+                                                    end: Alignment.bottomRight,
+                                                    colors: [
+                                                      Colors.purple.shade200,
+                                                      Colors.blue.shade200,
+                                                      Colors.pink.shade100,
+                                                    ],
+                                                  ), // Player box gradient
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        12.0,
+                                                      ),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.grey
+                                                          .withOpacity(0.5),
+                                                      spreadRadius: 2,
+                                                      blurRadius: 5,
+                                                      offset: Offset(0, 3),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      '${team['members'].indexOf(member) + 1}.',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    SizedBox(width: 8.0),
+                                                    Expanded(
+                                                      child: Text(
+                                                        member['name'],
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                        softWrap: true,
+                                                      ),
+                                                    ),
+                                                    SizedBox(width: 8.0),
+                                                    Expanded(
+                                                      child: Text(
+                                                        member['email'],
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Colors.black,
+                                                        ),
+                                                        softWrap: true,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            }).toList() ??
+                                            [],
                                       ),
-                                      SizedBox(
-                                        width: 10.0,
-                                      ), // Space between serial number and name
-                                      Expanded(
-                                        flex: 3,
-                                        child: Text(
-                                          member['name'],
-                                          style: TextStyle(fontSize: 14.0),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 10.0,
-                                      ), // Space between name and email
-                                      Expanded(
-                                        flex: 4,
-                                        child: Text(
-                                          member['email'],
-                                          style: TextStyle(fontSize: 14.0),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                if (entry.key < team['members'].length - 1)
-                                  Divider(
-                                    color: Colors.black45, // Light black line
-                                    thickness: 1.0,
-                                  ),
-                              ],
-                            );
-                          }).toList(),
+                            ),
+                          ),
                         ],
                       ),
                     );
@@ -176,5 +293,30 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                 ),
       ),
     );
+  }
+}
+
+class DashPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..color = Colors.black
+          ..strokeWidth = 1
+          ..style = PaintingStyle.stroke;
+
+    const dashWidth = 5.0;
+    const dashSpace = 3.0;
+    double startX = 0;
+
+    while (startX < size.width) {
+      canvas.drawLine(Offset(startX, 0), Offset(startX + dashWidth, 0), paint);
+      startX += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
   }
 }
