@@ -8,6 +8,7 @@ import 'home.dart';
 import 'constants.dart'; // Import the constants file
 import 'FullImageScreen.dart';
 import 'package:jwt_decoder/jwt_decoder.dart'; // Import jwt_decoder package
+import 'adminDashboard.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String email; // Add email parameter
@@ -533,7 +534,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             trailing: Icon(Icons.arrow_forward, color: Colors.teal),
                             onTap: () {
-                              // Navigate to Admin Dashboard
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AdminDashboard(),
+                                ),
+                              );
                             },
                           ),
                         ),

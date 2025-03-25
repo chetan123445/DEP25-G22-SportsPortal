@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../admin/AddEventPage.dart';
 
 void main() {
   runApp(AdminDashboard());
@@ -20,6 +21,7 @@ class DashboardScreen extends StatelessWidget {
     {'name': 'Add Event', 'icon': Icons.event},
     {'name': 'Manage Event', 'icon': Icons.edit_calendar},
     {'name': 'Manage Event Managers', 'icon': Icons.admin_panel_settings},
+    {'name': 'My Activity', 'icon': Icons.timeline}, // Added new category
   ];
 
   @override
@@ -137,7 +139,16 @@ class CategoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      onTap: () {
+        if (title == 'Add Event') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddEventPage()),
+          );
+        }
+      },
+    child: Container(
       decoration: BoxDecoration(
         color: Colors.grey[900],
         borderRadius: BorderRadius.circular(12),
@@ -163,6 +174,7 @@ class CategoryTile extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 }
