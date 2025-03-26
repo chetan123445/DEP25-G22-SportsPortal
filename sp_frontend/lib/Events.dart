@@ -380,7 +380,11 @@ class _EventsPageState extends State<EventsPage>
         title: Text('Events'),
         actions: [
           IconButton(
-            icon: Icon(Icons.star, color: Colors.yellow, size: 30),
+            icon: Icon(
+              Icons.star,
+              color: showFavoritesOnly ? Colors.yellow : Colors.grey,
+              size: 30
+            ),
             onPressed: () {
               setState(() {
                 showFavoritesOnly = !showFavoritesOnly;
@@ -435,10 +439,15 @@ class _EventsPageState extends State<EventsPage>
     List<dynamic> events, {
     bool isLive = false,
   }) {
-    if (events.isEmpty) {
+    // Filter events if showFavoritesOnly is true
+    var filteredEvents = showFavoritesOnly 
+        ? events.where((event) => favoriteStatus[event['_id']] ?? false).toList()
+        : events;
+
+    if (filteredEvents.isEmpty) {
       return Center(
         child: Text(
-          'No events found',
+          showFavoritesOnly ? 'No favorite events found' : 'No events found',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       );
@@ -447,9 +456,9 @@ class _EventsPageState extends State<EventsPage>
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: ListView.builder(
-        itemCount: events.length,
+        itemCount: filteredEvents.length,
         itemBuilder: (context, index) {
-          final event = events[index];
+          final event = filteredEvents[index];
           return _buildEventCard(
             context,
             event, // Pass the entire event object
