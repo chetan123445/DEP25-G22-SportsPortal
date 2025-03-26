@@ -91,7 +91,7 @@ class DashboardScreen extends StatelessWidget {
               ),
               SizedBox(height: 10),
               Text(
-                "John Mcdonald",
+                "Puneet Goyal",
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,

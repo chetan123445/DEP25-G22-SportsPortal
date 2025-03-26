@@ -11,6 +11,7 @@ import 'PHL.dart'; // Import the PHLPage
 import 'BasketBrawl.dart'; // Import the BasketBrawlPage
 import 'Profile.dart'; // Import the ProfilePage
 import 'main.dart'; // Import MainPage
+import 'PlayersPage.dart'; // Import the PlayersPage
 
 void main() {
   runApp(SportsPortalApp());
@@ -84,7 +85,7 @@ class HomePage extends StatelessWidget {
   Future<void> _logout(BuildContext context) async {
     // Clear SharedPreferences
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();  // This removes all data from SharedPreferences
+    await prefs.clear(); // This removes all data from SharedPreferences
 
     // Navigate to main page and remove all previous routes
     Navigator.of(context).pushAndRemoveUntil(
@@ -235,7 +236,13 @@ class HomePage extends StatelessWidget {
             ListTile(
               leading: Icon(Icons.people),
               title: Text('Players'),
-              onTap: () {},
+              onTap: () {
+                // Navigate to PlayersPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => PlayersPage()),
+                );
+              },
             ),
             Divider(thickness: 1),
             ListTile(
@@ -257,7 +264,10 @@ class HomePage extends StatelessWidget {
                           },
                         ),
                         TextButton(
-                          child: Text('Logout', style: TextStyle(color: Colors.red)),
+                          child: Text(
+                            'Logout',
+                            style: TextStyle(color: Colors.red),
+                          ),
                           onPressed: () {
                             Navigator.of(context).pop(); // Close dialog
                             _logout(context); // Perform logout
