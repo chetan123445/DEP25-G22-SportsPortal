@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/event.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import '../services/event_services.dart';
+import '../adminDashboard.dart';
 
 class AddEventPage extends StatefulWidget {
   @override
@@ -19,6 +21,7 @@ class _AddEventPageState extends State<AddEventPage> {
   String _team1 = '';
   String _team2 = '';
   String? selectedGender;
+  bool _showValidationErrors = false;
   
   // Event type dropdown variables
   String? selectedEventType;
@@ -60,11 +63,14 @@ class _AddEventPageState extends State<AddEventPage> {
     return members.asMap().entries.map((entry) {
       int index = entry.key;
       TeamMember member = entry.value;
+      
       return Container(
         margin: EdgeInsets.only(bottom: 10),
         padding: EdgeInsets.all(10),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
+          border: Border.all(
+            color: Colors.grey,  // Always grey border for container
+          ),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Column(
@@ -86,7 +92,7 @@ class _AddEventPageState extends State<AddEventPage> {
               initialValue: member.name,
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                labelText: 'Name',
+                labelText: 'Name *',
                 labelStyle: TextStyle(color: Colors.white),
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.grey),
@@ -94,15 +100,24 @@ class _AddEventPageState extends State<AddEventPage> {
                 focusedBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.blue),
                 ),
+                errorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.red),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.red),
+                ),
+                errorText: _showValidationErrors && member.name.isEmpty ? 'Name is required' : null,
               ),
-              onChanged: (value) => _updateTeamMember(index, isTeam1, name: value),
+              onChanged: (value) {
+                _updateTeamMember(index, isTeam1, name: value);
+              },
             ),
             SizedBox(height: 10),
             TextFormField(
               initialValue: member.email,
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                labelText: 'Email',
+                labelText: 'Email *',
                 labelStyle: TextStyle(color: Colors.white),
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.grey),
@@ -110,8 +125,17 @@ class _AddEventPageState extends State<AddEventPage> {
                 focusedBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.blue),
                 ),
+                errorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.red),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.red),
+                ),
+                errorText: _showValidationErrors && member.email.isEmpty ? 'Email is required' : null,
               ),
-              onChanged: (value) => _updateTeamMember(index, isTeam1, email: value),
+              onChanged: (value) {
+                _updateTeamMember(index, isTeam1, email: value);
+              },
             ),
           ],
         ),
@@ -128,7 +152,7 @@ class _AddEventPageState extends State<AddEventPage> {
       }
     });
   }
-
+  
   void _removeTeamMember(int index, bool isTeam1) {
     setState(() {
       if (isTeam1) {
@@ -157,6 +181,140 @@ class _AddEventPageState extends State<AddEventPage> {
     }
   }
 
+  Future<void> _addEvent() async {
+    setState(() {
+      _showValidationErrors = true;  // Show validation errors on submit
+    });
+    
+    // Add validation for team members before form validation
+    bool teamMembersValid = true;
+    String errorMessage = '';
+
+    // Validate team 1 members
+    for (int i = 0; i < _team1Members.length; i++) {
+      if (_team1Members[i].name.isEmpty || _team1Members[i].email.isEmpty) {
+        teamMembersValid = false;
+        errorMessage = 'Please fill both name and email for all Team 1 members';
+        break;
+      }
+    }
+
+    // Validate team 2 members
+    for (int i = 0; i < _team2Members.length; i++) {
+      if (_team2Members[i].name.isEmpty || _team2Members[i].email.isEmpty) {
+        teamMembersValid = false;
+        errorMessage = 'Please fill both name and email for all Team 2 members';
+        break;
+      }
+    }
+
+    if (!teamMembersValid) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Validation Error'),
+            content: Text(errorMessage),
+            backgroundColor: Colors.grey[900],
+            titleTextStyle: TextStyle(color: Colors.red, fontSize: 20),
+            contentTextStyle: TextStyle(color: Colors.white70),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      
+      try {
+        Team? team1Details = _team1Members.isNotEmpty
+            ? Team(teamName: _team1, members: _team1Members)
+            : null;
+            
+        Team? team2Details = _team2Members.isNotEmpty
+            ? Team(teamName: _team2, members: _team2Members)
+            : null;
+
+        bool success = await EventServices.addEvent(
+          gender: selectedGender!,
+          eventType: _eventType,
+          mainType: selectedMainType,
+          type: _type,
+          date: _date!,
+          time: _time,
+          venue: _venue,
+          description: _description,
+          winner: _winner,
+          team1: _team1,
+          team2: _team2,
+          team1Details: team1Details,
+          team2Details: team2Details,
+        );
+
+        // First navigate back to AdminDashboard
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => DashboardScreen()),
+        );
+        
+        // Then show the response dialog
+        if (success) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Success'),
+                content: Text('Event added successfully!'),
+                backgroundColor: Colors.grey[900],
+                titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
+                contentTextStyle: TextStyle(color: Colors.white70),
+                actions: [
+                  TextButton(
+                    child: Text('OK'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        }
+      } catch (e) {
+        // Show error dialog
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Error'),
+              content: Text('Failed to add event: ${e.toString()}'),
+              backgroundColor: Colors.grey[900],
+              titleTextStyle: TextStyle(color: Colors.red, fontSize: 20),
+              contentTextStyle: TextStyle(color: Colors.white70),
+              actions: [
+                TextButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -362,6 +520,15 @@ class _AddEventPageState extends State<AddEventPage> {
                               // Reset secondary selections when main type changes
                               selectedMainType = null;
                               selectedType = null;
+                              
+                              // Set _type automatically for IRCC, PHL and Basket Brawl
+                              if (value == 'IRCC') {
+                                _type = 'cricket';
+                              } else if (value == 'PHL') {
+                                _type = 'hockey';
+                              } else if (value == 'Basket Brawl') {
+                                _type = 'basketball';  // Fixed spelling here
+                              }
                             });
                           },
                           hint: Text(
@@ -665,37 +832,7 @@ class _AddEventPageState extends State<AddEventPage> {
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _formKey.currentState!.save();
-                        // Create Team objects
-                        Team? team1Details = _team1Members.isNotEmpty
-                            ? Team(teamName: _team1, members: _team1Members)
-                            : null;
-                        Team? team2Details = _team2Members.isNotEmpty
-                            ? Team(teamName: _team2, members: _team2Members)
-                            : null;
-                            
-                        // Create an Event object with team details
-                        Event event = Event(
-                          gender: selectedGender!,
-                          eventType: _eventType,
-                          type: _type,
-                          date: _date!,
-                          time: _time,
-                          venue: _venue,
-                          description: _description,
-                          winner: _winner,
-                          team1: _team1,
-                          team2: _team2,
-                          team1Details: team1Details,
-                          team2Details: team2Details,
-                        );
-                        
-                        // Save event logic here
-                        print(event);
-                      }
-                    },
+                    onPressed: _addEvent,
                     child: Text('Add Event'),
                   ),
                 ],

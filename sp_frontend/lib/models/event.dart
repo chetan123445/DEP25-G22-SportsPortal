@@ -15,6 +15,7 @@ class Team {
 
 class Event {
   String gender;
+  String? mainType;
   String eventType;
   String type;
   DateTime date;
@@ -29,6 +30,7 @@ class Event {
 
   Event({
     required this.gender,
+    this.mainType,
     required this.eventType,
     required this.type,
     required this.date,
