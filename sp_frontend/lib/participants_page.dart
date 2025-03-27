@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'constants.dart'; // Import baseUrl
+import 'PlayerProfilePage.dart'; // Import PlayerProfilePage
 
 class ParticipantsPage extends StatefulWidget {
   final String eventId;
@@ -173,8 +174,12 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                                               ],
                                             ),
                                             child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween, // Ensure proper alignment
                                               crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                                  CrossAxisAlignment
+                                                      .center, // Vertically align items
                                               children: [
                                                 Text(
                                                   '${memberIndex + 1}.',
@@ -194,15 +199,61 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                                                   ),
                                                 ),
                                                 SizedBox(width: 8.0),
-                                                Expanded(
-                                                  child: Text(
-                                                    member['email'],
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors.black,
+                                                MouseRegion(
+                                                  cursor:
+                                                      SystemMouseCursors
+                                                          .click, // Show hand cursor on hover
+                                                  child: GestureDetector(
+                                                    onTap: () {
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder:
+                                                              (
+                                                                context,
+                                                              ) => PlayerProfilePage(
+                                                                playerName:
+                                                                    member['name'],
+                                                                playerEmail:
+                                                                    member['email'] ??
+                                                                    'N/A',
+                                                              ),
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: Container(
+                                                      padding: EdgeInsets.all(
+                                                        12.0,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            Colors
+                                                                .orange
+                                                                .shade200, // Orange color for "Profile"
+                                                        shape:
+                                                            BoxShape
+                                                                .circle, // Circular shape
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: Colors.grey
+                                                                .withOpacity(
+                                                                  0.5,
+                                                                ),
+                                                            spreadRadius: 2,
+                                                            blurRadius: 5,
+                                                            offset: Offset(
+                                                              0,
+                                                              3,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: Icon(
+                                                        Icons
+                                                            .person, // Profile icon
+                                                        color: Colors.black,
+                                                      ),
                                                     ),
-                                                    softWrap: true,
                                                   ),
                                                 ),
                                               ],
@@ -245,8 +296,12 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                                                   ],
                                                 ),
                                                 child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween, // Ensure proper alignment
                                                   crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                                      CrossAxisAlignment
+                                                          .center, // Vertically align items
                                                   children: [
                                                     Text(
                                                       '${team['members'].indexOf(member) + 1}.',
@@ -267,15 +322,63 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                                                       ),
                                                     ),
                                                     SizedBox(width: 8.0),
-                                                    Expanded(
-                                                      child: Text(
-                                                        member['email'],
-                                                        style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color: Colors.black,
+                                                    MouseRegion(
+                                                      cursor:
+                                                          SystemMouseCursors
+                                                              .click, // Show hand cursor on hover
+                                                      child: GestureDetector(
+                                                        onTap: () {
+                                                          Navigator.push(
+                                                            context,
+                                                            MaterialPageRoute(
+                                                              builder:
+                                                                  (
+                                                                    context,
+                                                                  ) => PlayerProfilePage(
+                                                                    playerName:
+                                                                        member['name'],
+                                                                    playerEmail:
+                                                                        member['email'] ??
+                                                                        'N/A',
+                                                                  ),
+                                                            ),
+                                                          );
+                                                        },
+                                                        child: Container(
+                                                          padding:
+                                                              EdgeInsets.all(
+                                                                12.0,
+                                                              ),
+                                                          decoration: BoxDecoration(
+                                                            color:
+                                                                Colors
+                                                                    .orange
+                                                                    .shade200, // Orange color for "Profile"
+                                                            shape:
+                                                                BoxShape
+                                                                    .circle, // Circular shape
+                                                            boxShadow: [
+                                                              BoxShadow(
+                                                                color: Colors
+                                                                    .grey
+                                                                    .withOpacity(
+                                                                      0.5,
+                                                                    ),
+                                                                spreadRadius: 2,
+                                                                blurRadius: 5,
+                                                                offset: Offset(
+                                                                  0,
+                                                                  3,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          child: Icon(
+                                                            Icons
+                                                                .person, // Profile icon
+                                                            color: Colors.black,
+                                                          ),
                                                         ),
-                                                        softWrap: true,
                                                       ),
                                                     ),
                                                   ],
