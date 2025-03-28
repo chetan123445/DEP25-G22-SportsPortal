@@ -147,7 +147,9 @@ class DashboardScreen extends StatelessWidget {
                       backgroundColor: Colors.grey.shade300,
                       child: Icon(Icons.person, color: Colors.white),
                     );
-                  } else if (snapshot.hasData && snapshot.data != null) {
+                  } else if (snapshot.hasData &&
+                      snapshot.data != null &&
+                      snapshot.data!.isNotEmpty) {
                     return CircleAvatar(
                       radius: 40,
                       backgroundImage: NetworkImage(
@@ -158,8 +160,10 @@ class DashboardScreen extends StatelessWidget {
                   } else {
                     return CircleAvatar(
                       radius: 40,
-                      backgroundColor: Colors.grey.shade300,
-                      child: Icon(Icons.person, color: Colors.white),
+                      backgroundImage: AssetImage(
+                        'assets/profile.png',
+                      ), // Default image
+                      backgroundColor: Colors.transparent,
                     );
                   }
                 },

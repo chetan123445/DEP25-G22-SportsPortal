@@ -144,7 +144,9 @@ class HomePage extends StatelessWidget {
                     backgroundColor: Colors.grey.shade300,
                     child: Icon(Icons.person, color: Colors.white),
                   );
-                } else if (snapshot.hasData && snapshot.data != null) {
+                } else if (snapshot.hasData &&
+                    snapshot.data != null &&
+                    snapshot.data!.isNotEmpty) {
                   return GestureDetector(
                     onTap: () {
                       Navigator.push(
@@ -154,11 +156,14 @@ class HomePage extends StatelessWidget {
                         ),
                       );
                     },
-                    child: CircleAvatar(
-                      backgroundImage: NetworkImage(
-                        '$baseUrl/${snapshot.data}',
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click, // Change cursor to hand
+                      child: CircleAvatar(
+                        backgroundImage: NetworkImage(
+                          '$baseUrl/${snapshot.data}',
+                        ),
+                        backgroundColor: Colors.transparent,
                       ),
-                      backgroundColor: Colors.transparent,
                     ),
                   );
                 } else {
@@ -171,9 +176,15 @@ class HomePage extends StatelessWidget {
                         ),
                       );
                     },
-                    child: CircleAvatar(
-                      backgroundColor: Colors.blue.shade200,
-                      child: Icon(Icons.person, color: Colors.white),
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click, // Change cursor to hand
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundImage: AssetImage(
+                          'assets/profile.png',
+                        ), // Default image
+                        backgroundColor: Colors.transparent,
+                      ),
                     ),
                   );
                 }
