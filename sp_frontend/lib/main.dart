@@ -10,6 +10,7 @@ import 'GC.dart'; // Import the GCPage
 import 'IRCC.dart'; // Import the IRCCPage
 import 'PHL.dart'; // Import the PHLPage
 import 'BasketBrawl.dart'; // Import the BasketBrawlPage
+import 'PlayersPage.dart'; // Import the PlayersPage
 
 void main() {
   runApp(SportsPortalApp());
@@ -239,7 +240,13 @@ class MainPage extends StatelessWidget {
             ListTile(
               leading: Icon(Icons.people),
               title: Text('Players'),
-              onTap: () {},
+              onTap: () {
+                // Navigate to PlayersPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => PlayersPage()),
+                );
+              },
             ),
           ],
         ),
