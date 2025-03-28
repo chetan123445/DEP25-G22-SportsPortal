@@ -21,6 +21,7 @@ import { getEventParticipants } from '../controllers/participantsController.js';
 import { addAdmin, verifyAdmin } from '../controllers/Admin.js'; // Import the verifyAdmin controller
 import { getAllPlayersWithDetails, getAllPlayersFromTeams } from '../controllers/playersController.js'; // Import the updated controller
 import { getPlayerDetails } from '../controllers/playerProfileController.js'; // Import the new controller
+import { getUserEvents } from '../controllers/userEventsController.js'; // Import the new controller
 
 const router = express.Router();
 
@@ -69,5 +70,6 @@ router.post("/verify-admin", verifyAdmin); // Add route for verifying an admin
 router.get("/all-players", getAllPlayersWithDetails); // Add route for fetching all players with details
 router.get("/all-players-from-teams", getAllPlayersFromTeams); // Add route for fetching all players from teams
 router.get("/player-details/:email", getPlayerDetails); // Add route to fetch player details
+router.get("/my-events", getUserEvents); // Add route for fetching user-specific events
 
 export default router;

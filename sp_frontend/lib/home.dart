@@ -15,6 +15,7 @@ import 'PlayersPage.dart'; // Import the PlayersPage
 import 'constants.dart'; // Import the constants file
 import 'dart:convert'; // Import for JSON decoding
 import 'package:http/http.dart' as http; // Import for HTTP requests
+import 'MyEvents.dart'; // Import the MyEventsPage
 
 void main() {
   runApp(SportsPortalApp());
@@ -159,6 +160,7 @@ class HomePage extends StatelessWidget {
                     child: MouseRegion(
                       cursor: SystemMouseCursors.click, // Change cursor to hand
                       child: CircleAvatar(
+                        radius: 16, // Reduced radius to fit in the black box
                         backgroundImage: NetworkImage(
                           '$baseUrl/${snapshot.data}',
                         ),
@@ -179,7 +181,7 @@ class HomePage extends StatelessWidget {
                     child: MouseRegion(
                       cursor: SystemMouseCursors.click, // Change cursor to hand
                       child: CircleAvatar(
-                        radius: 20,
+                        radius: 16, // Reduced radius to fit in the black box
                         backgroundImage: AssetImage(
                           'assets/profile.png',
                         ), // Default image
@@ -284,6 +286,19 @@ class HomePage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => GCPage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.event_available),
+              title: Text('My Events'),
+              onTap: () {
+                // Navigate to MyEventsPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MyEventsPage(email: email),
+                  ),
                 );
               },
             ),
