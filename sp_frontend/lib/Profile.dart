@@ -128,10 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       request.fields['email'] = widget.email;
       request.files.add(
-        await http.MultipartFile.fromPath(
-          'profilePic',
-          image.path,
-        ),
+        await http.MultipartFile.fromPath('profilePic', image.path),
       );
 
       var streamedResponse = await request.send();
@@ -188,12 +185,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final Map<String, dynamic> updateData = {
         'email': widget.email,
         if (_nameController.text.isNotEmpty) 'name': _nameController.text,
-        if (_phoneNumberController.text.isNotEmpty) 'mobileNo': _phoneNumberController.text,
+        if (_phoneNumberController.text.isNotEmpty)
+          'mobileNo': _phoneNumberController.text,
         if (_dobController.text.isNotEmpty) 'DOB': _dobController.text,
         if (_degreeController.text.isNotEmpty) 'Degree': _degreeController.text,
-        if (_departmentController.text.isNotEmpty) 'Department': _departmentController.text,
+        if (_departmentController.text.isNotEmpty)
+          'Department': _departmentController.text,
         if (_currentYearController.text.isNotEmpty) ...{
-          'CurrentYear': int.tryParse(_currentYearController.text) ?? _currentYearController.text
+          'CurrentYear':
+              int.tryParse(_currentYearController.text) ??
+              _currentYearController.text,
         },
       };
 
@@ -204,9 +205,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Profile updated successfully')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Profile updated successfully')));
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
@@ -219,9 +220,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         throw Exception(responseData['error']);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating profile: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error updating profile: $e')));
     }
   }
 
@@ -268,7 +269,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => FullImageScreen(imageUrl: '$baseUrl/$profilePic'),
+          builder:
+              (context) => FullImageScreen(imageUrl: '$baseUrl/$profilePic'),
         ),
       );
     }
@@ -362,20 +364,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ? FileImage(_image!)
                                     : profilePic.isNotEmpty
                                     ? NetworkImage('$baseUrl/$profilePic')
-                                    : AssetImage('assets/profile.png') // Fallback image
+                                    : AssetImage(
+                                          'assets/profile.png',
+                                        ) // Fallback image
                                         as ImageProvider,
                             backgroundColor: Colors.white,
                           ),
                         ),
                         GestureDetector(
                           onTap: _showImagePicker,
-                          child: CircleAvatar(
-                            radius: 18,
-                            backgroundColor: Colors.black,
-                            child: Icon(
-                              Icons.camera_alt,
-                              color: Colors.white,
-                              size: 18,
+                          child: MouseRegion(
+                            cursor:
+                                SystemMouseCursors
+                                    .click, // Change cursor to hand
+                            child: CircleAvatar(
+                              radius: 18,
+                              backgroundColor: Colors.black,
+                              child: Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 18,
+                              ),
                             ),
                           ),
                         ),
@@ -510,21 +519,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                       if (isAdmin) ...[
                         SizedBox(height: 20),
-                        // Text(
-                        //   "Admin",
-                        //   style: TextStyle(
-                        //     fontWeight: FontWeight.bold,
-                        //     fontSize: 18,
-                        //     color: Colors.teal,
-                        //   ),
-                        // ),
                         Card(
                           elevation: 5,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: ListTile(
-                            leading: Icon(Icons.admin_panel_settings, color: Colors.teal),
+                            leading: Icon(
+                              Icons.admin_panel_settings,
+                              color: Colors.teal,
+                            ),
                             title: Text(
                               'Admin Dashboard',
                               style: TextStyle(
@@ -532,12 +536,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 color: Colors.teal,
                               ),
                             ),
-                            trailing: Icon(Icons.arrow_forward, color: Colors.teal),
+                            trailing: Icon(
+                              Icons.arrow_forward,
+                              color: Colors.teal,
+                            ),
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => AdminDashboard(),
+                                  builder:
+                                      (context) => AdminDashboard(
+                                        email: widget.email,
+                                        name: name, // Pass the name
+                                      ),
                                 ),
                               );
                             },

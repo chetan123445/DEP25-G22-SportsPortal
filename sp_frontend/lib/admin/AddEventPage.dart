@@ -5,6 +5,11 @@ import '../services/event_services.dart';
 import '../adminDashboard.dart';
 
 class AddEventPage extends StatefulWidget {
+  final String email;
+  final String name; // Accept name parameter
+
+  AddEventPage({required this.email, required this.name});
+
   @override
   _AddEventPageState createState() => _AddEventPageState();
 }
@@ -22,19 +27,40 @@ class _AddEventPageState extends State<AddEventPage> {
   String _team2 = '';
   String? selectedGender;
   bool _showValidationErrors = false;
-  
+
   // Event type dropdown variables
   String? selectedEventType;
-  String? selectedMainType;  // For GC option
-  String? selectedType;      // For IYSC option
-  
+  String? selectedMainType; // For GC option
+  String? selectedType; // For IYSC option
+
   // Event type dropdown options
-  final List<String> eventTypeOptions = ['GC', 'IYSC', 'IRCC', 'PHL', 'Basket Brawl'];
-  final List<String> gcMainTypeOptions = ['Cultural', 'Technical', 'Literacy', 'Sports', 'eSports'];
+  final List<String> eventTypeOptions = [
+    'GC',
+    'IYSC',
+    'IRCC',
+    'PHL',
+    'Basket Brawl',
+  ];
+  final List<String> gcMainTypeOptions = [
+    'Cultural',
+    'Technical',
+    'Literacy',
+    'Sports',
+    'eSports',
+  ];
   final List<String> iyscTypeOptions = [
-    'Cricket', 'Football', 'Table Tennis', 'Tennis', 'Hockey', 
-    'Field Athletics', 'Weightlifting', 'Powerlifting', 
-    'Chess', 'Badminton', 'Basketball', 'Volleyball'
+    'Cricket',
+    'Football',
+    'Table Tennis',
+    'Tennis',
+    'Hockey',
+    'Field Athletics',
+    'Weightlifting',
+    'Powerlifting',
+    'Chess',
+    'Badminton',
+    'Basketball',
+    'Volleyball',
   ];
 
   List<TeamMember> _team1Members = [];
@@ -63,13 +89,13 @@ class _AddEventPageState extends State<AddEventPage> {
     return members.asMap().entries.map((entry) {
       int index = entry.key;
       TeamMember member = entry.value;
-      
+
       return Container(
         margin: EdgeInsets.only(bottom: 10),
         padding: EdgeInsets.all(10),
         decoration: BoxDecoration(
           border: Border.all(
-            color: Colors.grey,  // Always grey border for container
+            color: Colors.grey, // Always grey border for container
           ),
           borderRadius: BorderRadius.circular(4),
         ),
@@ -106,7 +132,10 @@ class _AddEventPageState extends State<AddEventPage> {
                 focusedErrorBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.red),
                 ),
-                errorText: _showValidationErrors && member.name.isEmpty ? 'Name is required' : null,
+                errorText:
+                    _showValidationErrors && member.name.isEmpty
+                        ? 'Name is required'
+                        : null,
               ),
               onChanged: (value) {
                 _updateTeamMember(index, isTeam1, name: value);
@@ -131,7 +160,10 @@ class _AddEventPageState extends State<AddEventPage> {
                 focusedErrorBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.red),
                 ),
-                errorText: _showValidationErrors && member.email.isEmpty ? 'Email is required' : null,
+                errorText:
+                    _showValidationErrors && member.email.isEmpty
+                        ? 'Email is required'
+                        : null,
               ),
               onChanged: (value) {
                 _updateTeamMember(index, isTeam1, email: value);
@@ -152,7 +184,7 @@ class _AddEventPageState extends State<AddEventPage> {
       }
     });
   }
-  
+
   void _removeTeamMember(int index, bool isTeam1) {
     setState(() {
       if (isTeam1) {
@@ -183,9 +215,9 @@ class _AddEventPageState extends State<AddEventPage> {
 
   Future<void> _addEvent() async {
     setState(() {
-      _showValidationErrors = true;  // Show validation errors on submit
+      _showValidationErrors = true; // Show validation errors on submit
     });
-    
+
     // Add validation for team members before form validation
     bool teamMembersValid = true;
     String errorMessage = '';
@@ -234,15 +266,17 @@ class _AddEventPageState extends State<AddEventPage> {
 
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      
+
       try {
-        Team? team1Details = _team1Members.isNotEmpty
-            ? Team(teamName: _team1, members: _team1Members)
-            : null;
-            
-        Team? team2Details = _team2Members.isNotEmpty
-            ? Team(teamName: _team2, members: _team2Members)
-            : null;
+        Team? team1Details =
+            _team1Members.isNotEmpty
+                ? Team(teamName: _team1, members: _team1Members)
+                : null;
+
+        Team? team2Details =
+            _team2Members.isNotEmpty
+                ? Team(teamName: _team2, members: _team2Members)
+                : null;
 
         bool success = await EventServices.addEvent(
           gender: selectedGender!,
@@ -263,9 +297,15 @@ class _AddEventPageState extends State<AddEventPage> {
         // First navigate back to AdminDashboard
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => DashboardScreen()),
+          MaterialPageRoute(
+            builder:
+                (context) => DashboardScreen(
+                  email: widget.email,
+                  name: widget.name, // Pass the correct admin name
+                ),
+          ),
         );
-        
+
         // Then show the response dialog
         if (success) {
           showDialog(
@@ -314,11 +354,31 @@ class _AddEventPageState extends State<AddEventPage> {
       }
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (context) => DashboardScreen(
+                      email: widget.email,
+                      name:
+                          widget.name, // Pass the name back to DashboardScreen
+                    ),
+              ),
+            );
+          },
+        ),
+      ),
       body: Stack(
         children: [
           // Gradient Circles Background
@@ -463,7 +523,7 @@ class _AddEventPageState extends State<AddEventPage> {
                     ],
                   ),
                   SizedBox(height: 10),
-                  
+
                   // Event Type Dropdown
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -504,15 +564,16 @@ class _AddEventPageState extends State<AddEventPage> {
                             height: 56,
                           ),
                           menuItemStyleData: MenuItemStyleData(height: 40),
-                          items: eventTypeOptions.map((String item) {
-                            return DropdownMenuItem<String>(
-                              value: item,
-                              child: Text(
-                                item,
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            );
-                          }).toList(),
+                          items:
+                              eventTypeOptions.map((String item) {
+                                return DropdownMenuItem<String>(
+                                  value: item,
+                                  child: Text(
+                                    item,
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                );
+                              }).toList(),
                           onChanged: (value) {
                             setState(() {
                               selectedEventType = value as String?;
@@ -520,14 +581,14 @@ class _AddEventPageState extends State<AddEventPage> {
                               // Reset secondary selections when main type changes
                               selectedMainType = null;
                               selectedType = null;
-                              
+
                               // Set _type automatically for IRCC, PHL and Basket Brawl
                               if (value == 'IRCC') {
                                 _type = 'cricket';
                               } else if (value == 'PHL') {
                                 _type = 'hockey';
                               } else if (value == 'Basket Brawl') {
-                                _type = 'basketball';  // Fixed spelling here
+                                _type = 'basketball'; // Fixed spelling here
                               }
                             });
                           },
@@ -539,7 +600,7 @@ class _AddEventPageState extends State<AddEventPage> {
                       ),
                     ],
                   ),
-                  
+
                   // Conditional Main Type dropdown for GC
                   if (selectedEventType == 'GC') ...[
                     SizedBox(height: 10),
@@ -582,15 +643,16 @@ class _AddEventPageState extends State<AddEventPage> {
                               height: 56,
                             ),
                             menuItemStyleData: MenuItemStyleData(height: 40),
-                            items: gcMainTypeOptions.map((String item) {
-                              return DropdownMenuItem<String>(
-                                value: item,
-                                child: Text(
-                                  item,
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              );
-                            }).toList(),
+                            items:
+                                gcMainTypeOptions.map((String item) {
+                                  return DropdownMenuItem<String>(
+                                    value: item,
+                                    child: Text(
+                                      item,
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  );
+                                }).toList(),
                             onChanged: (value) {
                               setState(() {
                                 selectedMainType = value as String?;
@@ -606,7 +668,7 @@ class _AddEventPageState extends State<AddEventPage> {
                       ],
                     ),
                   ],
-                  
+
                   // Conditional Type dropdown for IYSC
                   if (selectedEventType == 'IYSC') ...[
                     SizedBox(height: 10),
@@ -649,15 +711,16 @@ class _AddEventPageState extends State<AddEventPage> {
                               height: 56,
                             ),
                             menuItemStyleData: MenuItemStyleData(height: 40),
-                            items: iyscTypeOptions.map((String item) {
-                              return DropdownMenuItem<String>(
-                                value: item,
-                                child: Text(
-                                  item,
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              );
-                            }).toList(),
+                            items:
+                                iyscTypeOptions.map((String item) {
+                                  return DropdownMenuItem<String>(
+                                    value: item,
+                                    child: Text(
+                                      item,
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  );
+                                }).toList(),
                             onChanged: (value) {
                               setState(() {
                                 selectedType = value as String?;
@@ -673,7 +736,7 @@ class _AddEventPageState extends State<AddEventPage> {
                       ],
                     ),
                   ],
-                  
+
                   SizedBox(height: 10),
                   Row(
                     children: [

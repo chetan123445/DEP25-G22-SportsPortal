@@ -12,6 +12,9 @@ import 'BasketBrawl.dart'; // Import the BasketBrawlPage
 import 'Profile.dart'; // Import the ProfilePage
 import 'main.dart'; // Import MainPage
 import 'PlayersPage.dart'; // Import the PlayersPage
+import 'constants.dart'; // Import the constants file
+import 'dart:convert'; // Import for JSON decoding
+import 'package:http/http.dart' as http; // Import for HTTP requests
 
 void main() {
   runApp(SportsPortalApp());
@@ -33,6 +36,22 @@ class HomePage extends StatelessWidget {
   HomePage({required this.email}); // Update constructor
 
   final bool isLoggedIn = false; // Change this based on user authentication
+
+  Future<String?> _fetchProfilePic(String email) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/profile?email=$email'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['data'][0]['ProfilePic'] ?? null;
+      }
+    } catch (e) {
+      // Handle error
+    }
+    return null;
+  }
 
   void _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
@@ -117,19 +136,48 @@ class HomePage extends StatelessWidget {
           ),
           Padding(
             padding: EdgeInsets.only(right: 16.0),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProfileScreen(email: email),
-                  ), // Pass email to ProfileScreen
-                );
+            child: FutureBuilder<String?>(
+              future: _fetchProfilePic(email),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircleAvatar(
+                    backgroundColor: Colors.grey.shade300,
+                    child: Icon(Icons.person, color: Colors.white),
+                  );
+                } else if (snapshot.hasData && snapshot.data != null) {
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProfileScreen(email: email),
+                        ),
+                      );
+                    },
+                    child: CircleAvatar(
+                      backgroundImage: NetworkImage(
+                        '$baseUrl/${snapshot.data}',
+                      ),
+                      backgroundColor: Colors.transparent,
+                    ),
+                  );
+                } else {
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProfileScreen(email: email),
+                        ),
+                      );
+                    },
+                    child: CircleAvatar(
+                      backgroundColor: Colors.blue.shade200,
+                      child: Icon(Icons.person, color: Colors.white),
+                    ),
+                  );
+                }
               },
-              child: CircleAvatar(
-                backgroundColor: Colors.blue.shade200,
-                child: Text("P"), // Replace with user initials
-              ),
             ),
           ),
         ],
