@@ -4,6 +4,7 @@ import '../Profile.dart'; // Import ProfileScreen
 import 'constants.dart'; // Import the constants file
 import 'dart:convert'; // Import for JSON decoding
 import 'package:http/http.dart' as http; // Import for HTTP requests
+import '../admin/ManageEventPage.dart'; // Add this import at the top
 
 void main() {
   runApp(
@@ -50,7 +51,10 @@ class DashboardScreen extends StatelessWidget {
 
   final List<Map<String, dynamic>> categories = [
     {'name': 'Add Event and Event Managers', 'icon': Icons.event},
-    {'name': 'Manage Event and Event Managers', 'icon': Icons.admin_panel_settings},
+    {
+      'name': 'Manage Event and Event Managers',
+      'icon': Icons.admin_panel_settings,
+    },
     {'name': 'My Activity', 'icon': Icons.timeline}, // Added new category
   ];
 
@@ -231,11 +235,14 @@ class CategoryTile extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder:
-                  (context) => AddEventPage(
-                    email: email,
-                    name: name,
-                  ), // Pass name to AddEventPage
+              builder: (context) => AddEventPage(email: email, name: name),
+            ),
+          );
+        } else if (title == 'Manage Event and Event Managers') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ManageEventPage(email: email, name: name),
             ),
           );
         }
