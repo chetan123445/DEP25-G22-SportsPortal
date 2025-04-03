@@ -6,6 +6,7 @@ import 'dart:async'; // Add this import for blinking animation
 import 'constants.dart';
 import 'services/favorite_service.dart';
 import 'team_details_page.dart'; // Import the new page
+import 'PlayerProfilePage.dart';
 
 class IRCCPage extends StatefulWidget {
   @override
@@ -469,6 +470,176 @@ class _IRCCPageState extends State<IRCCPage> {
                   child: Text(
                     'Venue: $venue',
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                SizedBox(height: 4.0),
+
+                // Add Event Managers button before Align(alignment: Alignment.centerRight...)
+                SizedBox(height: 8.0),
+                InkWell(
+                  onTap: () {
+                    if (event['eventManagers'] == null ||
+                        (event['eventManagers'] as List).isEmpty) {
+                      showDialog(
+                        context: context,
+                        builder:
+                            (context) => AlertDialog(
+                              title: Text('No Event Managers'),
+                              content: Text(
+                                'No event managers have been assigned to this event.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text('OK'),
+                                ),
+                              ],
+                            ),
+                      );
+                      return;
+                    }
+                    showDialog(
+                      context: context,
+                      builder:
+                          (context) => AlertDialog(
+                            backgroundColor: Colors.transparent,
+                            contentPadding: EdgeInsets.zero,
+                            content: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12.0),
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Colors.purple.shade200,
+                                    Colors.blue.shade200,
+                                    Colors.pink.shade100,
+                                  ],
+                                ),
+                              ),
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.people,
+                                        size: 24,
+                                        color: Colors.black,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Event Managers',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 16),
+                                  SingleChildScrollView(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: List<Widget>.from(
+                                        (event['eventManagers'] as List<dynamic>).map(
+                                          (manager) => Padding(
+                                            padding: EdgeInsets.symmetric(
+                                              vertical: 4.0,
+                                            ),
+                                            child: InkWell(
+                                              onTap: () {
+                                                Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                    builder:
+                                                        (
+                                                          context,
+                                                        ) => PlayerProfilePage(
+                                                          playerName:
+                                                              manager['name'] ??
+                                                              'Unknown',
+                                                          playerEmail:
+                                                              manager['email'] ??
+                                                              '',
+                                                        ),
+                                                  ),
+                                                );
+                                              },
+                                              child: Container(
+                                                padding: EdgeInsets.all(8.0),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.orange.shade200,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  border: Border.all(
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    CircleAvatar(
+                                                      backgroundColor:
+                                                          Colors.blue.shade100,
+                                                      child: Icon(
+                                                        Icons.person,
+                                                        color: Colors.blue,
+                                                      ),
+                                                    ),
+                                                    SizedBox(width: 8),
+                                                    Text(
+                                                      manager['name'] ??
+                                                          'Unknown',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: 16),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.black,
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    onPressed: () => Navigator.pop(context),
+                                    child: Text('Close'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                    );
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 4.0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(color: Colors.black),
+                    ),
+                    child: Text(
+                      'Event Managers',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12.0,
+                      ),
+                    ),
                   ),
                 ),
                 SizedBox(height: 4.0),

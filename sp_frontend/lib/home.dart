@@ -16,7 +16,7 @@ import 'constants.dart'; // Import the constants file
 import 'dart:convert'; // Import for JSON decoding
 import 'package:http/http.dart' as http; // Import for HTTP requests
 import 'MyEvents.dart'; // Import the MyEventsPage
-
+import 'ManagingEvents.dart'; // Import the ManagingEventsPage
 void main() {
   runApp(SportsPortalApp());
 }
@@ -298,6 +298,18 @@ class HomePage extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => MyEventsPage(email: email),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.manage_accounts),
+              title: Text('Managing Events'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ManagingEventsPage(email: email),
                   ),
                 );
               },

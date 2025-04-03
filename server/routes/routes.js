@@ -22,6 +22,7 @@ import { addAdmin, verifyAdmin } from '../controllers/Admin.js'; // Import the v
 import { getAllPlayersWithDetails, getAllPlayersFromTeams } from '../controllers/playersController.js'; // Import the updated controller
 import { getPlayerDetails } from '../controllers/playerProfileController.js'; // Import the new controller
 import { getUserEvents } from '../controllers/userEventsController.js'; // Import the new controller
+import { getManagedEvents } from '../controllers/managedEventsController.js'; // Import the new controller
 
 const router = express.Router();
 
@@ -71,5 +72,6 @@ router.get("/all-players", getAllPlayersWithDetails); // Add route for fetching 
 router.get("/all-players-from-teams", getAllPlayersFromTeams); // Add route for fetching all players from teams
 router.get("/player-details/:email", getPlayerDetails); // Add route to fetch player details
 router.get("/my-events", getUserEvents); // Add route for fetching user-specific events
+router.get("/managed-events", getManagedEvents); // Add route for fetching managed events
 
 export default router;
