@@ -3,7 +3,7 @@ import Team from '../models/Team.js';
 
 export async function addGCEvent(req, res) {
     try {
-        const { MainType,eventType, type, gender, date, time, venue, description, winner, participants } = req.body;
+        const { MainType, eventType, type, gender, date, time, venue, description, winner, participants, eventManagers } = req.body;
 
         // Validate required fields
         if (!MainType || !eventType || !type || !date || !time || !venue) {
@@ -35,7 +35,8 @@ export async function addGCEvent(req, res) {
             venue,
             description,
             winner,
-            participants: teamIds
+            participants: teamIds,
+            eventManagers: eventManagers || [] // Each manager in array should have {name, email}
         });
 
         await newGCevent.save();

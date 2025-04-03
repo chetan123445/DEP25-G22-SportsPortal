@@ -13,6 +13,10 @@ const BasketBrawleventSchema = new mongoose.Schema({
     team2: { type: String, required: true },
     team1Details: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: false }, // Use TeamSchema for team1Details
     team2Details: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: false }, // Use TeamSchema for team2Details
+    eventManagers: [{
+        name: { type: String, required: true },
+        email: { type: String, required: true }
+    }]
 });
 
 const BasketBrawlevent = mongoose.model('BasketBrawlevent', BasketBrawleventSchema);

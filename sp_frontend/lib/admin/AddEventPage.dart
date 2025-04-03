@@ -65,8 +65,15 @@ class _AddEventPageState extends State<AddEventPage> {
 
   List<TeamMember> _team1Members = [];
   List<TeamMember> _team2Members = [];
+  List<EventManager> _eventManagers = [];
   final FocusNode _dropdownFocusNode = FocusNode();
   bool _isDropdownFocused = false;
+
+  // Add TextEditingControllers
+  final TextEditingController _venueController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _team1Controller = TextEditingController();
+  final TextEditingController _team2Controller = TextEditingController();
 
   @override
   void initState() {
@@ -80,6 +87,10 @@ class _AddEventPageState extends State<AddEventPage> {
 
   @override
   void dispose() {
+    _venueController.dispose();
+    _descriptionController.dispose();
+    _team1Controller.dispose();
+    _team2Controller.dispose();
     _dropdownFocusNode.dispose();
     super.dispose();
   }
@@ -175,6 +186,78 @@ class _AddEventPageState extends State<AddEventPage> {
     }).toList();
   }
 
+  List<Widget> _buildEventManagersList() {
+    return _eventManagers.asMap().entries.map((entry) {
+      int index = entry.key;
+      EventManager manager = entry.value;
+
+      return Container(
+        margin: EdgeInsets.only(bottom: 10),
+        padding: EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Event Manager ${index + 1}",
+                  style: TextStyle(color: Colors.white),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.redAccent),
+                  onPressed: () => _removeEventManager(index),
+                ),
+              ],
+            ),
+            TextFormField(
+              initialValue: manager.name,
+              style: TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'Name *',
+                labelStyle: TextStyle(color: Colors.white),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.blue),
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _eventManagers[index].name = value;
+                });
+              },
+            ),
+            SizedBox(height: 10),
+            TextFormField(
+              initialValue: manager.email,
+              style: TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'Email *',
+                labelStyle: TextStyle(color: Colors.white),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.blue),
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _eventManagers[index].email = value;
+                });
+              },
+            ),
+          ],
+        ),
+      );
+    }).toList();
+  }
+
   void _addTeamMember(bool isTeam1) {
     setState(() {
       if (isTeam1) {
@@ -213,30 +296,150 @@ class _AddEventPageState extends State<AddEventPage> {
     }
   }
 
+  void _addEventManager() {
+    setState(() {
+      _eventManagers.add(EventManager(name: '', email: ''));
+    });
+  }
+
+  void _removeEventManager(int index) {
+    setState(() {
+      _eventManagers.removeAt(index);
+    });
+  }
+
   Future<void> _addEvent() async {
     setState(() {
-      _showValidationErrors = true; // Show validation errors on submit
+      _showValidationErrors = true;
     });
 
-    // Add validation for team members before form validation
+    // Check all required fields one by one
+    List<String> missingFields = [];
+
+    if (selectedGender == null) {
+      missingFields.add('Gender Category');
+    }
+
+    if (selectedEventType == null) {
+      missingFields.add('Event Type');
+    }
+
+    if (selectedEventType == 'GC' && selectedMainType == null) {
+      missingFields.add('Main Type');
+    }
+
+    if (selectedEventType == 'IYSC' && selectedType == null) {
+      missingFields.add('Sport Type');
+    }
+
+    if (_date == null) {
+      missingFields.add('Date');
+    }
+
+    if (_time.isEmpty) {
+      missingFields.add('Time');
+    }
+
+    _venue = _venueController.text;
+    if (_venue.isEmpty) {
+      missingFields.add('Venue');
+    }
+
+    _team1 = _team1Controller.text;
+    if (_team1.isEmpty) {
+      missingFields.add('Team 1 Name');
+    }
+
+    _team2 = _team2Controller.text;
+    if (_team2.isEmpty) {
+      missingFields.add('Team 2 Name');
+    }
+
+    // If any required fields are missing, show them all in one dialog
+    if (missingFields.isNotEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Missing Fields'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Please fill in the following required fields:'),
+                SizedBox(height: 10),
+                ...missingFields
+                    .map(
+                      (field) => Padding(
+                        padding: EdgeInsets.symmetric(vertical: 2),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              color: Colors.red,
+                              size: 20,
+                            ),
+                            SizedBox(width: 8),
+                            Text(field),
+                          ],
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ],
+            ),
+            backgroundColor: Colors.grey[900],
+            titleTextStyle: TextStyle(color: Colors.red, fontSize: 20),
+            contentTextStyle: TextStyle(color: Colors.white70),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    // Continue with team members and event managers validation
     bool teamMembersValid = true;
     String errorMessage = '';
 
-    // Validate team 1 members
-    for (int i = 0; i < _team1Members.length; i++) {
-      if (_team1Members[i].name.isEmpty || _team1Members[i].email.isEmpty) {
-        teamMembersValid = false;
-        errorMessage = 'Please fill both name and email for all Team 1 members';
-        break;
+    // Validate team 1 members only if there are any
+    if (_team1Members.isNotEmpty) {
+      for (var member in _team1Members) {
+        if (member.name.isEmpty || member.email.isEmpty) {
+          teamMembersValid = false;
+          errorMessage =
+              'Please fill both name and email for all Team 1 members';
+          break;
+        }
       }
     }
 
-    // Validate team 2 members
-    for (int i = 0; i < _team2Members.length; i++) {
-      if (_team2Members[i].name.isEmpty || _team2Members[i].email.isEmpty) {
-        teamMembersValid = false;
-        errorMessage = 'Please fill both name and email for all Team 2 members';
-        break;
+    // Validate team 2 members only if there are any
+    if (teamMembersValid && _team2Members.isNotEmpty) {
+      for (var member in _team2Members) {
+        if (member.name.isEmpty || member.email.isEmpty) {
+          teamMembersValid = false;
+          errorMessage =
+              'Please fill both name and email for all Team 2 members';
+          break;
+        }
+      }
+    }
+
+    // Validate event managers only if there are any
+    if (teamMembersValid && _eventManagers.isNotEmpty) {
+      for (var manager in _eventManagers) {
+        if (manager.name.isEmpty || manager.email.isEmpty) {
+          teamMembersValid = false;
+          errorMessage =
+              'Please fill both name and email for all Event Managers';
+          break;
+        }
       }
     }
 
@@ -253,9 +456,7 @@ class _AddEventPageState extends State<AddEventPage> {
             actions: [
               TextButton(
                 child: Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
+                onPressed: () => Navigator.of(context).pop(),
               ),
             ],
           );
@@ -268,6 +469,7 @@ class _AddEventPageState extends State<AddEventPage> {
       _formKey.currentState!.save();
 
       try {
+        // Create team details only if members are present
         Team? team1Details =
             _team1Members.isNotEmpty
                 ? Team(teamName: _team1, members: _team1Members)
@@ -277,6 +479,10 @@ class _AddEventPageState extends State<AddEventPage> {
             _team2Members.isNotEmpty
                 ? Team(teamName: _team2, members: _team2Members)
                 : null;
+
+        // Only include event managers if they are present
+        List<EventManager>? eventManagers =
+            _eventManagers.isNotEmpty ? _eventManagers : null;
 
         bool success = await EventServices.addEvent(
           gender: selectedGender!,
@@ -292,6 +498,7 @@ class _AddEventPageState extends State<AddEventPage> {
           team2: _team2,
           team1Details: team1Details,
           team2Details: team2Details,
+          eventManagers: eventManagers,
         );
 
         // First navigate back to AdminDashboard
@@ -783,6 +990,7 @@ class _AddEventPageState extends State<AddEventPage> {
                   ),
                   SizedBox(height: 10),
                   TextFormField(
+                    controller: _venueController,
                     style: TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       labelText: 'Venue',
@@ -804,6 +1012,7 @@ class _AddEventPageState extends State<AddEventPage> {
                   ),
                   SizedBox(height: 10),
                   TextFormField(
+                    controller: _descriptionController,
                     style: TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       labelText: 'Description',
@@ -819,6 +1028,7 @@ class _AddEventPageState extends State<AddEventPage> {
                   ),
                   SizedBox(height: 10),
                   TextFormField(
+                    controller: _team1Controller,
                     style: TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       labelText: 'Team 1',
@@ -857,6 +1067,7 @@ class _AddEventPageState extends State<AddEventPage> {
                   ),
                   SizedBox(height: 20),
                   TextFormField(
+                    controller: _team2Controller,
                     style: TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       labelText: 'Team 2',
@@ -892,6 +1103,21 @@ class _AddEventPageState extends State<AddEventPage> {
                     onPressed: () {
                       _addTeamMember(false);
                     },
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    "Event Managers (Optional)",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  ..._buildEventManagersList(),
+                  ElevatedButton.icon(
+                    icon: Icon(Icons.add),
+                    label: Text('Add Event Manager'),
+                    onPressed: _addEventManager,
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(

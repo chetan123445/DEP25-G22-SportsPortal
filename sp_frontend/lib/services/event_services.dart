@@ -18,6 +18,7 @@ class EventServices {
     required String team2,
     Team? team1Details,
     Team? team2Details,
+    List<EventManager>? eventManagers,
   }) async {
     // Create event data map
     Map<String, dynamic> eventData = {
@@ -32,13 +33,37 @@ class EventServices {
       'winner': winner,
       'team1': team1,
       'team2': team2,
-      'team1Details': team1Details != null
-          ? {'teamName': team1Details.teamName, 'members': team1Details.members.map((m) => {'name': m.name, 'email': m.email}).toList()}
-          : null,
-      'team2Details': team2Details != null
-          ? {'teamName': team2Details.teamName, 'members': team2Details.members.map((m) => {'name': m.name, 'email': m.email}).toList()}
-          : null,
+      'team1Details':
+          team1Details != null
+              ? {
+                'teamName': team1Details.teamName,
+                'members':
+                    team1Details.members
+                        .map((m) => {'name': m.name, 'email': m.email})
+                        .toList(),
+              }
+              : null,
+      'team2Details':
+          team2Details != null
+              ? {
+                'teamName': team2Details.teamName,
+                'members':
+                    team2Details.members
+                        .map((m) => {'name': m.name, 'email': m.email})
+                        .toList(),
+              }
+              : null,
+      'eventManagers':
+          eventManagers != null
+              ? eventManagers
+                  .map((m) => {'name': m.name, 'email': m.email})
+                  .toList()
+              : [],
     };
+
+    print(
+      "Sending event data: ${jsonEncode(eventData)}",
+    ); // Add this debug line
 
     // Select endpoint based on eventType
     String endpoint;
@@ -64,14 +89,20 @@ class EventServices {
 
     final response = await http.post(
       Uri.parse('${Config.apiUrl}$endpoint'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
       body: jsonEncode(eventData),
     );
+
+    print("Response status: ${response.statusCode}"); // Add this debug line
+    print("Response body: ${response.body}"); // Add this debug line
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return true;
     } else {
-      return false;
+      throw Exception('Failed to add event: ${response.body}');
     }
   }
 }

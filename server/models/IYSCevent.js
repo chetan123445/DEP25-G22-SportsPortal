@@ -13,6 +13,10 @@ const IYSCeventSchema = new mongoose.Schema({
     team2: { type: String, required: true },
     team1Details: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: false },
     team2Details: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: false },
+    eventManagers: [{
+        name: { type: String, required: true },
+        email: { type: String, required: true }
+    }]
 });
 
 const IYSCevent = mongoose.model('IYSCevent', IYSCeventSchema);

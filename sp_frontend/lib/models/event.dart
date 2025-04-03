@@ -13,6 +13,13 @@ class Team {
   Team({required this.teamName, required this.members});
 }
 
+class EventManager {
+  String name;
+  String email;
+
+  EventManager({required this.name, required this.email});
+}
+
 class Event {
   String gender;
   String? mainType;
@@ -27,6 +34,7 @@ class Event {
   String team2;
   Team? team1Details;
   Team? team2Details;
+  List<EventManager>? eventManagers;
 
   Event({
     required this.gender,
@@ -42,5 +50,6 @@ class Event {
     required this.team2,
     this.team1Details,
     this.team2Details,
+    this.eventManagers,
   });
 }

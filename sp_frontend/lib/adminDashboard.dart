@@ -49,10 +49,8 @@ class DashboardScreen extends StatelessWidget {
   }
 
   final List<Map<String, dynamic>> categories = [
-    {'name': 'Add Event Manager', 'icon': Icons.supervisor_account},
-    {'name': 'Add Event', 'icon': Icons.event},
-    {'name': 'Manage Event', 'icon': Icons.edit_calendar},
-    {'name': 'Manage Event Managers', 'icon': Icons.admin_panel_settings},
+    {'name': 'Add Event and Event Managers', 'icon': Icons.event},
+    {'name': 'Manage Event and Event Managers', 'icon': Icons.admin_panel_settings},
     {'name': 'My Activity', 'icon': Icons.timeline}, // Added new category
   ];
 
@@ -229,7 +227,7 @@ class CategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        if (title == 'Add Event') {
+        if (title == 'Add Event and Event Managers') {
           Navigator.push(
             context,
             MaterialPageRoute(

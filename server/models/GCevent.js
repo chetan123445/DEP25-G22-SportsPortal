@@ -11,6 +11,10 @@ const GCeventSchema = new mongoose.Schema({
     description: { type: String, required: false },
     winner: { type: String, required: false },
     participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: false }], // Array of team IDs
+    eventManagers: [{
+        name: { type: String, required: true },
+        email: { type: String, required: true }
+    }] // Array of event manager objects
 });
 
 const GCevent = mongoose.model('GCevent', GCeventSchema);
