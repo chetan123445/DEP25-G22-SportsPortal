@@ -51,6 +51,54 @@ class _ManageEventPageState extends State<ManageEventPage> {
     // ...existing code from Events.dart...
   }
 
+  Future<void> _updateTeamPlayers(
+    String teamId,
+    List<Map<String, dynamic>> players,
+  ) async {
+    try {
+      print('Updating team $teamId with ${players.length} players');
+      final response = await http.put(
+        Uri.parse('$baseUrl/team/$teamId/players'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'players': players}),
+      );
+
+      if (response.statusCode != 200) {
+        print('Error response: ${response.body}');
+        throw Exception(
+          'Failed to update team players: ${response.statusCode}',
+        );
+      }
+
+      print('Team update response: ${response.body}');
+    } catch (e) {
+      print('Error updating team players: $e');
+      rethrow;
+    }
+  }
+
+  Future<String?> _createNewTeam(
+    String teamName,
+    List<Map<String, dynamic>> players,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/create-team'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'teamName': teamName, 'members': players}),
+      );
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data = json.decode(response.body);
+        return data['_id'];
+      }
+      return null;
+    } catch (e) {
+      print('Error creating team: $e');
+      return null;
+    }
+  }
+
   Future<void> _editEvent(Map<String, dynamic> event) async {
     // Store the original values for comparison
     final Map<String, dynamic> originalEvent = Map.from(event);
@@ -81,6 +129,23 @@ class _ManageEventPageState extends State<ManageEventPage> {
         event['eventManagers'].map(
           (manager) => Map<String, dynamic>.from(manager),
         ),
+      );
+    }
+
+    List<Map<String, dynamic>> team1Players = [];
+    List<Map<String, dynamic>> team2Players = [];
+
+    // Load existing team players if available
+    if (event['team1Details'] != null &&
+        event['team1Details']['members'] != null) {
+      team1Players = List<Map<String, dynamic>>.from(
+        event['team1Details']['members'],
+      );
+    }
+    if (event['team2Details'] != null &&
+        event['team2Details']['members'] != null) {
+      team2Players = List<Map<String, dynamic>>.from(
+        event['team2Details']['members'],
       );
     }
 
@@ -128,6 +193,44 @@ class _ManageEventPageState extends State<ManageEventPage> {
                       _buildEditField('Date (YYYY-MM-DD)', dateController),
                       _buildEditField('Description', descriptionController),
                       _buildEditField('Gender', genderController),
+
+                      // Team 1 Players Section
+                      SizedBox(height: 16),
+                      _buildTeamPlayersSection(
+                        event['team1'] ?? 'Team 1',
+                        team1Players,
+                        (index) {
+                          setState(() => team1Players.removeAt(index));
+                        },
+                        () async {
+                          final result = await showDialog<Map<String, dynamic>>(
+                            context: context,
+                            builder: (context) => _AddPlayerDialog(),
+                          );
+                          if (result != null) {
+                            setState(() => team1Players.add(result));
+                          }
+                        },
+                      ),
+
+                      // Team 2 Players Section
+                      SizedBox(height: 16),
+                      _buildTeamPlayersSection(
+                        event['team2'] ?? 'Team 2',
+                        team2Players,
+                        (index) {
+                          setState(() => team2Players.removeAt(index));
+                        },
+                        () async {
+                          final result = await showDialog<Map<String, dynamic>>(
+                            context: context,
+                            builder: (context) => _AddPlayerDialog(),
+                          );
+                          if (result != null) {
+                            setState(() => team2Players.add(result));
+                          }
+                        },
+                      ),
 
                       // Event Managers Section
                       SizedBox(height: 16),
@@ -233,52 +336,119 @@ class _ManageEventPageState extends State<ManageEventPage> {
                                 updates['eventManagers'] = eventManagers;
                               }
 
-                              if (updates.isNotEmpty) {
-                                try {
-                                  final response = await http.patch(
-                                    Uri.parse('$baseUrl/update-event'),
-                                    headers: {
-                                      'Content-Type': 'application/json',
-                                    },
-                                    body: json.encode({
-                                      'eventId': event['_id'],
-                                      'eventType': event['eventType'],
-                                      'updates': updates,
-                                    }),
-                                  );
+                              if (!listEquals(
+                                team1Players.map((e) => e.toString()).toList(),
+                                ((event['team1Details']?['members'] ?? []).map(
+                                  (e) => e.toString(),
+                                )).toList(),
+                              )) {
+                                updates['team1Players'] = team1Players;
+                              }
+                              if (!listEquals(
+                                team2Players.map((e) => e.toString()).toList(),
+                                ((event['team2Details']?['members'] ?? []).map(
+                                  (e) => e.toString(),
+                                )).toList(),
+                              )) {
+                                updates['team2Players'] = team2Players;
+                              }
 
-                                  if (response.statusCode == 200) {
-                                    fetchAllEvents(); // Refresh the list
-                                    Navigator.pop(context);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Event updated successfully',
-                                        ),
-                                      ),
+                              try {
+                                // Handle team 1 players
+                                if (team1Players.isNotEmpty) {
+                                  if (event['team1Details'] != null) {
+                                    final teamId =
+                                        event['team1Details']['_id'] ??
+                                        event['team1Details'];
+                                    // Update existing team
+                                    await _updateTeamPlayers(
+                                      teamId.toString(),
+                                      team1Players,
                                     );
+                                    updates['team1Details'] = teamId;
                                   } else {
-                                    print(
-                                      'Error updating event: ${response.body}',
+                                    // Create new team
+                                    String? teamId = await _createNewTeam(
+                                      event['team1'],
+                                      team1Players,
                                     );
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Failed to update event'),
-                                      ),
-                                    );
+                                    if (teamId != null) {
+                                      updates['team1Details'] = teamId;
+                                    }
                                   }
-                                } catch (e) {
-                                  print('Error: $e');
+                                }
+
+                                // Handle team 2 players
+                                if (team2Players.isNotEmpty) {
+                                  if (event['team2Details'] != null) {
+                                    final teamId =
+                                        event['team2Details']['_id'] ??
+                                        event['team2Details'];
+                                    // Update existing team
+                                    await _updateTeamPlayers(
+                                      teamId.toString(),
+                                      team2Players,
+                                    );
+                                    updates['team2Details'] = teamId;
+                                  } else {
+                                    // Create new team
+                                    String? teamId = await _createNewTeam(
+                                      event['team2'],
+                                      team2Players,
+                                    );
+                                    if (teamId != null) {
+                                      updates['team2Details'] = teamId;
+                                    }
+                                  }
+                                }
+
+                                // Add team details to updates
+                                if (event['team1Details'] != null) {
+                                  updates['team1Details'] =
+                                      event['team1Details'];
+                                }
+                                if (event['team2Details'] != null) {
+                                  updates['team2Details'] =
+                                      event['team2Details'];
+                                }
+
+                                // Send the updates to the server
+                                final response = await http.patch(
+                                  Uri.parse('$baseUrl/update-event'),
+                                  headers: {'Content-Type': 'application/json'},
+                                  body: json.encode({
+                                    'eventId': event['_id'],
+                                    'eventType': event['eventType'],
+                                    'updates': updates,
+                                  }),
+                                );
+
+                                if (response.statusCode == 200) {
+                                  fetchAllEvents(); // Refresh the list
+                                  Navigator.pop(context);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('Error updating event'),
+                                      content: Text(
+                                        'Event updated successfully',
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  print(
+                                    'Error updating event: ${response.body}',
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Failed to update event'),
                                     ),
                                   );
                                 }
-                              } else {
-                                Navigator.pop(context);
+                              } catch (e) {
+                                print('Error: $e');
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('No changes made')),
+                                  SnackBar(
+                                    content: Text('Error updating event'),
+                                  ),
                                 );
                               }
                             },
@@ -310,6 +480,56 @@ class _ManageEventPageState extends State<ManageEventPage> {
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
         ),
       ),
+    );
+  }
+
+  Widget _buildTeamPlayersSection(
+    String teamName,
+    List<Map<String, dynamic>> players,
+    Function(int) onDelete,
+    Function() onAdd,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Team Players ($teamName)',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        Container(
+          constraints: BoxConstraints(maxHeight: 200),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: players.length,
+            itemBuilder: (context, index) {
+              final player = players[index];
+              return ListTile(
+                title: Text(player['name'] ?? ''),
+                subtitle: Text(player['email'] ?? ''),
+                trailing: IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () {
+                    print('Deleting player at index $index'); // Debug print
+                    onDelete(index);
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+        ElevatedButton(
+          child: Text('Add Player'),
+          onPressed: onAdd,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+          ),
+        ),
+      ],
     );
   }
 
@@ -796,6 +1016,49 @@ class _AddEventManagerDialog extends StatelessWidget {
             if (_nameController.text.isNotEmpty &&
                 _emailController.text.isNotEmpty) {
               Navigator.pop(context, <String, dynamic>{
+                'name': _nameController.text,
+                'email': _emailController.text,
+              });
+            }
+          },
+          child: Text('Add'),
+        ),
+      ],
+    );
+  }
+}
+
+class _AddPlayerDialog extends StatelessWidget {
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Add Player'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _nameController,
+            decoration: InputDecoration(labelText: 'Name'),
+          ),
+          TextField(
+            controller: _emailController,
+            decoration: InputDecoration(labelText: 'Email'),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            if (_nameController.text.isNotEmpty &&
+                _emailController.text.isNotEmpty) {
+              Navigator.pop(context, {
                 'name': _nameController.text,
                 'email': _emailController.text,
               });

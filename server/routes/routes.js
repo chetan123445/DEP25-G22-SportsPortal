@@ -16,7 +16,7 @@ import { addFavouriteEvent } from '../controllers/addFavouriteEvent.js';
 import { removeFavouriteEvent } from '../controllers/removeFavouriteEvent.js';
 import { verifyFavouriteEvent } from '../controllers/verifyFavouriteEvent.js';
 import { getFavouriteEvent } from '../controllers/getFavouriteEvent.js';
-import { getTeamDetails, getTeamDetailsByName } from '../controllers/teamController.js'; // Import the new controller
+import { getTeamDetails, getTeamDetailsByName, updateTeam, createTeam } from '../controllers/teamController.js'; // Import the new controller
 import { getEventParticipants } from '../controllers/participantsController.js'; // Import the new controller
 import { addAdmin, verifyAdmin } from '../controllers/Admin.js'; // Import the verifyAdmin controller
 import { getAllPlayersWithDetails, getAllPlayersFromTeams } from '../controllers/playersController.js'; // Import the updated controller
@@ -78,5 +78,9 @@ router.get("/managed-events", getManagedEvents); // Add route for fetching manag
 // Add these new routes
 router.get("/all-events", getAllEvents);
 router.patch("/update-event", updateEvent);
+
+// Add these new routes for team management
+router.put('/team/:teamId/players', updateTeam);
+router.post('/create-team', createTeam);
 
 export default router;
