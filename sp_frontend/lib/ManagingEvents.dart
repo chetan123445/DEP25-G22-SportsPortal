@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'PlayerProfilePage.dart';
 import 'PHLEventDetailsPage.dart';
 import 'BasketBrawlEventDetailsPage.dart'; // Add this import
+import 'IRCCEventDetailsPage.dart'; // Add this import
 
 class ManagingEventsPage extends StatefulWidget {
   final String email;
@@ -105,6 +106,13 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
               context,
               MaterialPageRoute(
                 builder: (context) => BasketBrawlEventDetailsPage(event: event),
+              ),
+            );
+          } else if (eventType == 'IRCC') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => IRCCEventDetailsPage(event: event),
               ),
             );
           }
@@ -491,6 +499,16 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
                                 MaterialPageRoute(
                                   builder:
                                       (context) => BasketBrawlEventDetailsPage(
+                                        event: event,
+                                      ),
+                                ),
+                              );
+                            } else if (eventType == 'IRCC') {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => IRCCEventDetailsPage(
                                         event: event,
                                       ),
                                 ),

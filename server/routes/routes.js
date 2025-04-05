@@ -1,4 +1,5 @@
 import express from 'express';
+import IRCCevent from '../models/IRCCevent.js';
 import { signup } from '../controllers/signup.js';
 import { verify_email } from '../controllers/verify_email.js';
 import { login } from '../controllers/login.js';
@@ -6,7 +7,7 @@ import { getProfile } from '../controllers/profile.js';
 import { updateProfile, uploadProfilePic, removeProfilePic, upload } from '../controllers/editProfile.js';
 import { addIYSCevent } from '../controllers/addIYSCevent.js';
 import { addGCEvent } from '../controllers/addGCevent.js';
-import { addIRCCevent} from '../controllers/addIRCCevent.js';
+import { addIRCCevent, updateScore as updateIRCCScore, addMatchCommentary as addIRCCCommentary, deleteCommentary as deleteIRCCCommentary, getEventDetails as getIRCCEventDetails, getIRCCStandings } from '../controllers/addIRCCevent.js';
 import { addPHLevent, updateScore as updatePHLScore, addMatchCommentary as addPHLCommentary, deleteCommentary as deletePHLCommentary, getEventDetails as getPHLEventDetails, getPHLStandings } from '../controllers/addPHLevent.js';
 import { addBasketBrawlevent, updateScore as updateBasketBrawlScore, addMatchCommentary as addBasketBrawlCommentary, deleteCommentary as deleteBasketBrawlCommentary, getEventDetails as getBasketBrawlEventDetails, getBasketBrawlStandings } from '../controllers/addBasketBrawlevent.js';
 import { getLiveEvents, getUpcomingEvents, getPastEvents } from '../controllers/events.js';
@@ -26,6 +27,44 @@ import { getManagedEvents } from '../controllers/managedEventsController.js'; //
 import { getAllEvents, updateEvent } from '../controllers/allEvents.js';
 
 const router = express.Router();
+
+// Add event manager verification middleware FIRST
+const verifyEventManager = async (req, res, next) => {
+  try {
+    const { eventId } = req.body;
+    const email = req.query.email; // Get email from query params
+    
+    console.log('Verifying event manager:', { eventId, email }); // Debug log
+
+    if (!email) {
+      console.log('No email provided');
+      return res.status(403).json({ message: 'Email is required' });
+    }
+
+    const event = await IRCCevent.findById(eventId);
+    if (!event) {
+      console.log('Event not found:', eventId);
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    console.log('Event managers:', event.eventManagers); // Debug log
+    // Check if the user's email matches any of the event managers' emails
+    const isManager = event.eventManagers.some(manager => 
+      manager.email.toLowerCase() === email.toLowerCase()
+    );
+    console.log('Is manager:', isManager, 'for email:', email); // Debug log
+
+    if (!isManager) {
+      return res.status(403).json({ message: 'Not authorized as event manager' });
+    }
+
+    req.event = event;
+    next();
+  } catch (error) {
+    console.error('Error in verifyEventManager:', error);
+    res.status(500).json({ message: 'Error verifying event manager', error });
+  }
+};
 
 router.post("/signup", signup);
 router.post("/verify-email", verify_email);
@@ -97,11 +136,11 @@ router.post("/basketbrawl/delete-commentary", deleteBasketBrawlCommentary);
 router.get("/basketbrawl/standings", getBasketBrawlStandings);
 router.get("/basketbrawl/event/:eventId", getBasketBrawlEventDetails);
 
-// IRCC Event Routes
-//router.post("/ircc/update-score", updateIRCCScore);
-//router.post("/ircc/add-commentary", addIRCCCommentary);
-//router.post("/ircc/delete-commentary", deleteIRCCCommentary);
-//router.get("/ircc/event/:eventId", getIRCCEventDetails);
-//router.get("/ircc/standings", getIRCCStandings);
+// IRCC Event Routes - Remove verifyEventManager middleware
+router.post("/ircc/update-score", updateIRCCScore);
+router.post("/ircc/add-commentary", addIRCCCommentary); 
+router.post("/ircc/delete-commentary", deleteIRCCCommentary);
+router.get("/ircc/event/:eventId", getIRCCEventDetails);
+router.get("/ircc/standings", getIRCCStandings);
 
 export default router;

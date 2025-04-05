@@ -6,6 +6,8 @@ import 'dart:async'; // Add this import for blinking animation
 import 'constants.dart';
 import 'services/favorite_service.dart';
 import 'team_details_page.dart'; // Import the new page
+import 'IRCCEventDetailsPage.dart';
+import 'PlayerProfilePage.dart'; // Import the player profile page
 
 class IRCCPage extends StatefulWidget {
   @override
@@ -24,7 +26,7 @@ class _IRCCPageState extends State<IRCCPage> {
   void initState() {
     super.initState();
     _startBlinking(); // Start blinking animation
-    _initializeData();
+    _initializeData(); // Initialize data
   }
 
   void _startBlinking() {
@@ -68,7 +70,7 @@ class _IRCCPageState extends State<IRCCPage> {
       final response = await http.get(
         Uri.parse('$baseUrl/get-ircc-events?type=Cricket'),
       );
-      print('Fetching IRCC events...'); // Debug log
+      print('Fetching IRCC events...');
 
       if (response.statusCode == 200) {
         final responseBody = json.decode(response.body);
@@ -78,13 +80,7 @@ class _IRCCPageState extends State<IRCCPage> {
             events = fetchedEvents;
             isLoading = false;
           });
-          print('Fetched ${events.length} events'); // Debug log
         }
-      } else {
-        print('Failed to load events: ${response.statusCode}');
-        setState(() {
-          isLoading = false;
-        });
       }
     } catch (e) {
       print('Error fetching events: $e');
@@ -219,19 +215,7 @@ class _IRCCPageState extends State<IRCCPage> {
                       itemCount: filteredEvents.length,
                       itemBuilder: (context, index) {
                         final event = filteredEvents[index];
-                        return _buildEventCard(
-                          context,
-                          event,
-                          event['team1'] ?? 'Team 1',
-                          event['team2'] ?? 'Team 2',
-                          event['date']?.split('T')[0] ?? 'No Date',
-                          event['time'] ?? 'No Time',
-                          event['type'] ?? 'No Type',
-                          event['gender'] ?? 'Unknown',
-                          event['venue'] ?? 'No Venue',
-                          event['_id'], // Pass the event ID
-                          event['eventType'] ?? 'No Type', // Pass the eventType
-                        );
+                        return _buildEventCard(context, event);
                       },
                     ),
           ),
@@ -240,25 +224,18 @@ class _IRCCPageState extends State<IRCCPage> {
     );
   }
 
-  Widget _buildEventCard(
-    BuildContext context,
-    Map<String, dynamic> event, // Add event parameter
-    String team1,
-    String team2,
-    String date,
-    String time,
-    String type,
-    String gender,
-    String venue,
-    String eventId,
-    String eventType, // Add eventType parameter
-  ) {
+  Widget _buildEventCard(BuildContext context, Map<String, dynamic> event) {
+    String team1 = event['team1'] ?? 'Team 1';
+    String team2 = event['team2'] ?? 'Team 2';
+    String date = event['date']?.split('T')[0] ?? 'No Date';
+    String time = event['time'] ?? 'No Time';
+    String type = event['type'] ?? 'No Type';
+    String gender = event['gender'] ?? 'Unknown';
+    String venue = event['venue'] ?? 'No Venue';
+    String eventId = event['_id'] ?? '';
+    String eventType = event['eventType'] ?? 'No Type';
     bool isFavorite = favoriteStatus[eventId] ?? false;
-    bool isLive =
-        date ==
-        DateTime.now().toIso8601String().split(
-          'T',
-        )[0]; // Check if the event is live
+    bool isLive = date == DateTime.now().toIso8601String().split('T')[0];
 
     return Card(
       elevation: 4.0,
@@ -279,13 +256,9 @@ class _IRCCPageState extends State<IRCCPage> {
                 ],
               ),
             ),
-            padding: const EdgeInsets.symmetric(
-              vertical: 6.0,
-              horizontal: 8.0,
-            ), // Reduced padding
+            padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
             child: Column(
               children: [
-                // Event Type at the top center
                 Align(
                   alignment: Alignment.topCenter,
                   child: Container(
@@ -307,8 +280,7 @@ class _IRCCPageState extends State<IRCCPage> {
                     ),
                   ),
                 ),
-                SizedBox(height: 4.0), // Add spacing below eventType
-                // Teams Row
+                SizedBox(height: 4.0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -415,8 +387,7 @@ class _IRCCPageState extends State<IRCCPage> {
                     ),
                   ],
                 ),
-                SizedBox(height: 4.0), // Reduced spacing
-                // Date and Time
+                SizedBox(height: 4.0),
                 Column(
                   children: [
                     Text(
@@ -436,8 +407,6 @@ class _IRCCPageState extends State<IRCCPage> {
                   ],
                 ),
                 SizedBox(height: 4.0),
-
-                // Type and Gender
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -458,8 +427,6 @@ class _IRCCPageState extends State<IRCCPage> {
                   ],
                 ),
                 SizedBox(height: 4.0),
-
-                // Venue Box
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
                   decoration: BoxDecoration(
@@ -472,8 +439,88 @@ class _IRCCPageState extends State<IRCCPage> {
                   ),
                 ),
                 SizedBox(height: 4.0),
-
-                // Favorite Button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        if (event['eventManagers'] == null ||
+                            (event['eventManagers'] as List).isEmpty) {
+                          showDialog(
+                            context: context,
+                            builder:
+                                (context) => AlertDialog(
+                                  title: Text('No Event Managers'),
+                                  content: Text(
+                                    'No event managers have been assigned to this event.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text('OK'),
+                                    ),
+                                  ],
+                                ),
+                          );
+                          return;
+                        }
+                        // ...existing event managers dialog code...
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                          vertical: 4.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(color: Colors.black),
+                        ),
+                        child: Text(
+                          'Event Managers',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12.0,
+                          ),
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => IRCCEventDetailsPage(
+                                  event: event,
+                                  isReadOnly: true,
+                                ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                          vertical: 4.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(color: Colors.black),
+                        ),
+                        child: Text(
+                          'Event Details',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12.0,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 Align(
                   alignment: Alignment.centerRight,
                   child: IconButton(
@@ -487,10 +534,10 @@ class _IRCCPageState extends State<IRCCPage> {
               ],
             ),
           ),
-          if (isLive) // Add red blinking circle for live events
+          if (isLive)
             Positioned(
               bottom: 8.0,
-              left: 8.0, // Change from right to left
+              left: 8.0,
               child: AnimatedOpacity(
                 opacity: _isBlinking ? 1.0 : 0.0,
                 duration: Duration(milliseconds: 500),
@@ -505,6 +552,50 @@ class _IRCCPageState extends State<IRCCPage> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEventManagerCard(Map<String, dynamic> manager) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4.0),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => PlayerProfilePage(
+                    playerName: manager['name'] ?? 'Unknown',
+                    playerEmail: manager['email'] ?? '',
+                  ),
+            ),
+          );
+        },
+        child: Container(
+          padding: EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colors.orange.shade200,
+            borderRadius: BorderRadius.circular(5),
+            border: Border.all(color: Colors.black),
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: Colors.blue.shade100,
+                child: Icon(Icons.person, color: Colors.blue),
+              ),
+              SizedBox(width: 8),
+              Text(
+                manager['name'] ?? 'Unknown',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
