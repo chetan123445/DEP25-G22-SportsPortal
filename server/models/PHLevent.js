@@ -13,6 +13,12 @@ const PHLeventSchema = new mongoose.Schema({
     team2: { type: String, required: true },
     team1Details: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: false }, // Use TeamSchema for team1Details
     team2Details: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: false }, // Use TeamSchema for team2Details
+    team1Goals: { type: Number, default: 0 },
+    team2Goals: { type: Number, default: 0 },
+    commentary: [{
+        text: String,
+        timestamp: { type: Date, default: Date.now }
+    }],
     eventManagers: [{
         name: { type: String, required: true },
         email: { type: String, required: true }

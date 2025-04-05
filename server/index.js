@@ -7,11 +7,14 @@ import compression from "compression";
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { Server } from 'socket.io';
+import { createServer } from 'http';
 
 import firebaseConnection from './firebaseDatabase/fdb.js';
 import DBconnection from './mongodb/mdb.js';
 
 import router from "./routes/routes.js";
+import { updatePastEventResults } from './services/eventUpdateService.js';
 
 dotenv.config();
 
@@ -37,6 +40,45 @@ app.use(compression()); // Compress responses for better performance
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(uploadsDir));
 
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*", // In production, replace with your frontend URL
+    methods: ["GET", "POST"]
+  }
+});
+
+// Socket.io connection handling
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+
+  socket.on('join-event', (eventId) => {
+    socket.join(eventId);
+    console.log(`User ${socket.id} joined event ${eventId}`);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
+
+// Make io accessible to routes
+app.set('io', io);
+
+// Add this after your other middleware setup
+// Run update at midnight every day
+setInterval(async () => {
+    const now = new Date();
+    if (now.getHours() === 0 && now.getMinutes() === 0) {
+        try {
+            await updatePastEventResults();
+            console.log('Updated past event results');
+        } catch (error) {
+            console.error('Error updating past event results:', error);
+        }
+    }
+}, 60000); // Check every minute
+
 // Routes
 app.use('/', router);
 
@@ -45,6 +87,6 @@ firebaseConnection();
 DBconnection();
 
 // Start the server
-app.listen(PORT, '0.0.0.0', () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

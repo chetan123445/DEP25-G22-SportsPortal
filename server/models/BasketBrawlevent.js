@@ -11,8 +11,14 @@ const BasketBrawleventSchema = new mongoose.Schema({
     winner: { type: String, required: false },
     team1: { type: String, required: true },
     team2: { type: String, required: true },
-    team1Details: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: false }, // Use TeamSchema for team1Details
-    team2Details: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: false }, // Use TeamSchema for team2Details
+    team1Details: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: false },
+    team2Details: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: false },
+    team1Score: { type: Number, default: 0 },
+    team2Score: { type: Number, default: 0 },
+    commentary: [{
+        text: String,
+        timestamp: { type: Date, default: Date.now }
+    }],
     eventManagers: [{
         name: { type: String, required: true },
         email: { type: String, required: true }
@@ -21,4 +27,4 @@ const BasketBrawleventSchema = new mongoose.Schema({
 
 const BasketBrawlevent = mongoose.model('BasketBrawlevent', BasketBrawleventSchema);
 
-export default BasketBrawlevent; // Use ES6 export syntax
+export default BasketBrawlevent;

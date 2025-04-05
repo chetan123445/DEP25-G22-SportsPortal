@@ -6,9 +6,9 @@ import { getProfile } from '../controllers/profile.js';
 import { updateProfile, uploadProfilePic, removeProfilePic, upload } from '../controllers/editProfile.js';
 import { addIYSCevent } from '../controllers/addIYSCevent.js';
 import { addGCEvent } from '../controllers/addGCevent.js';
-import { addIRCCevent } from '../controllers/addIRCCevent.js';
-import { addPHLevent } from '../controllers/addPHLevent.js';
-import { addBasketBrawlevent } from '../controllers/addBasketBrawlevent.js';
+import { addIRCCevent} from '../controllers/addIRCCevent.js';
+import { addPHLevent, updateScore as updatePHLScore, addMatchCommentary as addPHLCommentary, deleteCommentary as deletePHLCommentary, getEventDetails as getPHLEventDetails, getPHLStandings } from '../controllers/addPHLevent.js';
+import { addBasketBrawlevent, updateScore as updateBasketBrawlScore, addMatchCommentary as addBasketBrawlCommentary, deleteCommentary as deleteBasketBrawlCommentary, getEventDetails as getBasketBrawlEventDetails, getBasketBrawlStandings } from '../controllers/addBasketBrawlevent.js';
 import { getLiveEvents, getUpcomingEvents, getPastEvents } from '../controllers/events.js';
 import { getIYSCevent, getGCevent, getIRCCevent, getPHLevent, getBasketBrawlevent } from '../controllers/getParticularEvent.js';
 import { updateIYSCevent, updateGCevent, updateIRCCevent, updatePHLevent, updateBasketBrawlevent } from '../controllers/updateParticularEvent.js';
@@ -82,5 +82,26 @@ router.patch("/update-event", updateEvent);
 // Add these new routes for team management
 router.put('/team/:teamId/players', updateTeam);
 router.post('/create-team', createTeam);
+
+// PHL Event Routes
+router.post("/phl/update-score", updatePHLScore);
+router.post("/phl/add-commentary", addPHLCommentary);
+router.post("/phl/delete-commentary", deletePHLCommentary);
+router.get("/phl/standings", getPHLStandings);
+router.get("/phl/event/:eventId", getPHLEventDetails);
+
+// BasketBrawl Event Routes
+router.post("/basketbrawl/update-score", updateBasketBrawlScore);
+router.post("/basketbrawl/add-commentary", addBasketBrawlCommentary);
+router.post("/basketbrawl/delete-commentary", deleteBasketBrawlCommentary);
+router.get("/basketbrawl/standings", getBasketBrawlStandings);
+router.get("/basketbrawl/event/:eventId", getBasketBrawlEventDetails);
+
+// IRCC Event Routes
+//router.post("/ircc/update-score", updateIRCCScore);
+//router.post("/ircc/add-commentary", addIRCCCommentary);
+//router.post("/ircc/delete-commentary", deleteIRCCCommentary);
+//router.get("/ircc/event/:eventId", getIRCCEventDetails);
+//router.get("/ircc/standings", getIRCCStandings);
 
 export default router;
