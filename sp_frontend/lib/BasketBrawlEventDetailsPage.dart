@@ -214,11 +214,21 @@ class _BasketBrawlEventDetailsPageState
   Future<void> checkMatchStatus() async {
     final eventDate = DateTime.parse(widget.event['date']);
     final now = DateTime.now();
+    final isToday =
+        eventDate.year == now.year &&
+        eventDate.month == now.month &&
+        eventDate.day == now.day;
+    final isPast = eventDate.isBefore(DateTime(now.year, now.month, now.day));
+
     setState(() {
-      isMatchLive =
-          eventDate.year == now.year &&
-          eventDate.month == now.month &&
-          eventDate.day == now.day;
+      isMatchLive = isToday;
+      if (isToday) {
+        matchStatus = 'Live';
+      } else if (isPast) {
+        matchStatus = 'Completed';
+      } else {
+        matchStatus = 'Not Started';
+      }
     });
   }
 

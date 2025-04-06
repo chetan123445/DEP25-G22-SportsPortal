@@ -210,7 +210,7 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
           updateWinner();
         }
       } else {
-        matchStatus = 'Not Started';
+        matchStatus = 'Not Started Yet';
       }
     });
   }
