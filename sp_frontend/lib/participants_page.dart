@@ -57,15 +57,7 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
       appBar: AppBar(title: Text('Participants')),
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.purple.shade200,
-              Colors.blue.shade200,
-              Colors.pink.shade100,
-            ],
-          ),
+          color: Colors.white, // Changed from gradient to solid white
         ),
         child:
             isLoading
@@ -152,15 +144,7 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                                             ),
                                             padding: EdgeInsets.all(12.0),
                                             decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                                colors: [
-                                                  Colors.purple.shade200,
-                                                  Colors.blue.shade200,
-                                                  Colors.pink.shade100,
-                                                ],
-                                              ), // Player box gradient
+                                              color: Colors.black,
                                               borderRadius:
                                                   BorderRadius.circular(12.0),
                                               boxShadow: [
@@ -176,15 +160,15 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                                             child: Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment
-                                                      .spaceBetween, // Ensure proper alignment
+                                                      .spaceBetween,
                                               crossAxisAlignment:
-                                                  CrossAxisAlignment
-                                                      .center, // Vertically align items
+                                                  CrossAxisAlignment.center,
                                               children: [
                                                 Text(
                                                   '${memberIndex + 1}.',
                                                   style: TextStyle(
                                                     fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
                                                   ),
                                                 ),
                                                 SizedBox(width: 8.0),
@@ -194,6 +178,7 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
+                                                      color: Colors.white,
                                                     ),
                                                     softWrap: true,
                                                   ),
@@ -272,15 +257,7 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                                                 ),
                                                 padding: EdgeInsets.all(12.0),
                                                 decoration: BoxDecoration(
-                                                  gradient: LinearGradient(
-                                                    begin: Alignment.topLeft,
-                                                    end: Alignment.bottomRight,
-                                                    colors: [
-                                                      Colors.purple.shade200,
-                                                      Colors.blue.shade200,
-                                                      Colors.pink.shade100,
-                                                    ],
-                                                  ), // Player box gradient
+                                                  color: Colors.black,
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                         12.0,
@@ -298,16 +275,16 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                                                 child: Row(
                                                   mainAxisAlignment:
                                                       MainAxisAlignment
-                                                          .spaceBetween, // Ensure proper alignment
+                                                          .spaceBetween,
                                                   crossAxisAlignment:
-                                                      CrossAxisAlignment
-                                                          .center, // Vertically align items
+                                                      CrossAxisAlignment.center,
                                                   children: [
                                                     Text(
                                                       '${team['members'].indexOf(member) + 1}.',
                                                       style: TextStyle(
                                                         fontWeight:
                                                             FontWeight.bold,
+                                                        color: Colors.white,
                                                       ),
                                                     ),
                                                     SizedBox(width: 8.0),
@@ -317,6 +294,7 @@ class _ParticipantsPageState extends State<ParticipantsPage> {
                                                         style: TextStyle(
                                                           fontWeight:
                                                               FontWeight.bold,
+                                                          color: Colors.white,
                                                         ),
                                                         softWrap: true,
                                                       ),

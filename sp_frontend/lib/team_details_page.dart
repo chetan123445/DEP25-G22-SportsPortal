@@ -58,15 +58,7 @@ class _TeamDetailsPageState extends State<TeamDetailsPage> {
       ),
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.purple.shade200,
-              Colors.blue.shade200,
-              Colors.pink.shade100,
-            ],
-          ),
+          color: Colors.white, // Changed from gradient to white
         ),
         child:
             isLoading
@@ -76,24 +68,37 @@ class _TeamDetailsPageState extends State<TeamDetailsPage> {
                 : ListView(
                   padding: EdgeInsets.all(16.0),
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          'Team Name: ',
-                          style: TextStyle(
-                            fontSize: 20.0,
-                            fontWeight: FontWeight.bold,
-                          ),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.purple.shade200,
+                            Colors.blue.shade200,
+                            Colors.pink.shade100,
+                          ],
                         ),
-                        Text(
-                          '${teamDetails!['teamName']}',
-                          style: TextStyle(
-                            fontSize: 20.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      padding: EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Team Name: ',
+                            style: TextStyle(
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                      ],
+                          Text(
+                            '${teamDetails!['teamName']}',
+                            style: TextStyle(
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     SizedBox(height: 8.0),
                     Divider(
@@ -128,15 +133,9 @@ class _TeamDetailsPageState extends State<TeamDetailsPage> {
                                 margin: EdgeInsets.symmetric(vertical: 8.0),
                                 padding: EdgeInsets.all(12.0),
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Colors.purple.shade200,
-                                      Colors.blue.shade200,
-                                      Colors.pink.shade100,
-                                    ],
-                                  ), // Player box gradient
+                                  color:
+                                      Colors
+                                          .black, // Changed from gradient to black
                                   borderRadius: BorderRadius.circular(12.0),
                                   boxShadow: [
                                     BoxShadow(
@@ -159,6 +158,7 @@ class _TeamDetailsPageState extends State<TeamDetailsPage> {
                                       '$index.',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
+                                        color: Colors.white, // Changed to white
                                       ),
                                     ),
                                     SizedBox(width: 8.0),
@@ -167,6 +167,8 @@ class _TeamDetailsPageState extends State<TeamDetailsPage> {
                                         member['name'],
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
+                                          color:
+                                              Colors.white, // Changed to white
                                         ),
                                         softWrap: true,
                                       ),
