@@ -474,12 +474,10 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
           padding: EdgeInsets.all(12),
           margin: EdgeInsets.all(8),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue.shade100, Colors.purple.shade100],
-            ),
+            color: Colors.black87,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
-              BoxShadow(color: Colors.black12, blurRadius: 5, spreadRadius: 1),
+              BoxShadow(color: Colors.black26, blurRadius: 5, spreadRadius: 1),
             ],
           ),
           child: Column(
@@ -493,7 +491,11 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
                 padding: EdgeInsets.symmetric(vertical: 8),
                 child: Text(
                   'VS',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               _buildTeamScoreRow(
@@ -542,7 +544,11 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
           flex: 2,
           child: Text(
             teamName,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ),
         if (isMatchLive && !widget.isReadOnly) ...[
@@ -553,21 +559,61 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
         ],
         Text(
           score.scoreString,
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
-        Text('(${score.oversString})', style: TextStyle(fontSize: 16)),
+        Text(
+          '(${score.oversString})',
+          style: TextStyle(fontSize: 16, color: Colors.white70),
+        ),
         if (isMatchLive && !widget.isReadOnly) ...[
           IconButton(
             icon: Icon(Icons.add_circle, color: Colors.green),
             onPressed: () => updateScore(team, 'runs', true),
           ),
-          IconButton(
-            icon: Icon(Icons.sports_cricket, color: Colors.blue),
-            onPressed: () => updateScore(team, 'ball', true),
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(color: Colors.black, width: 1),
+            ),
+            child: InkWell(
+              onTap: () => updateScore(team, 'ball', true),
+              child: Padding(
+                padding: EdgeInsets.all(8),
+                child: Text(
+                  'B',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
           ),
-          IconButton(
-            icon: Icon(Icons.speaker_notes, color: Colors.orange),
-            onPressed: () => updateScore(team, 'wickets', true),
+          SizedBox(width: 4),
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(color: Colors.black, width: 1),
+            ),
+            child: InkWell(
+              onTap: () => updateScore(team, 'wickets', true),
+              child: Padding(
+                padding: EdgeInsets.all(8),
+                child: Text(
+                  'W',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ],
@@ -575,162 +621,250 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
   }
 
   Widget _buildCommentaryTab() {
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            itemCount: commentary.length,
-            itemBuilder: (context, index) {
-              final comment = commentary[index];
-              final commentTime = DateTime.parse(comment['timestamp']);
-              final formattedTime = DateFormat('HH:mm').format(commentTime);
-              final formattedDate = DateFormat('MMM dd').format(commentTime);
-
-              return Dismissible(
-                key: Key(comment['id']),
-                direction:
-                    !widget.isReadOnly
-                        ? DismissDirection.endToStart
-                        : DismissDirection.none,
-                background: Container(
-                  alignment: Alignment.centerRight,
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  color: Colors.red,
-                  child: Icon(Icons.delete, color: Colors.white),
-                ),
-                onDismissed: (direction) {
-                  deleteCommentary(comment['id']);
-                },
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Material(
-                    elevation: 2,
-                    borderRadius: BorderRadius.circular(12),
-                    child: InkWell(
-                      onTap: () {
-                        final fullDateTime = DateFormat(
-                          'EEEE, MMMM d, y\nh:mm a',
-                        ).format(commentTime);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(fullDateTime),
-                            duration: Duration(seconds: 2),
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.purple.shade200,
-                              Colors.blue.shade200,
-                              Colors.pink.shade100,
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              comment['text'],
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '$formattedDate at $formattedTime',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                                if (!widget.isReadOnly)
-                                  IconButton(
-                                    icon: Icon(Icons.delete, size: 18),
-                                    onPressed:
-                                        () => deleteCommentary(comment['id']),
-                                    padding: EdgeInsets.zero,
-                                    constraints: BoxConstraints(),
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.grey.shade100, Colors.grey.shade200],
         ),
-        if (isMatchLive && !widget.isReadOnly)
+      ),
+      child: Column(
+        children: [
           Container(
-            padding: EdgeInsets.all(8.0),
+            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Colors.black87,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
+                  color: Colors.black26,
                   blurRadius: 4,
-                  offset: Offset(0, -2),
+                  offset: Offset(0, 2),
                 ),
               ],
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _commentaryController,
-                    decoration: InputDecoration(
-                      hintText: 'Add match commentary...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade100,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                    ),
-                    maxLines: null,
-                    textCapitalization: TextCapitalization.sentences,
-                  ),
-                ),
-                SizedBox(width: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.blue.shade400, Colors.purple.shade400],
-                    ),
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: Icon(Icons.send, color: Colors.white),
-                    onPressed: () {
-                      if (_commentaryController.text.trim().isNotEmpty) {
-                        addCommentary(_commentaryController.text);
-                      }
-                    },
-                  ),
-                ),
-              ],
+            child: Text(
+              'Live Commentary',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 1.2,
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
-      ],
+          Expanded(
+            child: ListView.builder(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              itemCount: commentary.length,
+              itemBuilder: (context, index) {
+                final comment = commentary[index];
+                final commentTime = DateTime.parse(comment['timestamp']);
+                final formattedTime = DateFormat('HH:mm').format(commentTime);
+                final formattedDate = DateFormat('MMM dd').format(commentTime);
+                final isCurrentDate = commentTime.day == DateTime.now().day;
+
+                return Dismissible(
+                  key: Key(comment['id']),
+                  direction:
+                      !widget.isReadOnly
+                          ? DismissDirection.endToStart
+                          : DismissDirection.none,
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade700,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Icon(Icons.delete_sweep, color: Colors.white),
+                  ),
+                  onDismissed: (direction) {
+                    deleteCommentary(comment['id']);
+                  },
+                  child: Container(
+                    margin: EdgeInsets.symmetric(vertical: 6),
+                    child: Material(
+                      elevation: 3,
+                      borderRadius: BorderRadius.circular(15),
+                      color: Colors.black87,
+                      child: InkWell(
+                        onTap: () {
+                          final fullDateTime = DateFormat(
+                            'EEEE, MMMM d, y\nh:mm a',
+                          ).format(commentTime);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(fullDateTime),
+                              duration: Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                              backgroundColor: Colors.black,
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(15),
+                        child: Container(
+                          padding: EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(
+                              color:
+                                  isCurrentDate
+                                      ? Colors.blue.shade400
+                                      : Colors.grey.shade600,
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          isCurrentDate
+                                              ? Colors.blue.shade700
+                                              : Colors.grey.shade700,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      '$formattedDate at $formattedTime',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                  if (!widget.isReadOnly)
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.delete_outline,
+                                        size: 18,
+                                        color: Colors.red.shade300,
+                                      ),
+                                      onPressed:
+                                          () => deleteCommentary(comment['id']),
+                                      padding: EdgeInsets.zero,
+                                      constraints: BoxConstraints(),
+                                    ),
+                                ],
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                comment['text'],
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  height: 1.3,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          if (isMatchLive && !widget.isReadOnly)
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 4,
+                    offset: Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _commentaryController,
+                      decoration: InputDecoration(
+                        hintText: 'Add live commentary...',
+                        hintStyle: TextStyle(color: Colors.grey.shade400),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(25),
+                          borderSide: BorderSide(color: Colors.blue.shade200),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(25),
+                          borderSide: BorderSide(
+                            color: Colors.blue.shade400,
+                            width: 2,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.sports_cricket,
+                          color: Colors.blue.shade300,
+                        ),
+                      ),
+                      maxLines: null,
+                      textCapitalization: TextCapitalization.sentences,
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.blue.shade400, Colors.purple.shade400],
+                      ),
+                      borderRadius: BorderRadius.circular(25),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.shade200,
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          if (_commentaryController.text.trim().isNotEmpty) {
+                            addCommentary(_commentaryController.text);
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(25),
+                        child: Container(
+                          padding: EdgeInsets.all(12),
+                          child: Icon(
+                            Icons.send_rounded,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -758,7 +892,12 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
 
   Widget _buildTeamPlayersList(List<Map<String, dynamic>> players) {
     if (players.isEmpty) {
-      return Center(child: Text('No players available'));
+      return Center(
+        child: Text(
+          'No players available',
+          style: TextStyle(color: Colors.white),
+        ),
+      );
     }
     return ListView.builder(
       itemCount: players.length,
@@ -766,46 +905,35 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
         final player = players[index];
         return Card(
           margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.purple.shade200,
-                  Colors.blue.shade200,
-                  Colors.pink.shade100,
-                ],
-              ),
-              borderRadius: BorderRadius.circular(8),
+          color: Colors.black87,
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.grey.shade800,
+              child: Icon(Icons.person, color: Colors.white),
             ),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Icon(Icons.person, color: Colors.blue),
+            title: Text(
+              player['name'] ?? 'Unknown',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
-              title: Text(
-                player['name'] ?? 'Unknown',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+            ),
+            subtitle: Text(
+              player['email'] ?? '',
+              style: TextStyle(color: Colors.white70),
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) => PlayerProfilePage(
+                        playerName: player['name'] ?? 'Unknown',
+                        playerEmail: player['email'] ?? '',
+                      ),
                 ),
-              ),
-              subtitle: Text(
-                player['email'] ?? '',
-                style: TextStyle(color: Colors.black87),
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (context) => PlayerProfilePage(
-                          playerName: player['name'] ?? 'Unknown',
-                          playerEmail: player['email'] ?? '',
-                        ),
-                  ),
-                );
-              },
-            ),
+              );
+            },
           ),
         );
       },
@@ -817,21 +945,27 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
       children: [
         Container(
           padding: EdgeInsets.all(16),
-          color: Colors.blue.shade100,
+          color: Colors.black87,
           child: Row(
             children: [
               Expanded(
                 flex: 3,
                 child: Text(
                   'Team',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               Expanded(
                 child: Center(
                   child: Text(
                     'P',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -839,7 +973,10 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
                 child: Center(
                   child: Text(
                     'W',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -847,7 +984,10 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
                 child: Center(
                   child: Text(
                     'L',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -855,7 +995,10 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
                 child: Center(
                   child: Text(
                     'D',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -863,7 +1006,10 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
                 child: Center(
                   child: Text(
                     'Pts',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -920,12 +1066,9 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
 
                       return Container(
                         decoration: BoxDecoration(
-                          color:
-                              index % 2 == 0
-                                  ? Colors.white
-                                  : Colors.grey.shade50,
+                          color: Colors.black87,
                           border: Border(
-                            bottom: BorderSide(color: Colors.grey.shade300),
+                            bottom: BorderSide(color: Colors.grey.shade800),
                           ),
                         ),
                         child: Padding(
@@ -939,22 +1082,43 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
                                 flex: 3,
                                 child: Text(
                                   team['name'] ?? '',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                               Expanded(
                                 child: Center(
-                                  child: Text(matchesPlayed.toString()),
+                                  child: Text(
+                                    matchesPlayed.toString(),
+                                    style: TextStyle(color: Colors.white),
+                                  ),
                                 ),
                               ),
                               Expanded(
-                                child: Center(child: Text(wins.toString())),
+                                child: Center(
+                                  child: Text(
+                                    wins.toString(),
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
                               ),
                               Expanded(
-                                child: Center(child: Text(losses.toString())),
+                                child: Center(
+                                  child: Text(
+                                    losses.toString(),
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
                               ),
                               Expanded(
-                                child: Center(child: Text(draws.toString())),
+                                child: Center(
+                                  child: Text(
+                                    draws.toString(),
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
                               ),
                               Expanded(
                                 child: Center(
@@ -962,6 +1126,7 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
                                     points.toString(),
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ),
