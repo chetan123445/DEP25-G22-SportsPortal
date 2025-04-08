@@ -276,6 +276,61 @@ class _GCEventsPageState extends State<GCEventsPage> {
               ),
             ),
             SizedBox(height: 4.0),
+            InkWell(
+              onTap: () {
+                String message = '';
+                DateTime eventDate = DateTime.parse(date);
+                DateTime now = DateTime.now();
+
+                if (eventDate.isAfter(now)) {
+                  message = 'Event has not started yet';
+                } else if (eventDate.year == now.year &&
+                    eventDate.month == now.month &&
+                    eventDate.day == now.day) {
+                  message = 'Event is live, results will be updated soon';
+                } else {
+                  if (event['winner'] == null || event['winner'].isEmpty) {
+                    message = 'No results available';
+                  } else if (event['winner'] == 'Draw') {
+                    message = 'Event ended in a draw';
+                  } else {
+                    message = '${event['winner']} won this event!';
+                  }
+                }
+
+                showDialog(
+                  context: context,
+                  builder:
+                      (context) => AlertDialog(
+                        title: Text('Event Status'),
+                        content: Text(message),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text('OK'),
+                          ),
+                        ],
+                      ),
+                );
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade200,
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(color: Colors.black),
+                ),
+                child: Text(
+                  'View Event Result',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 4.0),
 
             // Description
             Text(
