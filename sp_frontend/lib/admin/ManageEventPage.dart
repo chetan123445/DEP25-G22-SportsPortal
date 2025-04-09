@@ -483,6 +483,56 @@ class _ManageEventPageState extends State<ManageEventPage> {
     );
   }
 
+  Future<void> _deleteEvent(Map<String, dynamic> event) async {
+    bool confirmDelete = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.grey[900],
+          title: Text('Delete Event', style: TextStyle(color: Colors.white)),
+          content: Text(
+            'Are you sure you want to delete this event?\nThis will also delete all associated team details.',
+            style: TextStyle(color: Colors.white),
+          ),
+          actions: [
+            TextButton(
+              child: Text('Cancel', style: TextStyle(color: Colors.blue)),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            TextButton(
+              child: Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmDelete == true) {
+      try {
+        final response = await http.delete(
+          Uri.parse(
+            '$baseUrl/delete-event/${event['_id']}/${event['eventType']}',
+          ),
+        );
+
+        if (response.statusCode == 200) {
+          await fetchAllEvents(); // Refresh the list
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Event deleted successfully')));
+        } else {
+          throw Exception('Failed to delete event');
+        }
+      } catch (e) {
+        print('Error deleting event: $e');
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error deleting event')));
+      }
+    }
+  }
+
   Widget _buildEditField(String label, TextEditingController controller) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -947,7 +997,7 @@ class _ManageEventPageState extends State<ManageEventPage> {
                       ),
                     ),
 
-                  // Bottom row with Event Managers and Edit button
+                  // Bottom row with Event Managers and Edit/Delete buttons
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -983,10 +1033,19 @@ class _ManageEventPageState extends State<ManageEventPage> {
                           ),
                         ),
                       ),
-                      // Edit Button
-                      IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: () => _editEvent(event),
+                      Row(
+                        children: [
+                          // Edit Button
+                          IconButton(
+                            icon: Icon(Icons.edit),
+                            onPressed: () => _editEvent(event),
+                          ),
+                          // Delete Button
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteEvent(event),
+                          ),
+                        ],
                       ),
                     ],
                   ),

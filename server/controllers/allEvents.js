@@ -1,8 +1,10 @@
+import mongoose from 'mongoose';
 import IYSC from '../models/IYSCevent.js';
 import GC from '../models/GCevent.js';
 import IRCC from '../models/IRCCevent.js';
 import PHL from '../models/PHLevent.js';
 import BasketBrawl from '../models/BasketBrawlevent.js';
+import Team from '../models/Team.js';
 
 export const getAllEvents = async (req, res) => {
     try {
@@ -136,6 +138,57 @@ export const updateEvent = async (req, res) => {
             eventType: eventType
         });
     } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const deleteEvent = async (req, res) => {
+    try {
+        const { eventId, eventType } = req.params;
+        let EventModel;
+
+        // Select the appropriate model based on event type
+        switch (eventType) {
+            case 'IYSC': EventModel = IYSC; break;
+            case 'GC': EventModel = GC; break;
+            case 'IRCC': EventModel = IRCC; break;
+            case 'PHL': EventModel = PHL; break;
+            case 'BasketBrawl': EventModel = BasketBrawl; break;
+            default:
+                return res.status(400).json({ message: 'Invalid event type' });
+        }
+
+        // Find the event and populate team details
+        const event = await EventModel.findById(eventId)
+            .populate('team1Details')
+            .populate('team2Details');
+
+        if (!event) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        // Delete associated teams if they exist
+        try {
+            if (event.team1Details && mongoose.Types.ObjectId.isValid(event.team1Details._id)) {
+                await Team.findByIdAndDelete(event.team1Details._id);
+                console.log('Team 1 deleted successfully');
+            }
+            if (event.team2Details && mongoose.Types.ObjectId.isValid(event.team2Details._id)) {
+                await Team.findByIdAndDelete(event.team2Details._id);
+                console.log('Team 2 deleted successfully');
+            }
+        } catch (teamError) {
+            console.error('Error deleting teams:', teamError);
+            // Continue with event deletion even if team deletion fails
+        }
+
+        // Delete the event
+        await EventModel.findByIdAndDelete(eventId);
+        console.log('Event deleted successfully');
+
+        res.status(200).json({ message: 'Event and associated teams deleted successfully' });
+    } catch (error) {
+        console.error('Error in deleteEvent:', error);
         res.status(500).json({ error: error.message });
     }
 };
