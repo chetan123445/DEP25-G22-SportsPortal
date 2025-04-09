@@ -110,12 +110,6 @@ class MainPage extends StatelessWidget {
               ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.notifications, color: Colors.white),
-            onPressed: () {
-              // Handle notification click
-            },
-          ),
           Padding(
             padding: EdgeInsets.only(right: 16.0),
             child:

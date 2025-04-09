@@ -25,7 +25,7 @@ import { getPlayerDetails } from '../controllers/playerProfileController.js'; //
 import { getUserEvents } from '../controllers/userEventsController.js'; // Import the new controller
 import { getManagedEvents } from '../controllers/managedEventsController.js'; // Import the new controller
 import { getAllEvents, updateEvent } from '../controllers/allEvents.js';
-import { getNotifications, sendNotification } from '../controllers/notificationController.js';
+import { getNotifications, sendNotification, markAsRead } from '../controllers/notificationController.js';
 
 const router = express.Router();
 
@@ -147,5 +147,6 @@ router.get("/ircc/standings", getIRCCStandings);
 // Add notification routes
 router.get("/notifications", getNotifications);
 router.post("/notifications/send", sendNotification);
+router.post("/notifications/mark-read", markAsRead); // Add this line
 
 export default router;

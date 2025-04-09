@@ -20,9 +20,15 @@ export const getNotifications = async (req, res) => {
             });
         }
 
+        // Sort notifications to show unread first, then by timestamp
+        const sortedNotifications = user.notifications.sort((a, b) => {
+            if (a.read !== b.read) return a.read ? 1 : -1;
+            return new Date(b.timestamp) - new Date(a.timestamp);
+        });
+
         res.status(200).json({ 
             message: 'Notifications fetched successfully',
-            notifications: user.notifications || [] 
+            notifications: sortedNotifications 
         });
     } catch (error) {
         console.error('Error fetching notifications:', error);
@@ -68,5 +74,37 @@ export const sendNotification = async (req, res) => {
             message: 'Error sending notifications', 
             error: error.message 
         });
+    }
+};
+
+export const markAsRead = async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required' });
+        }
+
+        const user = await User.findOneAndUpdate(
+            { email },
+            { 
+                $set: { 
+                    'notifications.$[elem].read': true 
+                }
+            },
+            { 
+                arrayFilters: [{ 'elem.read': false }],
+                new: true
+            }
+        );
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ message: 'Notifications marked as read' });
+    } catch (error) {
+        console.error('Error marking notifications as read:', error);
+        res.status(500).json({ message: 'Error updating notifications' });
     }
 };
