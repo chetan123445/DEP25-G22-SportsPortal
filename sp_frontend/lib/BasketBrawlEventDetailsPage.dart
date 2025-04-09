@@ -431,13 +431,33 @@ class _BasketBrawlEventDetailsPageState
               ),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8),
-                child: Text(
-                  'VS',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white, // Changed to white
-                  ),
+                child: Column(
+                  children: [
+                    Text(
+                      'VS',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    if (matchStatus == 'Completed')
+                      Padding(
+                        padding: EdgeInsets.only(top: 8),
+                        child: Text(
+                          team1Goals > team2Goals
+                              ? '${widget.event['team1']} Won'
+                              : team2Goals > team1Goals
+                              ? '${widget.event['team2']} Won'
+                              : 'Match Drawn',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
               _buildTeamScoreCard(

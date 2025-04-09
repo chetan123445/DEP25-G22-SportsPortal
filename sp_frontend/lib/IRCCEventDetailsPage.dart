@@ -489,13 +489,29 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
               ),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  'VS',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                child: Column(
+                  children: [
+                    Text(
+                      'VS',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    if (matchStatus == 'Completed')
+                      Padding(
+                        padding: EdgeInsets.only(top: 8),
+                        child: Text(
+                          _getWinningText(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
               _buildTeamScoreRow(
@@ -618,6 +634,23 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
         ],
       ],
     );
+  }
+
+  String _getWinningText() {
+    if (team1Score.runs == team2Score.runs) {
+      return 'Match Drawn';
+    }
+
+    // First team in score box is team1
+    bool team1Won = team1Score.runs > team2Score.runs;
+
+    if (team1Won) {
+      // If team1 (top team) won
+      return '${widget.event['team1']} Won by ${team1Score.runs - team2Score.runs} runs';
+    } else {
+      // If team2 (bottom team) won
+      return '${widget.event['team2']} Won by ${10 - team2Score.wickets} wickets';
+    }
   }
 
   Widget _buildCommentaryTab() {
