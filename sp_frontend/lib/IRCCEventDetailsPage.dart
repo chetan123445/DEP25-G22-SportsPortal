@@ -874,8 +874,8 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
       child: Column(
         children: [
           TabBar(
-            labelColor: Colors.black,
             tabs: [Tab(text: 'Men\'s Teams'), Tab(text: 'Women\'s Teams')],
+            labelColor: Colors.black,
           ),
           Expanded(
             child: TabBarView(
@@ -887,6 +887,168 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildStandingsTable(List<Map<String, dynamic>> standings) {
+    return Column(
+      children: [
+        Container(
+          padding: EdgeInsets.all(16),
+          color: Colors.blue.shade100,
+          child: Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: Text(
+                  'Team',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    'P',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    'W',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    'L',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    'D',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    'Pts',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child:
+              standings.isEmpty
+                  ? Center(child: Text('No teams available'))
+                  : ListView.builder(
+                    itemCount: standings.length,
+                    itemBuilder: (context, index) {
+                      final team = standings[index];
+                      var matchesPlayed = int.parse(
+                        team['matches']?.toString() ?? '0',
+                      );
+                      var points = int.parse(team['points']?.toString() ?? '0');
+                      var wins = int.parse(team['wins']?.toString() ?? '0');
+                      var losses = int.parse(team['losses']?.toString() ?? '0');
+                      var draws = int.parse(team['draws']?.toString() ?? '0');
+
+                      // For current match teams logic remains same
+                      if (widget.event['team1'] == team['name'] ||
+                          widget.event['team2'] == team['name']) {
+                        final eventDate = DateTime.parse(widget.event['date']);
+                        final now = DateTime.now();
+                        final isToday =
+                            eventDate.year == now.year &&
+                            eventDate.month == now.month &&
+                            eventDate.day == now.day;
+                        final isPast = eventDate.isBefore(
+                          DateTime(now.year, now.month, now.day),
+                        );
+
+                        if (isToday) {
+                          matchesPlayed += 1;
+                        } else if (isPast && widget.event['winner'] != null) {
+                          matchesPlayed += 1;
+                          if (widget.event['winner'] == 'draw') {
+                            draws += 1;
+                            points += 1;
+                          } else if (widget.event['winner'] == team['name']) {
+                            wins += 1;
+                            points += 2;
+                          } else {
+                            losses += 1;
+                          }
+                        }
+                      }
+
+                      return Container(
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          color:
+                              index % 2 == 0
+                                  ? Colors.white
+                                  : Colors.grey.shade50,
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 16,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  team['name'] ?? '',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              Expanded(
+                                child: Center(
+                                  child: Text(matchesPlayed.toString()),
+                                ),
+                              ),
+                              Expanded(
+                                child: Center(child: Text(wins.toString())),
+                              ),
+                              Expanded(
+                                child: Center(child: Text(losses.toString())),
+                              ),
+                              Expanded(
+                                child: Center(child: Text(draws.toString())),
+                              ),
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    points.toString(),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+        ),
+      ],
     );
   }
 
@@ -937,208 +1099,6 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
           ),
         );
       },
-    );
-  }
-
-  Widget _buildStandingsTable(List<Map<String, dynamic>> standings) {
-    return Column(
-      children: [
-        Container(
-          padding: EdgeInsets.all(16),
-          color: Colors.black87,
-          child: Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: Text(
-                  'Team',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    'P',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    'W',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    'L',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    'D',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    'Pts',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child:
-              standings.isEmpty
-                  ? Center(child: Text('No standings available'))
-                  : ListView.builder(
-                    itemCount: standings.length,
-                    itemBuilder: (context, index) {
-                      final team = standings[index];
-                      var matchesPlayed = int.parse(
-                        team['matches']?.toString() ?? '0',
-                      );
-                      var points = int.parse(team['points']?.toString() ?? '0');
-                      var wins = int.parse(team['wins']?.toString() ?? '0');
-                      var losses = int.parse(team['losses']?.toString() ?? '0');
-                      var draws = int.parse(team['draws']?.toString() ?? '0');
-
-                      final eventDate = DateTime.parse(widget.event['date']);
-                      final now = DateTime.now();
-                      final isToday =
-                          eventDate.year == now.year &&
-                          eventDate.month == now.month &&
-                          eventDate.day == now.day;
-                      final isPast = eventDate.isBefore(
-                        DateTime(now.year, now.month, now.day),
-                      );
-
-                      // For current match teams
-                      if (widget.event['team1'] == team['name'] ||
-                          widget.event['team2'] == team['name']) {
-                        if (isToday) {
-                          // Live match: only increment matches played
-                          matchesPlayed += 1;
-                        } else if (isPast && widget.event['winner'] != null) {
-                          // Completed match
-                          matchesPlayed += 1;
-                          if (widget.event['winner'] == 'draw') {
-                            draws += 1;
-                            points += 1;
-                          } else if (widget.event['winner'] == team['name']) {
-                            wins += 1;
-                            points += 2;
-                          } else {
-                            losses += 1;
-                          }
-                        }
-                        // Future matches: no changes needed
-                      }
-
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black87,
-                          border: Border(
-                            bottom: BorderSide(color: Colors.grey.shade800),
-                          ),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            vertical: 8,
-                            horizontal: 16,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: Text(
-                                  team['name'] ?? '',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Center(
-                                  child: Text(
-                                    matchesPlayed.toString(),
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Center(
-                                  child: Text(
-                                    wins.toString(),
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Center(
-                                  child: Text(
-                                    losses.toString(),
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Center(
-                                  child: Text(
-                                    draws.toString(),
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Center(
-                                  child: Text(
-                                    points.toString(),
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-        ),
-      ],
     );
   }
 }

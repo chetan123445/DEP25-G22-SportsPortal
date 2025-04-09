@@ -330,30 +330,24 @@ class _BasketBrawlEventDetailsPageState
           margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
           child: Container(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.purple.shade200,
-                  Colors.blue.shade200,
-                  Colors.pink.shade100,
-                ],
-              ),
+              color: Colors.black87,
               borderRadius: BorderRadius.circular(8),
             ),
             child: ListTile(
               leading: CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Icon(Icons.person, color: Colors.blue),
+                backgroundColor: Colors.black54,
+                child: Icon(Icons.person, color: Colors.white),
               ),
               title: Text(
                 player['name'] ?? 'Unknown',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Colors.white,
                 ),
               ),
               subtitle: Text(
                 player['email'] ?? '',
-                style: TextStyle(color: Colors.black87),
+                style: TextStyle(color: Colors.white70),
               ),
               onTap: () {
                 Navigator.push(
@@ -417,19 +411,17 @@ class _BasketBrawlEventDetailsPageState
         ),
         // Score Display
         Container(
-          padding: EdgeInsets.all(12), // Reduce padding
+          padding: EdgeInsets.all(12),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue.shade100, Colors.purple.shade100],
-            ),
+            color: Colors.black87, // Changed to black
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
-              BoxShadow(color: Colors.black12, blurRadius: 5, spreadRadius: 1),
+              BoxShadow(color: Colors.black26, blurRadius: 5, spreadRadius: 1),
             ],
           ),
-          margin: EdgeInsets.all(8), // Reduce margin
+          margin: EdgeInsets.all(8),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center, // Center the row
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildTeamScoreCard(
                 widget.event['team1'],
@@ -438,13 +430,13 @@ class _BasketBrawlEventDetailsPageState
                 () => updateScore('team1', false),
               ),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8), // Reduce padding
+                padding: EdgeInsets.symmetric(horizontal: 8),
                 child: Text(
                   'VS',
                   style: TextStyle(
-                    fontSize: 20, // Reduce font size
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade800,
+                    color: Colors.white, // Changed to white
                   ),
                 ),
               ),
@@ -507,7 +499,7 @@ class _BasketBrawlEventDetailsPageState
               style: TextStyle(
                 fontSize: 16, // Reduce font size
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: Colors.white, // Changed to white
               ),
             ),
             SizedBox(height: 8),
@@ -517,15 +509,9 @@ class _BasketBrawlEventDetailsPageState
                 vertical: 8,
               ), // Reduce padding
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.black54, // Slightly lighter black for contrast
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
+                border: Border.all(color: Colors.white24), // Subtle border
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -551,7 +537,7 @@ class _BasketBrawlEventDetailsPageState
                       style: TextStyle(
                         fontSize: 24, // Reduce font size
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: Colors.white, // Changed to white
                       ),
                     ),
                   ),
@@ -578,6 +564,29 @@ class _BasketBrawlEventDetailsPageState
   Widget _buildCommentaryTab() {
     return Column(
       children: [
+        Container(
+          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.black87,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 4,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Text(
+            'Live Commentary',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              letterSpacing: 1.2,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
         Expanded(
           child: ListView.builder(
             itemCount: commentary.length,
@@ -625,14 +634,15 @@ class _BasketBrawlEventDetailsPageState
                       child: Container(
                         padding: EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.purple.shade200,
-                              Colors.blue.shade200,
-                              Colors.pink.shade100,
-                            ],
-                          ),
+                          color: Colors.black87,
                           borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              offset: Offset(0, 2),
+                              blurRadius: 4,
+                            ),
+                          ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -641,7 +651,7 @@ class _BasketBrawlEventDetailsPageState
                               comment['text'],
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.black87,
+                                color: Colors.white,
                               ),
                             ),
                             SizedBox(height: 4),
@@ -652,12 +662,16 @@ class _BasketBrawlEventDetailsPageState
                                   '$formattedDate at $formattedTime',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.black54,
+                                    color: Colors.white70,
                                   ),
                                 ),
                                 if (!widget.isReadOnly)
                                   IconButton(
-                                    icon: Icon(Icons.delete, size: 18),
+                                    icon: Icon(
+                                      Icons.delete,
+                                      size: 18,
+                                      color: Colors.white70,
+                                    ),
                                     onPressed:
                                         () => deleteCommentary(comment['id']),
                                     padding: EdgeInsets.zero,
