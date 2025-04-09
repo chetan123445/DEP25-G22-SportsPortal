@@ -3,6 +3,9 @@ import '../models/event.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import '../services/event_services.dart';
 import '../adminDashboard.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../constants.dart';
 
 class AddEventPage extends StatefulWidget {
   final String email;
@@ -501,20 +504,32 @@ class _AddEventPageState extends State<AddEventPage> {
           eventManagers: eventManagers,
         );
 
-        // First navigate back to AdminDashboard
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder:
-                (context) => DashboardScreen(
-                  email: widget.email,
-                  name: widget.name, // Pass the correct admin name
-                ),
-          ),
-        );
-
-        // Then show the response dialog
         if (success) {
+          // Send notifications to all users
+          await http.post(
+            Uri.parse('$baseUrl/notifications/send'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'message': 'New event added: ${_team1} vs ${_team2} - ${selectedEventType}',
+              'eventType': selectedEventType,
+              'date': _date.toString(),
+              'venue': _venue,
+            }),
+          );
+
+          // First navigate back to AdminDashboard
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => DashboardScreen(
+                    email: widget.email,
+                    name: widget.name, // Pass the correct admin name
+                  ),
+            ),
+          );
+
+          // Then show the response dialog
           showDialog(
             context: context,
             builder: (BuildContext context) {

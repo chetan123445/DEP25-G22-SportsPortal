@@ -424,6 +424,21 @@ class _ManageEventPageState extends State<ManageEventPage> {
                                 );
 
                                 if (response.statusCode == 200) {
+                                  // Send notification about event update
+                                  await http.post(
+                                    Uri.parse('$baseUrl/notifications/send'),
+                                    headers: {
+                                      'Content-Type': 'application/json',
+                                    },
+                                    body: json.encode({
+                                      'message':
+                                          'Event updated: ${team1Controller.text} vs ${team2Controller.text} - ${event['eventType']}',
+                                      'eventType': event['eventType'],
+                                      'date': dateController.text,
+                                      'venue': venueController.text,
+                                    }),
+                                  );
+
                                   fetchAllEvents(); // Refresh the list
                                   Navigator.pop(context);
                                   ScaffoldMessenger.of(context).showSnackBar(

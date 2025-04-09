@@ -33,6 +33,14 @@ const userSchema = new mongoose.Schema({
             message: 'Invalid profile picture path format'
         }
     },
+    notifications: [{
+        message: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now },
+        read: { type: Boolean, default: false },
+        eventType: String,
+        date: String,
+        venue: String
+    }],
 });
 
 const User = mongoose.model('User', userSchema);

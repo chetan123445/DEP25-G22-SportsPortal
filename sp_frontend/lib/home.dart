@@ -17,6 +17,8 @@ import 'dart:convert'; // Import for JSON decoding
 import 'package:http/http.dart' as http; // Import for HTTP requests
 import 'MyEvents.dart'; // Import the MyEventsPage
 import 'ManagingEvents.dart'; // Import the ManagingEventsPage
+import 'NotificationsPage.dart'; // Import the NotificationsPage
+
 void main() {
   runApp(SportsPortalApp());
 }
@@ -52,6 +54,43 @@ class HomePage extends StatelessWidget {
       // Handle error
     }
     return null;
+  }
+
+  Future<List<dynamic>> _fetchNotifications(String email) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/notifications?email=$email'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['notifications'] ?? [];
+      }
+    } catch (e) {
+      print('Error fetching notifications: $e');
+    }
+    return [];
+  }
+
+  Future<void> _markNotificationsAsRead() async {
+    try {
+      await http.post(
+        Uri.parse('$baseUrl/notifications/mark-read'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email}),
+      );
+    } catch (e) {
+      print('Error marking notifications as read: $e');
+    }
+  }
+
+  void _showNotifications(BuildContext context) async {
+    await _markNotificationsAsRead();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => NotificationsPage(email: email)),
+    );
   }
 
   void _launchURL(String url) async {
@@ -129,11 +168,10 @@ class HomePage extends StatelessWidget {
               ),
         ),
         actions: [
+          // Simplified notifications icon without count
           IconButton(
             icon: Icon(Icons.notifications, color: Colors.white),
-            onPressed: () {
-              // Handle notification click
-            },
+            onPressed: () => _showNotifications(context),
           ),
           Padding(
             padding: EdgeInsets.only(right: 16.0),
