@@ -924,6 +924,9 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
   }
 
   Widget _buildStandingsTable(List<Map<String, dynamic>> standings) {
+    // Create a set to keep track of processed live matches
+    final Set<String> processedLiveMatches = {};
+
     return Column(
       children: [
         Container(
@@ -997,32 +1000,24 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
                       var losses = int.parse(team['losses']?.toString() ?? '0');
                       var draws = int.parse(team['draws']?.toString() ?? '0');
 
-                      // For current match teams logic remains same
-                      if (widget.event['team1'] == team['name'] ||
-                          widget.event['team2'] == team['name']) {
+                      // Check if team is part of current match
+                      if ((widget.event['team1'] == team['name'] ||
+                              widget.event['team2'] == team['name']) &&
+                          !processedLiveMatches.contains(widget.event['_id'])) {
                         final eventDate = DateTime.parse(widget.event['date']);
                         final now = DateTime.now();
                         final isToday =
                             eventDate.year == now.year &&
                             eventDate.month == now.month &&
                             eventDate.day == now.day;
-                        final isPast = eventDate.isBefore(
-                          DateTime(now.year, now.month, now.day),
-                        );
 
-                        if (isToday) {
+                        if (isToday &&
+                            !processedLiveMatches.contains(
+                              widget.event['_id'],
+                            )) {
                           matchesPlayed += 1;
-                        } else if (isPast && widget.event['winner'] != null) {
-                          matchesPlayed += 1;
-                          if (widget.event['winner'] == 'draw') {
-                            draws += 1;
-                            points += 1;
-                          } else if (widget.event['winner'] == team['name']) {
-                            wins += 1;
-                            points += 2;
-                          } else {
-                            losses += 1;
-                          }
+                          // Add match ID to processed set
+                          processedLiveMatches.add(widget.event['_id']);
                         }
                       }
 
