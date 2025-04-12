@@ -73,6 +73,158 @@ class _PlayerEventsPageState extends State<PlayerEventsPage> {
     });
   }
 
+  Future<Map<String, dynamic>> _fetchUpdatedEventDetails(
+    String eventType,
+    String eventId,
+  ) async {
+    try {
+      // Fix the URL for BasketBrawl events
+      final urlPath =
+          eventType == 'Basket Brawl' ? 'basketbrawl' : eventType.toLowerCase();
+      final response = await http.get(
+        Uri.parse('$baseUrl/$urlPath/event/$eventId'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (eventType == 'IRCC') {
+          // Parse IRCC scores correctly
+          final event = data['event'];
+          if (event['team1Score'] != null) {
+            event['team1Score'] = {
+              'runs':
+                  int.tryParse(
+                    event['team1Score']['scoreString'].split('/')[0],
+                  ) ??
+                  0,
+              'wickets':
+                  int.tryParse(
+                    event['team1Score']['scoreString'].split('/')[1],
+                  ) ??
+                  0,
+              'overs':
+                  int.tryParse(
+                    event['team1Score']['oversString'].split('.')[0],
+                  ) ??
+                  0,
+              'balls':
+                  int.tryParse(
+                    event['team1Score']['oversString'].split('.')[1],
+                  ) ??
+                  0,
+            };
+          }
+          if (event['team2Score'] != null) {
+            event['team2Score'] = {
+              'runs':
+                  int.tryParse(
+                    event['team2Score']['scoreString'].split('/')[0],
+                  ) ??
+                  0,
+              'wickets':
+                  int.tryParse(
+                    event['team2Score']['scoreString'].split('/')[1],
+                  ) ??
+                  0,
+              'overs':
+                  int.tryParse(
+                    event['team2Score']['oversString'].split('.')[0],
+                  ) ??
+                  0,
+              'balls':
+                  int.tryParse(
+                    event['team2Score']['oversString'].split('.')[1],
+                  ) ??
+                  0,
+            };
+          }
+          return event;
+        }
+        return data['event'];
+      }
+      throw Exception('Failed to fetch event details');
+    } catch (e) {
+      print('Error fetching event details: $e');
+      throw e;
+    }
+  }
+
+  void _showEventDetails(Map<String, dynamic> event) async {
+    final eventType = event['eventType'];
+
+    if (['IYSC', 'GC'].contains(eventType)) {
+      showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: Text('Event Details'),
+              content: Text(
+                'Event details feature for $eventType events will be available soon.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('OK'),
+                ),
+              ],
+            ),
+      );
+      return;
+    }
+
+    try {
+      final updatedEvent = await _fetchUpdatedEventDetails(
+        eventType,
+        event['_id'],
+      );
+
+      if (!mounted) return;
+
+      switch (eventType) {
+        case 'IRCC':
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => IRCCEventDetailsPage(
+                    event: updatedEvent,
+                    isReadOnly: true,
+                  ),
+            ),
+          );
+          break;
+        case 'PHL':
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => PHLEventDetailsPage(
+                    event: updatedEvent,
+                    isReadOnly: true,
+                  ),
+            ),
+          );
+          break;
+        case 'Basket Brawl':
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => BasketBrawlEventDetailsPage(
+                    event: updatedEvent,
+                    isReadOnly: true,
+                  ),
+            ),
+          );
+          break;
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to load event details')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -405,6 +557,232 @@ class _PlayerEventsPageState extends State<PlayerEventsPage> {
                                     ],
                                   ),
                                 SizedBox(height: 12.0),
+                                // Add buttons for event management
+                                Wrap(
+                                  spacing: 8.0,
+                                  runSpacing: 8.0,
+                                  alignment: WrapAlignment.spaceEvenly,
+                                  children: [
+                                    ElevatedButton.icon(
+                                      icon: Icon(Icons.people, size: 16),
+                                      label: Text('Event Managers'),
+                                      onPressed: () {
+                                        final eventManagers =
+                                            event['eventManagers'];
+                                        if (eventManagers == null ||
+                                            eventManagers.isEmpty) {
+                                          showDialog(
+                                            context: context,
+                                            builder:
+                                                (context) => AlertDialog(
+                                                  title: Text(
+                                                    'No Event Managers',
+                                                  ),
+                                                  content: Text(
+                                                    'No event managers have been assigned to this event.',
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed:
+                                                          () => Navigator.pop(
+                                                            context,
+                                                          ),
+                                                      child: Text('OK'),
+                                                    ),
+                                                  ],
+                                                ),
+                                          );
+                                          return;
+                                        }
+
+                                        showDialog(
+                                          context: context,
+                                          builder:
+                                              (context) => AlertDialog(
+                                                backgroundColor:
+                                                    Colors.transparent,
+                                                contentPadding: EdgeInsets.zero,
+                                                content: Container(
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12.0,
+                                                        ),
+                                                    gradient: LinearGradient(
+                                                      begin: Alignment.topLeft,
+                                                      end:
+                                                          Alignment.bottomRight,
+                                                      colors: [
+                                                        Colors.purple.shade200,
+                                                        Colors.blue.shade200,
+                                                        Colors.pink.shade100,
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  padding: const EdgeInsets.all(
+                                                    16.0,
+                                                  ),
+                                                  child: Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Text(
+                                                        'Event Managers',
+                                                        style: TextStyle(
+                                                          fontSize: 18,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                      SizedBox(height: 16),
+                                                      ...List<Widget>.from(
+                                                        eventManagers.map((
+                                                          manager,
+                                                        ) {
+                                                          return ListTile(
+                                                            leading: CircleAvatar(
+                                                              backgroundColor:
+                                                                  Colors
+                                                                      .blue
+                                                                      .shade100,
+                                                              child: Icon(
+                                                                Icons.person,
+                                                                color:
+                                                                    Colors.blue,
+                                                              ),
+                                                            ),
+                                                            title: Text(
+                                                              manager['name'] ??
+                                                                  'Unknown',
+                                                            ),
+                                                            subtitle: Text(
+                                                              manager['email'] ??
+                                                                  '',
+                                                            ),
+                                                            onTap: () {
+                                                              Navigator.pop(
+                                                                context,
+                                                              );
+                                                              Navigator.push(
+                                                                context,
+                                                                MaterialPageRoute(
+                                                                  builder:
+                                                                      (
+                                                                        context,
+                                                                      ) => PlayerProfilePage(
+                                                                        playerName:
+                                                                            manager['name'],
+                                                                        playerEmail:
+                                                                            manager['email'],
+                                                                      ),
+                                                                ),
+                                                              );
+                                                            },
+                                                          );
+                                                        }),
+                                                      ),
+                                                      SizedBox(height: 16),
+                                                      ElevatedButton(
+                                                        style:
+                                                            ElevatedButton.styleFrom(
+                                                              backgroundColor:
+                                                                  Colors.black,
+                                                              foregroundColor:
+                                                                  Colors.white,
+                                                            ),
+                                                        onPressed:
+                                                            () => Navigator.pop(
+                                                              context,
+                                                            ),
+                                                        child: Text('Close'),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.orange.shade200,
+                                        foregroundColor: Colors.black,
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 8,
+                                        ),
+                                      ),
+                                    ),
+                                    ElevatedButton.icon(
+                                      icon: Icon(Icons.info_outline, size: 16),
+                                      label: Text('Event Details'),
+                                      onPressed: () => _showEventDetails(event),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.orange.shade200,
+                                        foregroundColor: Colors.black,
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 8,
+                                        ),
+                                      ),
+                                    ),
+                                    ElevatedButton.icon(
+                                      icon: Icon(Icons.emoji_events, size: 16),
+                                      label: Text('View Result'),
+                                      onPressed: () {
+                                        String message = '';
+                                        DateTime eventDate = DateTime.parse(
+                                          event['date'],
+                                        );
+                                        DateTime now = DateTime.now();
+
+                                        if (eventDate.year == now.year &&
+                                            eventDate.month == now.month &&
+                                            eventDate.day == now.day) {
+                                          message =
+                                              'Match is live, results will be updated soon';
+                                        } else if (eventDate.isAfter(now)) {
+                                          message = 'Match has not started yet';
+                                        } else {
+                                          if (event['winner'] == null ||
+                                              event['winner'].isEmpty) {
+                                            message = 'No results available';
+                                          } else if (event['winner'] ==
+                                              'Draw') {
+                                            message = 'Match ended in a draw';
+                                          } else {
+                                            message =
+                                                '${event['winner']} won this match!';
+                                          }
+                                        }
+
+                                        showDialog(
+                                          context: context,
+                                          builder:
+                                              (context) => AlertDialog(
+                                                title: Text('Match Status'),
+                                                content: Text(message),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed:
+                                                        () => Navigator.pop(
+                                                          context,
+                                                        ),
+                                                    child: Text('OK'),
+                                                  ),
+                                                ],
+                                              ),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.orange.shade200,
+                                        foregroundColor: Colors.black,
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 8,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 // Remove all buttons section
                                 SizedBox(height: 4.0),
                               ],

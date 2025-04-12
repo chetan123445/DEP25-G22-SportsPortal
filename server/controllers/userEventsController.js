@@ -18,35 +18,41 @@ export const getUserEvents = async (req, res) => {
     const irccEvents = await IRCCevent.find({
       $or: [{ team1Details: { $in: teamIds } }, { team2Details: { $in: teamIds } }],
     })
-      .select('eventType venue description date time gender winner team1 team2')
+      .select('eventType venue description date time gender winner team1 team2 eventManagers')  // Add eventManagers
       .populate('team1Details', 'teamName') // Fetch team1 name
-      .populate('team2Details', 'teamName'); // Fetch team2 name
+      .populate('team2Details', 'teamName') // Fetch team2 name
+      .populate('eventManagers', 'name email'); // Add this line to populate event managers
 
     const iyscEvents = await IYSCevent.find({
       $or: [{ team1Details: { $in: teamIds } }, { team2Details: { $in: teamIds } }],
     })
-      .select('eventType venue description date time gender winner team1 team2')
+      .select('eventType venue description date time gender winner team1 team2 eventManagers')  // Add eventManagers
       .populate('team1Details', 'teamName') // Fetch team1 name
-      .populate('team2Details', 'teamName'); // Fetch team2 name
+      .populate('team2Details', 'teamName') // Fetch team2 name
+      .populate('eventManagers', 'name email'); // Add this line
 
     const phlEvents = await PHLevent.find({
       $or: [{ team1Details: { $in: teamIds } }, { team2Details: { $in: teamIds } }],
     })
-      .select('eventType venue description date time gender winner team1 team2')
+      .select('eventType venue description date time gender winner team1 team2 eventManagers')  // Add eventManagers
       .populate('team1Details', 'teamName') // Fetch team1 name
-      .populate('team2Details', 'teamName'); // Fetch team2 name
+      .populate('team2Details', 'teamName') // Fetch team2 name
+      .populate('eventManagers', 'name email'); // Add this line
 
     const basketBrawlEvents = await BasketBrawlevent.find({
       $or: [{ team1Details: { $in: teamIds } }, { team2Details: { $in: teamIds } }],
     })
-      .select('eventType venue description date time gender winner team1 team2')
+      .select('eventType venue description date time gender winner team1 team2 eventManagers')  // Add eventManagers
       .populate('team1Details', 'teamName') // Fetch team1 name
-      .populate('team2Details', 'teamName'); // Fetch team2 name
+      .populate('team2Details', 'teamName') // Fetch team2 name
+      .populate('eventManagers', 'name email'); // Add this line
 
     // Fetch GC events where the user's team is participating
     const gcEvents = await GCevent.find({
       participants: { $in: teamIds },
-    }).select('eventType venue description date time gender winner');
+    })
+      .select('eventType venue description date time gender winner eventManagers')  // Add eventManagers
+      .populate('eventManagers', 'name email'); // Add this line
 
     // Combine all events into a single array
     const allEvents = [
