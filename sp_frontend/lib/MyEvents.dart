@@ -3,6 +3,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'constants.dart'; // Import constants for baseUrl
 import 'package:intl/intl.dart'; // Import for date formatting
+import 'IRCCEventDetailsPage.dart';
+import 'PHLEventDetailsPage.dart';
+import 'BasketBrawlEventDetailsPage.dart';
+import 'PlayerProfilePage.dart';
+import 'team_details_page.dart'; // Import TeamDetailsPage
+import 'participants_page.dart';
 
 class MyEventsPage extends StatefulWidget {
   final String email;
@@ -26,10 +32,12 @@ class _MyEventsPageState extends State<MyEventsPage> {
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        // Print event data to debug
+        print('Fetched events data: ${data['events']}');
         return data['events'] ?? [];
       }
     } catch (e) {
-      // Handle error
+      print('Error fetching events: $e');
     }
     return [];
   }
@@ -197,13 +205,61 @@ class _MyEventsPageState extends State<MyEventsPage> {
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           Expanded(
-                                            child: Text(
-                                              team1,
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                fontSize: 14.0,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.blue,
+                                            child: MouseRegion(
+                                              cursor: SystemMouseCursors.click,
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  if (event['team1Details'] ==
+                                                      null) {
+                                                    showDialog(
+                                                      context: context,
+                                                      builder:
+                                                          (
+                                                            context,
+                                                          ) => AlertDialog(
+                                                            title: Text(
+                                                              'Team Details Not Available',
+                                                            ),
+                                                            content: Text(
+                                                              'Team member details for "$team1" have not been added yet.',
+                                                            ),
+                                                            actions: [
+                                                              TextButton(
+                                                                onPressed:
+                                                                    () => Navigator.pop(
+                                                                      context,
+                                                                    ),
+                                                                child: Text(
+                                                                  'OK',
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                    );
+                                                  } else {
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder:
+                                                            (
+                                                              context,
+                                                            ) => TeamDetailsPage(
+                                                              teamId:
+                                                                  event['team1Details']['_id'], // Get the _id field
+                                                            ),
+                                                      ),
+                                                    );
+                                                  }
+                                                },
+                                                child: Text(
+                                                  team1,
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                    fontSize: 14.0,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.blue,
+                                                  ),
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -215,13 +271,98 @@ class _MyEventsPageState extends State<MyEventsPage> {
                                             ),
                                           ),
                                           Expanded(
-                                            child: Text(
-                                              team2,
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                fontSize: 14.0,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.blue,
+                                            child: MouseRegion(
+                                              cursor: SystemMouseCursors.click,
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  if (event['team2Details'] ==
+                                                      null) {
+                                                    showDialog(
+                                                      context: context,
+                                                      builder:
+                                                          (
+                                                            context,
+                                                          ) => AlertDialog(
+                                                            title: Text(
+                                                              'Team Details Not Available',
+                                                            ),
+                                                            content: Text(
+                                                              'Team member details for "$team2" have not been added yet.',
+                                                            ),
+                                                            actions: [
+                                                              TextButton(
+                                                                onPressed:
+                                                                    () => Navigator.pop(
+                                                                      context,
+                                                                    ),
+                                                                child: Text(
+                                                                  'OK',
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                    );
+                                                  } else {
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder:
+                                                            (
+                                                              context,
+                                                            ) => TeamDetailsPage(
+                                                              teamId:
+                                                                  event['team2Details']['_id'], // Get the _id field
+                                                            ),
+                                                      ),
+                                                    );
+                                                  }
+                                                },
+                                                child: Text(
+                                                  team2,
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                    fontSize: 14.0,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.blue,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    SizedBox(height: 8.0),
+                                    // View Participants for "GC" events
+                                    if (eventName == 'GC')
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          MouseRegion(
+                                            cursor: SystemMouseCursors.click,
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder:
+                                                        (context) =>
+                                                            ParticipantsPage(
+                                                              eventId:
+                                                                  event['_id'],
+                                                            ),
+                                                  ),
+                                                );
+                                              },
+                                              child: Text(
+                                                'View Participants',
+                                                style: TextStyle(
+                                                  fontSize: 14.0,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.blue,
+                                                  decoration:
+                                                      TextDecoration.underline,
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -291,6 +432,9 @@ class _MyEventsPageState extends State<MyEventsPage> {
                                           ),
                                         ),
                                       ),
+                                    SizedBox(height: 12.0),
+                                    // Remove all buttons section
+                                    SizedBox(height: 4.0),
                                   ],
                                 ),
                               ),

@@ -437,73 +437,18 @@ class _PHLPageState extends State<PHLPage> {
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                 ),
-                SizedBox(height: 4.0),
-                InkWell(
-                  onTap: () {
-                    String message = '';
-                    DateTime eventDate = DateTime.parse(date);
-                    DateTime now = DateTime.now();
-
-                    if (eventDate.isAfter(now)) {
-                      message = 'Match has not started yet';
-                    } else if (eventDate.year == now.year &&
-                        eventDate.month == now.month &&
-                        eventDate.day == now.day) {
-                      message = 'Match is live, results will be updated soon';
-                    } else {
-                      if (event['winner'] == null || event['winner'].isEmpty) {
-                        message = 'No results available';
-                      } else if (event['winner'] == 'Draw') {
-                        message = 'Match ended in a draw';
-                      } else {
-                        message = '${event['winner']} won this match!';
-                      }
-                    }
-
-                    showDialog(
-                      context: context,
-                      builder:
-                          (context) => AlertDialog(
-                            title: Text('Match Status'),
-                            content: Text(message),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: Text('OK'),
-                              ),
-                            ],
-                          ),
-                    );
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 6.0,
-                      vertical: 3.0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade200,
-                      borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: Colors.black),
-                    ),
-                    child: Text(
-                      'View Match Result',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 8.0),
-                // Add Event Managers button
-                SizedBox(height: 8.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                SizedBox(height: 12.0),
+                // Remove old match result button here
+                // Directly show Wrap with buttons
+                Wrap(
+                  spacing: 8.0,
+                  runSpacing: 8.0,
+                  alignment: WrapAlignment.spaceEvenly,
                   children: [
-                    // Existing Event Managers button
-                    InkWell(
-                      onTap: () {
+                    ElevatedButton.icon(
+                      icon: Icon(Icons.people, size: 16),
+                      label: Text('Event Managers'),
+                      onPressed: () {
                         if (event['eventManagers'] == null ||
                             (event['eventManagers'] as List).isEmpty) {
                           showDialog(
@@ -667,57 +612,86 @@ class _PHLPageState extends State<PHLPage> {
                               ),
                         );
                       },
-                      child: Container(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange.shade200,
+                        foregroundColor: Colors.black,
                         padding: EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.orange,
-                          borderRadius: BorderRadius.circular(5),
-                          border: Border.all(color: Colors.black),
-                        ),
-                        child: Text(
-                          'Event Managers',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12.0,
-                          ),
+                          horizontal: 12,
+                          vertical: 8,
                         ),
                       ),
                     ),
-                    // New Event Details button
-                    InkWell(
-                      onTap: () {
+                    ElevatedButton.icon(
+                      icon: Icon(Icons.info_outline, size: 16),
+                      label: Text('Event Details'),
+                      onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder:
                                 (context) => PHLEventDetailsPage(
                                   event: event,
-                                  isReadOnly: true, // Add this parameter
+                                  isReadOnly: true,
                                 ),
                           ),
                         );
                       },
-                      child: Container(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange.shade200,
+                        foregroundColor: Colors.black,
                         padding: EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0,
+                          horizontal: 12,
+                          vertical: 8,
                         ),
-                        decoration: BoxDecoration(
-                          color: Colors.orange,
-                          borderRadius: BorderRadius.circular(5),
-                          border: Border.all(color: Colors.black),
-                        ),
-                        child: Text(
-                          'Event Details',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12.0,
-                          ),
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      icon: Icon(Icons.emoji_events, size: 16),
+                      label: Text('View Result'),
+                      onPressed: () {
+                        String message = '';
+                        DateTime eventDate = DateTime.parse(date);
+                        DateTime now = DateTime.now();
+
+                        if (eventDate.isAfter(now)) {
+                          message = 'Match has not started yet';
+                        } else if (eventDate.year == now.year &&
+                            eventDate.month == now.month &&
+                            eventDate.day == now.day) {
+                          message =
+                              'Match is live, results will be updated soon';
+                        } else {
+                          if (event['winner'] == null ||
+                              event['winner'].isEmpty) {
+                            message = 'No results available';
+                          } else if (event['winner'] == 'Draw') {
+                            message = 'Match ended in a draw';
+                          } else {
+                            message = '${event['winner']} won this match!';
+                          }
+                        }
+
+                        showDialog(
+                          context: context,
+                          builder:
+                              (context) => AlertDialog(
+                                title: Text('Match Status'),
+                                content: Text(message),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: Text('OK'),
+                                  ),
+                                ],
+                              ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange.shade200,
+                        foregroundColor: Colors.black,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
                         ),
                       ),
                     ),

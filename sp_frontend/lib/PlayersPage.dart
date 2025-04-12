@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'constants.dart';
 import 'TeamDetailsPage.dart'; // Import the TeamDetailsPage
 import 'PlayerProfilePage.dart'; // Import the PlayerProfilePage
+import 'PlayerEvents.dart';
 
 class PlayersPage extends StatefulWidget {
   @override
@@ -287,83 +288,121 @@ class _PlayersPageState extends State<PlayersPage> {
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment:
-            MainAxisAlignment.spaceBetween, // Ensure proper alignment
-        crossAxisAlignment: CrossAxisAlignment.center, // Vertically align items
+      child: Column(
         children: [
-          Text('${index + 1}.', style: TextStyle(fontWeight: FontWeight.bold)),
-          SizedBox(width: 8.0),
-          Expanded(
-            child: Text(
-              member['name'],
-              style: TextStyle(fontWeight: FontWeight.bold),
-              softWrap: true,
-            ),
-          ),
-          SizedBox(width: 8.0),
-          MouseRegion(
-            cursor: SystemMouseCursors.click, // Show hand cursor on hover
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (context) => PlayerProfilePage(
-                          playerName: member['name'],
-                          playerEmail: member['email'] ?? 'N/A',
+          // First row: Profile icon and name
+          Row(
+            children: [
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => PlayerProfilePage(
+                              playerName: member['name'],
+                              playerEmail: member['email'] ?? 'N/A',
+                            ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(12.0),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade200,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: Offset(0, 3),
                         ),
-                  ),
-                );
-              },
-              child: Container(
-                padding: EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: Colors.orange.shade200, // Orange color for "Profile"
-                  shape: BoxShape.circle, // Circular shape
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: Offset(0, 3),
+                      ],
                     ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.person, // Profile icon
-                  color: Colors.black,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 8.0),
-          MouseRegion(
-            cursor: SystemMouseCursors.click, // Show hand cursor on hover
-            child: ElevatedButton(
-              onPressed:
-                  () => _showTeamsDialog(
-                    member['name'],
-                    List<String>.from(
-                      member['teamNames'],
-                    ), // Ensure List<String>
+                    child: Icon(Icons.person, color: Colors.black),
                   ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange.shade200, // Orange button color
-                foregroundColor: Colors.black,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0), // Rounded corners
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              ),
-              child: Text(
-                'Teams', // Replace icon with text
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
                 ),
               ),
+              SizedBox(width: 12.0),
+              Expanded(
+                child: Text(
+                  member['name'],
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                  softWrap: true,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.0),
+          // Second row: Teams and Events buttons with opposite corners
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Events button on left
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => PlayerEventsPage(
+                              playerName: member['name'],
+                              playerEmail: member['email'] ?? 'N/A',
+                            ),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange.shade200,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 12.0,
+                    ),
+                  ),
+                  child: Text(
+                    'Events',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+                // Teams button on right
+                ElevatedButton(
+                  onPressed:
+                      () => _showTeamsDialog(
+                        member['name'],
+                        List<String>.from(member['teamNames']),
+                      ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange.shade200,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 12.0,
+                    ),
+                  ),
+                  child: Text(
+                    'Teams',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -556,104 +595,144 @@ class _PlayersPageState extends State<PlayersPage> {
                                 ),
                               ],
                             ),
-                            child: Row(
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  '${index + 1}.',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                SizedBox(width: 8.0),
-                                Expanded(
-                                  child: Text(
-                                    player['name'] ?? 'Unknown',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    softWrap: true,
-                                  ),
-                                ),
-                                SizedBox(width: 8.0),
-                                MouseRegion(
-                                  cursor:
-                                      SystemMouseCursors
-                                          .click, // Show hand cursor on hover
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (context) => PlayerProfilePage(
-                                                playerName: player['name'],
-                                                playerEmail:
-                                                    player['email'] ?? 'N/A',
+                                Row(
+                                  children: [
+                                    MouseRegion(
+                                      cursor:
+                                          SystemMouseCursors
+                                              .click, // Show hand cursor on hover
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder:
+                                                  (context) =>
+                                                      PlayerProfilePage(
+                                                        playerName:
+                                                            player['name'],
+                                                        playerEmail:
+                                                            player['email'] ??
+                                                            'N/A',
+                                                      ),
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          padding: EdgeInsets.all(12.0),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                Colors
+                                                    .orange
+                                                    .shade200, // Orange color for "Profile"
+                                            shape:
+                                                BoxShape
+                                                    .circle, // Circular shape
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.grey.withOpacity(
+                                                  0.5,
+                                                ),
+                                                spreadRadius: 2,
+                                                blurRadius: 5,
+                                                offset: Offset(0, 3),
                                               ),
-                                        ),
-                                      );
-                                    },
-                                    child: Container(
-                                      padding: EdgeInsets.all(12.0),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            Colors
-                                                .orange
-                                                .shade200, // Orange color for "Profile"
-                                        shape:
-                                            BoxShape.circle, // Circular shape
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.grey.withOpacity(0.5),
-                                            spreadRadius: 2,
-                                            blurRadius: 5,
-                                            offset: Offset(0, 3),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                      child: Icon(
-                                        Icons.person, // Profile icon
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 8.0),
-                                MouseRegion(
-                                  cursor:
-                                      SystemMouseCursors
-                                          .click, // Show hand cursor on hover
-                                  child: ElevatedButton(
-                                    onPressed:
-                                        () => _showTeamsDialog(
-                                          player['name'] ?? 'Unknown',
-                                          List<String>.from(
-                                            player['teamNames'],
-                                          ), // Ensure List<String>
+                                          child: Icon(
+                                            Icons.person, // Profile icon
+                                            color: Colors.black,
+                                          ),
                                         ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          Colors
-                                              .orange
-                                              .shade200, // Orange button color
-                                      foregroundColor: Colors.black,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          8.0,
-                                        ), // Rounded corners
-                                      ),
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 16.0,
-                                        vertical: 8.0,
                                       ),
                                     ),
-                                    child: Text(
-                                      'Teams', // Replace icon with text
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
+                                    SizedBox(width: 8.0),
+                                    Expanded(
+                                      child: Text(
+                                        player['name'] ?? 'Unknown',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        softWrap: true,
                                       ),
                                     ),
-                                  ),
+                                  ],
+                                ),
+                                SizedBox(height: 12.0),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    // Events button on left
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) => PlayerEventsPage(
+                                                  playerName: player['name'],
+                                                  playerEmail:
+                                                      player['email'] ?? 'N/A',
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.orange.shade200,
+                                        foregroundColor: Colors.black,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8.0,
+                                          ),
+                                        ),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 24.0,
+                                          vertical: 12.0,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Events',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                    // Teams button on right
+                                    ElevatedButton(
+                                      onPressed:
+                                          () => _showTeamsDialog(
+                                            player['name'],
+                                            List<String>.from(
+                                              player['teamNames'],
+                                            ),
+                                          ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.orange.shade200,
+                                        foregroundColor: Colors.black,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8.0,
+                                          ),
+                                        ),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 24.0,
+                                          vertical: 12.0,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Teams',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
