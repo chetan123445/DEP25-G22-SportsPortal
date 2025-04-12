@@ -178,129 +178,82 @@ export const getEventDetails = async (req, res) => {
 
 export const getBasketBrawlStandings = async (req, res) => {
     try {
-        // Update past events results first
-        await updatePastEventResults();
-
-        const events = await BasketBrawlevent.find();
+        const events = await BasketBrawlevent.find({ eventType: 'Basket Brawl' });
         console.log(`Found ${events.length} BasketBrawl events`);
 
-        // Initialize team sets
-        const maleTeams = new Set();
-        const femaleTeams = new Set();
-        
-        // Helper functions for gender check with expanded conditions
-        const isMaleTeam = (gender) => {
-            const g = gender?.toLowerCase() || '';
-            return g === 'male' || g === 'boys' || g === 'm';
-        };
-        
-        const isFemaleTeam = (gender) => {
-            const g = gender?.toLowerCase() || '';
-            return g === 'female' || g === 'girls' || g === 'f';
-        };
+        const maleTeams = new Map();
+        const femaleTeams = new Map();
 
-        // First pass: collect all unique teams by gender
+        // Initialize teams with base stats
         events.forEach(event => {
-            console.log(`Processing event - Gender: ${event.gender}, Teams: ${event.team1}, ${event.team2}`);
-            
-            if (isMaleTeam(event.gender)) {
-                if (event.team1) maleTeams.add(event.team1);
-                if (event.team2) maleTeams.add(event.team2);
-            } else if (isFemaleTeam(event.gender)) {
-                if (event.team1) femaleTeams.add(event.team1);
-                if (event.team2) femaleTeams.add(event.team2);
-            }
-        });
+            const gender = event.gender?.toLowerCase();
+            const statsMap = (gender === 'male' || gender === 'boys') ? maleTeams : femaleTeams;
 
-        console.log('Male Teams:', Array.from(maleTeams));
-        console.log('Female Teams:', Array.from(femaleTeams));
-
-        // Initialize stats maps with all teams
-        const maleStats = new Map();
-        const femaleStats = new Map();
-
-        // Initialize all teams with zero stats
-        maleTeams.forEach(team => {
-            maleStats.set(team, {
-                name: team,
-                matches: 0,
-                wins: 0,
-                losses: 0,
-                draws: 0,
-                points: 0
+            [event.team1, event.team2].forEach(team => {
+                if (team && !statsMap.has(team)) {
+                    statsMap.set(team, {
+                        teamName: team,
+                        matchesPlayed: 0,
+                        wins: 0,
+                        losses: 0,
+                        draws: 0,
+                        points: 0
+                    });
+                }
             });
         });
 
-        femaleTeams.forEach(team => {
-            femaleStats.set(team, {
-                name: team,
-                matches: 0,
-                wins: 0,
-                losses: 0,
-                draws: 0,
-                points: 0
-            });
-        });
-
-        // Helper function to check if event is live
-        const isEventLive = (eventDate) => {
-            const today = new Date();
-            const eventDay = new Date(eventDate);
-            return eventDay.getFullYear() === today.getFullYear() &&
-                   eventDay.getMonth() === today.getMonth() &&
-                   eventDay.getDate() === today.getDate();
-        };
-
-        // Process match results
+        // Calculate stats for each event
         events.forEach(event => {
-            const statsMap = isMaleTeam(event.gender) ? maleStats : 
-                           isFemaleTeam(event.gender) ? femaleStats : null;
+            const gender = event.gender?.toLowerCase();
+            const statsMap = (gender === 'male' || gender === 'boys') ? maleTeams : femaleTeams;
             
-            if (!statsMap) return; // Skip if gender is not recognized
-
             const team1Stats = statsMap.get(event.team1);
             const team2Stats = statsMap.get(event.team2);
 
-            if (team1Stats && team2Stats) {
-                // Update matches played
-                team1Stats.matches++;
-                team2Stats.matches++;
+            if (!team1Stats || !team2Stats) return;
 
-                const isLive = isEventLive(event.date);
-                console.log('Event is live:', isLive);
+            const eventDate = new Date(event.date);
+            const today = new Date(new Date().setHours(0, 0, 0, 0));
 
-                if (!isLive) {
-                    // Only process completed matches
-                    if (event.winner === event.team1) {
-                        team1Stats.wins++;
-                        team2Stats.losses++;
-                        team1Stats.points += 2;
-                    } else if (event.winner === event.team2) {
-                        team2Stats.wins++;
-                        team1Stats.losses++;
-                        team2Stats.points += 2;
-                    } else if (event.winner === 'Draw') {
-                        team1Stats.draws++;
-                        team2Stats.draws++;
-                        team1Stats.points += 1;
-                        team2Stats.points += 1;
-                    }
+            // Check if match is past, live, or upcoming
+            const isPast = eventDate < today;
+            const isLive = eventDate.toDateString() === today.toDateString();
+            
+            if (isPast) {
+                // For completed matches
+                team1Stats.matchesPlayed++;
+                team2Stats.matchesPlayed++;
+
+                if (event.winner === 'Draw' || !event.winner) {
+                    team1Stats.draws++;
+                    team2Stats.draws++;
+                    team1Stats.points += 1; // 1 point for draw
+                    team2Stats.points += 1;
+                } else if (event.winner === event.team1) {
+                    team1Stats.wins++;
+                    team2Stats.losses++;
+                    team1Stats.points += 2; // 2 points for win
+                } else if (event.winner === event.team2) {
+                    team2Stats.wins++;
+                    team1Stats.losses++;
+                    team2Stats.points += 2;
                 }
+            } else if (isLive) {
+                // For live matches, only increment matches played
+                team1Stats.matchesPlayed++;
+                team2Stats.matchesPlayed++;
             }
+            // Do nothing for upcoming matches
         });
 
-        // Sort teams by points and wins
-        const sortTeams = (teams) => Array.from(teams.values())
-            .sort((a, b) => b.points - a.points || b.wins - a.wins);
-
-        const maleStandingsResult = sortTeams(maleStats);
-        const femaleStandingsResult = sortTeams(femaleStats);
-
-        console.log(`Final Standings - Male: ${maleStandingsResult.length} teams, Female: ${femaleStandingsResult.length} teams`);
+        const sortTeams = teams => 
+            Array.from(teams.values())
+                .sort((a, b) => b.points - a.points || b.wins - a.wins);
 
         res.json({
-            maleStandings: maleStandingsResult,
-            femaleStandings: femaleStandingsResult
+            maleStandings: sortTeams(maleTeams),
+            femaleStandings: sortTeams(femaleTeams)
         });
     } catch (error) {
         console.error('Error in getBasketBrawlStandings:', error);

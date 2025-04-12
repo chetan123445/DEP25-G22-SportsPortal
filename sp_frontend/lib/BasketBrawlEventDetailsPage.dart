@@ -149,24 +149,46 @@ class _BasketBrawlEventDetailsPageState
   Future<void> fetchStandings() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/basketbrawl/standings'), // Updated URL
+        Uri.parse('$baseUrl/basketbrawl/standings'),
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print("Fetched standings data: $data"); // Add this debug print
+        print("Fetched standings data: $data"); // Debug print
         setState(() {
-          maleStandings = List<Map<String, dynamic>>.from(
-            data['maleStandings'] ?? [],
-          );
-          femaleStandings = List<Map<String, dynamic>>.from(
-            data['femaleStandings'] ?? [],
-          );
+          // Ensure we're getting the correct structure from the API
+          maleStandings =
+              (data['maleStandings'] as List?)
+                  ?.map(
+                    (team) => {
+                      'name': team['teamName'] ?? '',
+                      'matches': team['matchesPlayed']?.toString() ?? '0',
+                      'wins': team['wins']?.toString() ?? '0',
+                      'losses': team['losses']?.toString() ?? '0',
+                      'draws': team['draws']?.toString() ?? '0',
+                      'points': team['points']?.toString() ?? '0',
+                    },
+                  )
+                  .toList()
+                  .cast<Map<String, dynamic>>() ??
+              [];
+
+          femaleStandings =
+              (data['femaleStandings'] as List?)
+                  ?.map(
+                    (team) => {
+                      'name': team['teamName'] ?? '',
+                      'matches': team['matchesPlayed']?.toString() ?? '0',
+                      'wins': team['wins']?.toString() ?? '0',
+                      'losses': team['losses']?.toString() ?? '0',
+                      'draws': team['draws']?.toString() ?? '0',
+                      'points': team['points']?.toString() ?? '0',
+                    },
+                  )
+                  .toList()
+                  .cast<Map<String, dynamic>>() ??
+              [];
         });
-      } else {
-        print(
-          "Error fetching standings: ${response.statusCode}",
-        ); // Add debug print
       }
     } catch (e) {
       print('Error fetching standings: $e');
