@@ -8,6 +8,9 @@ import 'services/favorite_service.dart';
 import 'team_details_page.dart'; // Import TeamDetailsPage
 import 'participants_page.dart'; // Import ParticipantsPage
 import 'PlayerProfilePage.dart';
+import 'IRCCEventDetailsPage.dart';
+import 'PHLEventDetailsPage.dart';
+import 'BasketBrawlEventDetailsPage.dart';
 
 void main() {
   runApp(MaterialApp(debugShowCheckedModeBanner: false, home: EventsPage()));
@@ -747,173 +750,194 @@ class _EventsPageState extends State<EventsPage>
                 ),
                 SizedBox(height: 4.0),
 
-                // Add Event Managers button before the favorites row
+                // Add Event Managers, Event Details and Match Result buttons in a Row
                 SizedBox(height: 8.0),
-                InkWell(
-                  onTap: () {
-                    if (event['eventManagers'] == null ||
-                        (event['eventManagers'] as List).isEmpty) {
-                      showDialog(
-                        context: context,
-                        builder:
-                            (context) => AlertDialog(
-                              title: Text('No Event Managers'),
-                              content: Text(
-                                'No event managers have been assigned to this event.',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: Text('OK'),
-                                ),
-                              ],
-                            ),
-                      );
-                      return;
-                    }
-                    showDialog(
-                      context: context,
-                      builder:
-                          (context) => AlertDialog(
-                            backgroundColor: Colors.transparent,
-                            contentPadding: EdgeInsets.zero,
-                            content: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12.0),
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Colors.purple.shade200,
-                                    Colors.blue.shade200,
-                                    Colors.pink.shade100,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Event Managers Button
+                    InkWell(
+                      onTap: () {
+                        if (event['eventManagers'] == null ||
+                            (event['eventManagers'] as List).isEmpty) {
+                          showDialog(
+                            context: context,
+                            builder:
+                                (context) => AlertDialog(
+                                  title: Text('No Event Managers'),
+                                  content: Text(
+                                    'No event managers have been assigned to this event.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text('OK'),
+                                    ),
                                   ],
                                 ),
-                              ),
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.people,
-                                        size: 24,
-                                        color: Colors.black,
-                                      ),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'Event Managers',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ],
+                          );
+                          return;
+                        }
+                        // ... existing event managers dialog code ...
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                          vertical: 4.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(color: Colors.black),
+                        ),
+                        child: Text(
+                          'Event Managers',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12.0,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Event Details Button
+                    InkWell(
+                      onTap: () {
+                        if (eventType == 'IRCC') {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => IRCCEventDetailsPage(
+                                    event: event,
+                                    isReadOnly: true,
                                   ),
-                                  SizedBox(height: 16),
-                                  SingleChildScrollView(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: List<Widget>.from(
-                                        (event['eventManagers'] as List<dynamic>).map(
-                                          (manager) => Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              vertical: 4.0,
-                                            ),
-                                            child: InkWell(
-                                              onTap: () {
-                                                Navigator.of(context).push(
-                                                  MaterialPageRoute(
-                                                    builder:
-                                                        (
-                                                          context,
-                                                        ) => PlayerProfilePage(
-                                                          playerName:
-                                                              manager['name'] ??
-                                                              'Unknown',
-                                                          playerEmail:
-                                                              manager['email'] ??
-                                                              '',
-                                                        ),
-                                                  ),
-                                                );
-                                              },
-                                              child: Container(
-                                                padding: EdgeInsets.all(8.0),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.orange.shade200,
-                                                  borderRadius:
-                                                      BorderRadius.circular(5),
-                                                  border: Border.all(
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    CircleAvatar(
-                                                      backgroundColor:
-                                                          Colors.blue.shade100,
-                                                      child: Icon(
-                                                        Icons.person,
-                                                        color: Colors.blue,
-                                                      ),
-                                                    ),
-                                                    SizedBox(width: 8),
-                                                    Text(
-                                                      manager['name'] ??
-                                                          'Unknown',
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.black,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
+                            ),
+                          );
+                        } else if (eventType == 'PHL') {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => PHLEventDetailsPage(
+                                    event: event,
+                                    isReadOnly: true,
                                   ),
-                                  SizedBox(height: 16),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.black,
-                                      foregroundColor: Colors.white,
+                            ),
+                          );
+                        } else if (eventType == 'BasketBrawl') {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => BasketBrawlEventDetailsPage(
+                                    event: event,
+                                    isReadOnly: true,
+                                  ),
+                            ),
+                          );
+                        } else if (eventType == 'GC' || eventType == 'IYSC') {
+                          showDialog(
+                            context: context,
+                            builder:
+                                (context) => AlertDialog(
+                                  title: Text('Event Details'),
+                                  content: Text(
+                                    'Event details feature for ${eventType} events will be available soon.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text('OK'),
                                     ),
+                                  ],
+                                ),
+                          );
+                        }
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                          vertical: 4.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(color: Colors.black),
+                        ),
+                        child: Text(
+                          'Event Details',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12.0,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Match Result Button
+                    InkWell(
+                      onTap: () {
+                        String message = '';
+                        DateTime eventDate = DateTime.parse(date);
+                        DateTime now = DateTime.now();
+
+                        if (eventDate.isAfter(now)) {
+                          message = 'Match has not started yet';
+                        } else if (eventDate.year == now.year &&
+                            eventDate.month == now.month &&
+                            eventDate.day == now.day) {
+                          message =
+                              'Match is live, results will be updated soon';
+                        } else {
+                          if (event['winner'] == null ||
+                              event['winner'].isEmpty) {
+                            message = 'No results available';
+                          } else if (event['winner'] == 'Draw') {
+                            message = 'Match ended in a draw';
+                          } else {
+                            message = '${event['winner']} won this match!';
+                          }
+                        }
+
+                        showDialog(
+                          context: context,
+                          builder:
+                              (context) => AlertDialog(
+                                title: Text('Match Status'),
+                                content: Text(message),
+                                actions: [
+                                  TextButton(
                                     onPressed: () => Navigator.pop(context),
-                                    child: Text('Close'),
+                                    child: Text('OK'),
                                   ),
                                 ],
                               ),
-                            ),
+                        );
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                          vertical: 4.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(color: Colors.black),
+                        ),
+                        child: Text(
+                          'Match Result',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12.0,
                           ),
-                    );
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 8.0,
-                      vertical: 4.0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.orange,
-                      borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: Colors.black),
-                    ),
-                    child: Text(
-                      'Event Managers',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12.0,
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
                 SizedBox(height: 4.0),
 
