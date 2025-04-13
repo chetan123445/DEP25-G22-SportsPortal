@@ -18,6 +18,7 @@ import 'package:http/http.dart' as http; // Import for HTTP requests
 import 'MyEvents.dart'; // Import the MyEventsPage
 import 'ManagingEvents.dart'; // Import the ManagingEventsPage
 import 'NotificationsPage.dart'; // Import the NotificationsPage
+import 'dart:async';
 
 void main() {
   runApp(SportsPortalApp());
@@ -33,12 +34,59 @@ class SportsPortalApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
-  final String email; // Add email parameter
+class HomePage extends StatefulWidget {
+  final String email;
+  HomePage({required this.email});
+  @override
+  _HomePageState createState() => _HomePageState();
+}
 
-  HomePage({required this.email}); // Update constructor
+class _HomePageState extends State<HomePage> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+  Timer? _timer;
+  bool isMenuHovered = false;
 
-  final bool isLoggedIn = false; // Change this based on user authentication
+  final List<Map<String, String>> carouselImages = [
+    {'path': 'assets/sports1.jpg', 'caption': 'Cricket Championship'},
+    {'path': 'assets/sports2.jpg', 'caption': 'Basketball Tournament'},
+    {'path': 'assets/sports3.jpg', 'caption': 'Football League'},
+    {'path': 'assets/sports4.jpg', 'caption': 'Hockey Tournament'},
+    {'path': 'assets/sports5.jpg', 'caption': 'Athletics Meet'},
+    {'path': 'assets/sports6.jpg', 'caption': 'Sports Complex'},
+    {'path': 'assets/sports7.jpg', 'caption': 'Volleyball Match'},
+    {'path': 'assets/sports8.jpg', 'caption': 'Badminton Tournament'},
+    {'path': 'assets/sports9.jpg', 'caption': 'Table Tennis'},
+    {'path': 'assets/sports10.jpg', 'caption': 'Swimming Championship'},
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoPlay();
+  }
+
+  void _startAutoPlay() {
+    _timer = Timer.periodic(Duration(seconds: 5), (Timer timer) {
+      if (_currentPage < carouselImages.length - 1) {
+        _currentPage++;
+      } else {
+        _currentPage = 0;
+      }
+      _pageController.animateToPage(
+        _currentPage,
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
 
   Future<String?> _fetchProfilePic(String email) async {
     try {
@@ -77,7 +125,7 @@ class HomePage extends StatelessWidget {
       await http.post(
         Uri.parse('$baseUrl/notifications/mark-read'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': email}),
+        body: json.encode({'email': widget.email}),
       );
     } catch (e) {
       print('Error marking notifications as read: $e');
@@ -89,64 +137,16 @@ class HomePage extends StatelessWidget {
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => NotificationsPage(email: email)),
+      MaterialPageRoute(
+        builder: (context) => NotificationsPage(email: widget.email),
+      ),
     );
   }
 
-  void _launchURL(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      throw 'Could not launch $url';
-    }
-  }
-
-  void _launchPhone(String phoneNumber) async {
-    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
-    if (await canLaunchUrl(phoneUri)) {
-      await launchUrl(phoneUri);
-    } else {
-      throw 'Could not launch phone $phoneNumber';
-    }
-  }
-
-  void _launchEmail(String emailAddress) async {
-    final Uri emailUri = Uri(scheme: 'mailto', path: emailAddress);
-    if (await canLaunchUrl(emailUri)) {
-      await launchUrl(emailUri);
-    } else {
-      throw 'Could not launch email $emailAddress';
-    }
-  }
-
-  void _copyToClipboard(BuildContext context, String text) {
-    Clipboard.setData(ClipboardData(text: text))
-        .then((_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Copied to clipboard: $text'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        })
-        .catchError((error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to copy: $error'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        });
-  }
-
-  // Update logout method
   Future<void> _logout(BuildContext context) async {
-    // Clear SharedPreferences
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear(); // This removes all data from SharedPreferences
+    await prefs.clear();
 
-    // Navigate to main page and remove all previous routes
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => MainPage()),
       (Route<dynamic> route) => false,
@@ -168,7 +168,6 @@ class HomePage extends StatelessWidget {
               ),
         ),
         actions: [
-          // Simplified notifications icon without count
           IconButton(
             icon: Icon(Icons.notifications, color: Colors.white),
             onPressed: () => _showNotifications(context),
@@ -176,7 +175,7 @@ class HomePage extends StatelessWidget {
           Padding(
             padding: EdgeInsets.only(right: 16.0),
             child: FutureBuilder<String?>(
-              future: _fetchProfilePic(email),
+              future: _fetchProfilePic(widget.email),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircleAvatar(
@@ -191,14 +190,15 @@ class HomePage extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ProfileScreen(email: email),
+                          builder:
+                              (context) => ProfileScreen(email: widget.email),
                         ),
                       );
                     },
                     child: MouseRegion(
-                      cursor: SystemMouseCursors.click, // Change cursor to hand
+                      cursor: SystemMouseCursors.click,
                       child: CircleAvatar(
-                        radius: 16, // Reduced radius to fit in the black box
+                        radius: 16,
                         backgroundImage: NetworkImage(
                           '$baseUrl/${snapshot.data}',
                         ),
@@ -212,17 +212,16 @@ class HomePage extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ProfileScreen(email: email),
+                          builder:
+                              (context) => ProfileScreen(email: widget.email),
                         ),
                       );
                     },
                     child: MouseRegion(
-                      cursor: SystemMouseCursors.click, // Change cursor to hand
+                      cursor: SystemMouseCursors.click,
                       child: CircleAvatar(
-                        radius: 16, // Reduced radius to fit in the black box
-                        backgroundImage: AssetImage(
-                          'assets/profile.png',
-                        ), // Default image
+                        radius: 16,
+                        backgroundImage: AssetImage('assets/profile.png'),
                         backgroundColor: Colors.transparent,
                       ),
                     ),
@@ -263,7 +262,6 @@ class HomePage extends StatelessWidget {
               leading: Icon(Icons.sports_soccer),
               title: Text('Events'),
               onTap: () {
-                // Navigate to EventsPage
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => EventsPage()),
@@ -274,7 +272,6 @@ class HomePage extends StatelessWidget {
               leading: Icon(Icons.sports_kabaddi),
               title: Text('IYSC'),
               onTap: () {
-                // Navigate to IYSCPage
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => IYSCPage()),
@@ -285,7 +282,6 @@ class HomePage extends StatelessWidget {
               leading: Icon(Icons.sports_cricket),
               title: Text('IRCC'),
               onTap: () {
-                // Navigate to IRCCPage
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => IRCCPage()),
@@ -293,10 +289,9 @@ class HomePage extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: Icon(Icons.sports_hockey), // Hockey icon for PHL
+              leading: Icon(Icons.sports_hockey),
               title: Text('PHL'),
               onTap: () {
-                // Navigate to PHLPage
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => PHLPage()),
@@ -304,12 +299,9 @@ class HomePage extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: Icon(
-                Icons.sports_basketball,
-              ), // Basketball icon for BasketballBrawl
+              leading: Icon(Icons.sports_basketball),
               title: Text('BasketBrawl'),
               onTap: () {
-                // Navigate to BasketBrawlPage
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => BasketBrawlPage()),
@@ -320,7 +312,6 @@ class HomePage extends StatelessWidget {
               leading: Icon(Icons.emoji_events),
               title: Text('GC'),
               onTap: () {
-                // Navigate to IYSCPage
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => GCPage()),
@@ -331,11 +322,10 @@ class HomePage extends StatelessWidget {
               leading: Icon(Icons.event_available),
               title: Text('My Events'),
               onTap: () {
-                // Navigate to MyEventsPage
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MyEventsPage(email: email),
+                    builder: (context) => MyEventsPage(email: widget.email),
                   ),
                 );
               },
@@ -347,7 +337,8 @@ class HomePage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ManagingEventsPage(email: email),
+                    builder:
+                        (context) => ManagingEventsPage(email: widget.email),
                   ),
                 );
               },
@@ -361,7 +352,6 @@ class HomePage extends StatelessWidget {
               leading: Icon(Icons.people),
               title: Text('Players'),
               onTap: () {
-                // Navigate to PlayersPage
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => PlayersPage()),
@@ -373,7 +363,6 @@ class HomePage extends StatelessWidget {
               leading: Icon(Icons.logout, color: Colors.red),
               title: Text('Logout', style: TextStyle(color: Colors.red)),
               onTap: () {
-                // Show confirmation dialog
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
@@ -393,8 +382,8 @@ class HomePage extends StatelessWidget {
                             style: TextStyle(color: Colors.red),
                           ),
                           onPressed: () {
-                            Navigator.of(context).pop(); // Close dialog
-                            _logout(context); // Perform logout
+                            Navigator.of(context).pop();
+                            _logout(context);
                           },
                         ),
                       ],
@@ -406,111 +395,241 @@ class HomePage extends StatelessWidget {
           ],
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.purple.shade200,
-              Colors.blue.shade200,
-              Colors.pink.shade100,
-            ],
-          ),
-        ),
+      body: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(height: 16),
-            Center(
-              child: Text(
-                'IIT Ropar Sports Portal',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            // Image Carousel
+            Container(
+              height: 225, // Reduced from 300 to 225 (3/4 of original height)
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black, width: 2),
+                borderRadius: BorderRadius.circular(10),
               ),
-            ),
-            SizedBox(height: 16),
-            Expanded(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Image.asset('assets/pngsport.png', fit: BoxFit.cover),
+              margin: EdgeInsets.all(10),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Stack(
+                  children: [
+                    PageView.builder(
+                      controller: _pageController,
+                      onPageChanged: (index) {
+                        setState(() => _currentPage = index);
+                      },
+                      itemCount: carouselImages.length,
+                      itemBuilder: (context, index) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage(carouselImages[index]['path']!),
+                              fit: BoxFit.cover,
+                              filterQuality: FilterQuality.medium,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    // Indicators
+                    Positioned(
+                      bottom: 10,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          carouselImages.length,
+                          (index) => Container(
+                            margin: EdgeInsets.symmetric(horizontal: 4),
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color:
+                                  _currentPage == index
+                                      ? Colors.white
+                                      : Colors.white.withOpacity(0.4),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Center(
-                child: Text(
-                  'Contact Us:',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
+
+            // Sports Events Section
+            Container(
+              margin: EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 10,
+              ), // Reduced horizontal margin
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+              width: double.infinity, // Make container full width
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    spreadRadius: 5,
+                  ),
+                ],
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              child: Column(
                 children: [
-                  GestureDetector(
-                    onTap:
-                        () => ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('+916377418791')),
-                        ),
-                    onLongPress:
-                        () => _copyToClipboard(context, '+916377418791'),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: Colors.black,
-                          child: Icon(Icons.phone, color: Colors.white),
-                        ),
-                        SizedBox(height: 8),
-                        Text('Contact', style: TextStyle(color: Colors.white)),
-                      ],
+                  Text(
+                    'Sports Events',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
-                  GestureDetector(
-                    onTap:
-                        () => ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('sports@iitrpr.ac.in')),
-                        ),
-                    onLongPress:
-                        () => _copyToClipboard(context, 'sports@iitrpr.ac.in'),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: Colors.black,
-                          child: Icon(Icons.email, color: Colors.white),
-                        ),
-                        SizedBox(height: 8),
-                        Text('Email', style: TextStyle(color: Colors.white)),
-                      ],
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap:
-                        () => ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('https://www.iitrpr.ac.in')),
-                        ),
-                    onLongPress:
-                        () => _copyToClipboard(
-                          context,
-                          'https://www.iitrpr.ac.in',
-                        ),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: Colors.black,
-                          child: Icon(Icons.web, color: Colors.white),
-                        ),
-                        SizedBox(height: 8),
-                        Text('Website', style: TextStyle(color: Colors.white)),
-                      ],
+                  SizedBox(height: 20),
+                  Container(
+                    height:
+                        MediaQuery.of(context).size.height -
+                        400, // Dynamic height based on screen size
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: _buildAnimatedCard(
+                                  'Events',
+                                  Icons.sports_soccer,
+                                  EventsPage(),
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Expanded(
+                                flex: 2,
+                                child: _buildAnimatedCard(
+                                  'IYSC',
+                                  Icons.sports_kabaddi,
+                                  IYSCPage(),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: _buildAnimatedCard(
+                                  'IRCC',
+                                  Icons.sports_cricket,
+                                  IRCCPage(),
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Expanded(
+                                flex: 2,
+                                child: _buildAnimatedCard(
+                                  'PHL',
+                                  Icons.sports_hockey,
+                                  PHLPage(),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: _buildAnimatedCard(
+                                  'BasketBrawl',
+                                  Icons.sports_basketball,
+                                  BasketBrawlPage(),
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Expanded(
+                                flex: 2,
+                                child: _buildAnimatedCard(
+                                  'GC',
+                                  Icons.emoji_events,
+                                  GCPage(),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: _buildAnimatedCard(
+                                  'My Events',
+                                  Icons.event_available,
+                                  MyEventsPage(email: widget.email),
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Expanded(
+                                flex: 2,
+                                child: _buildAnimatedCard(
+                                  'Players',
+                                  Icons.people,
+                                  PlayersPage(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedCard(String title, IconData icon, Widget page) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: InkWell(
+        onTap:
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => page),
+            ),
+        borderRadius: BorderRadius.circular(15),
+        child: Container(
+          height: 80, // Increased height
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 32,
+                color: Colors.blue.shade700,
+              ), // Increased icon size
+              SizedBox(width: 15),
+              Flexible(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18, // Increased font size
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
