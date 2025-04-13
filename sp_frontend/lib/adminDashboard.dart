@@ -51,11 +51,7 @@ class DashboardScreen extends StatelessWidget {
 
   final List<Map<String, dynamic>> categories = [
     {'name': 'Add Event and Event Managers', 'icon': Icons.event},
-    {
-      'name': 'Manage Event and Event Managers',
-      'icon': Icons.admin_panel_settings,
-    },
-    {'name': 'My Activity', 'icon': Icons.timeline}, // Added new category
+    {'name': 'Manage Event and Event Managers', 'icon': Icons.admin_panel_settings},
   ];
 
   @override
