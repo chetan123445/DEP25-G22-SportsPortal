@@ -20,22 +20,23 @@ export const getNotifications = async (req, res) => {
             });
         }
 
-        // Sort notifications to show unread first, then by timestamp
-        const sortedNotifications = user.notifications.sort((a, b) => {
-            if (a.read !== b.read) return a.read ? 1 : -1;
-            return new Date(b.timestamp) - new Date(a.timestamp);
-        });
+        // Only get unread notifications and sort by timestamp
+        const unreadNotifications = user.notifications
+            .filter(n => !n.read)
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
         res.status(200).json({ 
             message: 'Notifications fetched successfully',
-            notifications: sortedNotifications 
+            notifications: unreadNotifications,
+            unreadCount: unreadNotifications.length
         });
     } catch (error) {
         console.error('Error fetching notifications:', error);
         res.status(500).json({ 
             message: 'Error fetching notifications',
             error: error.message,
-            notifications: []
+            notifications: [],
+            unreadCount: 0
         });
     }
 };
@@ -44,29 +45,27 @@ export const sendNotification = async (req, res) => {
     try {
         const { message, eventType, date, venue } = req.body;
         
-        // Find all users
-        const users = await User.find({});
-        
-        // Add notification to each user
         const notification = {
             message,
             timestamp: new Date(),
-            read: false,
+            read: false,  // Always set new notifications as unread
             eventType,
             date,
             venue
         };
 
-        await Promise.all(users.map(user => 
-            User.findByIdAndUpdate(user._id, {
+        // Update all users with the new notification
+        await User.updateMany(
+            {},
+            {
                 $push: { 
                     notifications: { 
                         $each: [notification],
-                        $position: 0  // Add new notifications at the beginning
+                        $position: 0
                     }
                 }
-            })
-        ));
+            }
+        );
 
         res.status(200).json({ message: 'Notifications sent successfully' });
     } catch (error) {
@@ -77,34 +76,37 @@ export const sendNotification = async (req, res) => {
     }
 };
 
-export const markAsRead = async (req, res) => {
+export const markSingleNotificationAsRead = async (req, res) => {
     try {
-        const { email } = req.body;
+        const { email, notificationId } = req.body;
         
-        if (!email) {
-            return res.status(400).json({ message: 'Email is required' });
+        if (!email || !notificationId) {
+            return res.status(400).json({ message: 'Email and notification ID are required' });
         }
 
         const user = await User.findOneAndUpdate(
-            { email },
             { 
-                $set: { 
-                    'notifications.$[elem].read': true 
-                }
+                email,
+                "notifications._id": notificationId 
             },
             { 
-                arrayFilters: [{ 'elem.read': false }],
-                new: true
-            }
+                $set: { "notifications.$.read": true }
+            },
+            { new: true }
         );
 
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ message: 'User or notification not found' });
         }
 
-        res.status(200).json({ message: 'Notifications marked as read' });
+        const unreadCount = user.notifications.filter(n => !n.read).length;
+
+        res.status(200).json({ 
+            message: 'Notification marked as read',
+            unreadCount
+        });
     } catch (error) {
-        console.error('Error marking notifications as read:', error);
-        res.status(500).json({ message: 'Error updating notifications' });
+        console.error('Error marking notification as read:', error);
+        res.status(500).json({ message: 'Error updating notification' });
     }
 };

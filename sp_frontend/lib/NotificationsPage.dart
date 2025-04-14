@@ -13,6 +13,31 @@ class NotificationsPage extends StatefulWidget {
 }
 
 class _NotificationsPageState extends State<NotificationsPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Remove _markNotificationsAsRead call - we don't want to automatically mark as read
+  }
+
+  Future<void> _markNotificationAsRead(String notificationId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/notifications/mark-single-read'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'email': widget.email,
+          'notificationId': notificationId,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {}); // Refresh the list
+      }
+    } catch (e) {
+      print('Error marking notification as read: $e');
+    }
+  }
+
   Future<List<dynamic>> _fetchNotifications() async {
     try {
       final response = await http.get(
@@ -48,7 +73,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error loading notifications'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No notifications available'));
+            return Center(child: Text('No new notifications'));
           } else {
             final notifications = snapshot.data!;
             return Container(
@@ -68,37 +93,87 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 itemCount: notifications.length,
                 itemBuilder: (context, index) {
                   final notification = notifications[index];
-                  return Card(
-                    margin: EdgeInsets.only(bottom: 12),
-                    color: Colors.black.withOpacity(0.7),
-                    child: ListTile(
-                      title: Text(
-                        notification['message'],
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  if (!notification['read']) {
+                    // Only show unread notifications
+                    return Card(
+                      margin: EdgeInsets.only(bottom: 12),
+                      color: Colors.black.withOpacity(0.8),
+                      child: Column(
                         children: [
-                          SizedBox(height: 8),
-                          Text(
-                            'Event Type: ${notification['eventType'] ?? 'N/A'}',
-                            style: TextStyle(color: Colors.white70),
+                          ListTile(
+                            title: Text(
+                              notification['message'],
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(height: 8),
+                                Text(
+                                  'Event Type: ${notification['eventType'] ?? 'N/A'}',
+                                  style: TextStyle(color: Colors.white70),
+                                ),
+                                Text(
+                                  'Venue: ${notification['venue'] ?? 'N/A'}',
+                                  style: TextStyle(color: Colors.white70),
+                                ),
+                                Text(
+                                  DateTime.parse(
+                                    notification['timestamp'],
+                                  ).toString(),
+                                  style: TextStyle(color: Colors.white70),
+                                ),
+                              ],
+                            ),
+                            leading: Icon(
+                              Icons.event,
+                              color: Colors.blue,
+                              size: 32,
+                            ),
                           ),
-                          Text(
-                            'Venue: ${notification['venue'] ?? 'N/A'}',
-                            style: TextStyle(color: Colors.white70),
-                          ),
-                          Text(
-                            DateTime.parse(
-                              notification['timestamp'],
-                            ).toString(),
-                            style: TextStyle(color: Colors.white70),
+                          Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Have you read it?',
+                                  style: TextStyle(color: Colors.white70),
+                                ),
+                                Row(
+                                  children: [
+                                    TextButton(
+                                      onPressed:
+                                          () => _markNotificationAsRead(
+                                            notification['_id'],
+                                          ),
+                                      child: Text(
+                                        'Yes',
+                                        style: TextStyle(color: Colors.green),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        // Do nothing for "No"
+                                      },
+                                      child: Text(
+                                        'No',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                      leading: Icon(Icons.event, color: Colors.blue, size: 32),
-                    ),
-                  );
+                    );
+                  }
+                  return SizedBox.shrink(); // Skip read notifications
                 },
               ),
             );
