@@ -41,10 +41,10 @@ class DashboardScreen extends StatelessWidget {
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['data'][0]['ProfilePic'] ?? null;
+        return data['data'][0]['ProfilePic'] ?? null; // Base64 string
       }
     } catch (e) {
-      // Handle error
+      print('Error fetching profile picture: $e'); // Log the error
     }
     return null;
   }
@@ -145,22 +145,26 @@ class DashboardScreen extends StatelessWidget {
                       backgroundColor: Colors.grey.shade300,
                       child: Icon(Icons.person, color: Colors.white),
                     );
-                  } else if (snapshot.hasData &&
-                      snapshot.data != null &&
-                      snapshot.data!.isNotEmpty) {
-                    return CircleAvatar(
-                      radius: 40,
-                      backgroundImage: NetworkImage(
-                        '$baseUrl/${snapshot.data}',
-                      ),
-                      backgroundColor: Colors.transparent,
-                    );
+                  } else if (snapshot.hasData && snapshot.data != null) {
+                    try {
+                      final decodedImage = base64Decode(snapshot.data!.split(',')[1]);
+                      return CircleAvatar(
+                        radius: 40,
+                        backgroundImage: MemoryImage(decodedImage),
+                        backgroundColor: Colors.transparent,
+                      );
+                    } catch (e) {
+                      print('Error decoding image: $e');
+                      return CircleAvatar(
+                        radius: 40,
+                        backgroundImage: AssetImage('assets/profile.png'), // Default image
+                        backgroundColor: Colors.transparent,
+                      );
+                    }
                   } else {
                     return CircleAvatar(
                       radius: 40,
-                      backgroundImage: AssetImage(
-                        'assets/profile.png',
-                      ), // Default image
+                      backgroundImage: AssetImage('assets/profile.png'), // Default image
                       backgroundColor: Colors.transparent,
                     );
                   }
