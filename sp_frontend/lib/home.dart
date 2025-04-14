@@ -120,21 +120,23 @@ class _HomePageState extends State<HomePage> {
     return [];
   }
 
-  Future<void> _markNotificationsAsRead() async {
+  Future<int> _getUnreadNotificationsCount() async {
     try {
-      await http.post(
-        Uri.parse('$baseUrl/notifications/mark-read'),
+      final response = await http.get(
+        Uri.parse('$baseUrl/notifications?email=${widget.email}'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': widget.email}),
       );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['unreadCount'] ?? 0;
+      }
     } catch (e) {
-      print('Error marking notifications as read: $e');
+      print('Error fetching unread count: $e');
     }
+    return 0;
   }
 
-  void _showNotifications(BuildContext context) async {
-    await _markNotificationsAsRead();
-
+  void _showNotifications(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -168,9 +170,45 @@ class _HomePageState extends State<HomePage> {
               ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.notifications, color: Colors.white),
-            onPressed: () => _showNotifications(context),
+          Stack(
+            children: [
+              IconButton(
+                icon: Icon(Icons.notifications, color: Colors.white),
+                onPressed: () => _showNotifications(context),
+              ),
+              FutureBuilder<int>(
+                future: _getUnreadNotificationsCount(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data! > 0) {
+                    return Positioned(
+                      right: 6,  // Adjusted position
+                      top: 6,    // Adjusted position
+                      child: Container(
+                        padding: EdgeInsets.all(1),  // Reduced padding
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(6),  // Smaller radius
+                        ),
+                        constraints: BoxConstraints(
+                          minWidth: 12,  // Reduced width
+                          minHeight: 12, // Reduced height
+                        ),
+                        child: Text(
+                          '${snapshot.data}',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 8,    // Smaller font size
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    );
+                  }
+                  return SizedBox.shrink();
+                },
+              ),
+            ],
           ),
           Padding(
             padding: EdgeInsets.only(right: 16.0),
