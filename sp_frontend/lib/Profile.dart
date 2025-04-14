@@ -136,16 +136,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (response.statusCode == 200) {
         var data = json.decode(response.body);
-        setState(() {
-          profilePic = data['data']['ProfilePic'];
-        });
+
+        // Ensure the `ProfilePic` field is treated as a String
+        if (data['data'] != null && data['data']['ProfilePic'] is String) {
+          setState(() {
+            profilePic = data['data']['ProfilePic'];
+          });
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Profile picture uploaded successfully')),
         );
+
         // Refresh profile data
         _fetchProfileData();
       } else {
-        throw Exception('Failed to upload profile picture');
+        final errorData = json.decode(response.body);
+        throw Exception(
+          errorData['error'] ?? 'Failed to upload profile picture',
+        );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -270,10 +279,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
         context,
         MaterialPageRoute(
           builder:
-              (context) => FullImageScreen(imageUrl: '$baseUrl/$profilePic'),
+              (context) => FullImageScreen(
+                imageUrl:
+                    profilePic.startsWith('data:image')
+                        ? profilePic
+                        : '$baseUrl/$profilePic',
+              ),
         ),
       );
     }
+  }
+
+  ImageProvider _getImageProvider(String imageData) {
+    if (imageData.startsWith('data:image')) {
+      // Handle base64 image data
+      String base64Image = imageData.split(',')[1];
+      return MemoryImage(base64Decode(base64Image));
+    }
+    // Fallback to network image
+    return NetworkImage('$baseUrl/$imageData');
   }
 
   @override
@@ -363,7 +387,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 _image != null
                                     ? FileImage(_image!)
                                     : profilePic.isNotEmpty
-                                    ? NetworkImage('$baseUrl/$profilePic')
+                                    ? _getImageProvider(profilePic)
                                     : AssetImage(
                                           'assets/profile.png',
                                         ) // Fallback image
@@ -562,6 +586,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class FullImageScreen extends StatelessWidget {
+  final String imageUrl;
+
+  FullImageScreen({required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
+      body: Center(
+        child: Image(
+          image:
+              imageUrl.startsWith('data:image')
+                  ? MemoryImage(base64Decode(imageUrl.split(',')[1]))
+                  : NetworkImage(imageUrl) as ImageProvider,
+          fit: BoxFit.contain,
+        ),
       ),
     );
   }

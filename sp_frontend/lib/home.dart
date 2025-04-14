@@ -46,6 +46,7 @@ class _HomePageState extends State<HomePage> {
   int _currentPage = 0;
   Timer? _timer;
   bool isMenuHovered = false;
+  String? _profilePic; // Variable to store the profile picture
 
   final List<Map<String, String>> carouselImages = [
     {'path': 'assets/sports1.jpg', 'caption': 'Cricket Championship'},
@@ -64,6 +65,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _startAutoPlay();
+    _fetchAndSetProfilePic(); // Fetch profile picture once
   }
 
   void _startAutoPlay() {
@@ -81,11 +83,11 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _pageController.dispose();
-    super.dispose();
+  Future<void> _fetchAndSetProfilePic() async {
+    final profilePic = await _fetchProfilePic(widget.email);
+    setState(() {
+      _profilePic = profilePic; // Store the fetched profile picture
+    });
   }
 
   Future<String?> _fetchProfilePic(String email) async {
@@ -96,7 +98,7 @@ class _HomePageState extends State<HomePage> {
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['data'][0]['ProfilePic'] ?? null;
+        return data['data'][0]['ProfilePic'] ?? null; // Base64 string
       }
     } catch (e) {
       // Handle error
@@ -154,18 +156,24 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
         leading: Builder(
-          builder:
-              (context) => IconButton(
-                icon: Icon(Icons.menu, color: Colors.white),
-                onPressed: () {
-                  Scaffold.of(context).openDrawer();
-                },
-              ),
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu, color: Colors.white),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          ),
         ),
         actions: [
           IconButton(
@@ -174,60 +182,25 @@ class _HomePageState extends State<HomePage> {
           ),
           Padding(
             padding: EdgeInsets.only(right: 16.0),
-            child: FutureBuilder<String?>(
-              future: _fetchProfilePic(widget.email),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircleAvatar(
-                    backgroundColor: Colors.grey.shade300,
-                    child: Icon(Icons.person, color: Colors.white),
-                  );
-                } else if (snapshot.hasData &&
-                    snapshot.data != null &&
-                    snapshot.data!.isNotEmpty) {
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => ProfileScreen(email: widget.email),
-                        ),
-                      );
-                    },
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      child: CircleAvatar(
-                        radius: 16,
-                        backgroundImage: NetworkImage(
-                          '$baseUrl/${snapshot.data}',
-                        ),
-                        backgroundColor: Colors.transparent,
-                      ),
-                    ),
-                  );
-                } else {
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => ProfileScreen(email: widget.email),
-                        ),
-                      );
-                    },
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      child: CircleAvatar(
-                        radius: 16,
-                        backgroundImage: AssetImage('assets/profile.png'),
-                        backgroundColor: Colors.transparent,
-                      ),
-                    ),
-                  );
-                }
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfileScreen(email: widget.email),
+                  ),
+                );
               },
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: CircleAvatar(
+                  radius: 16,
+                  backgroundImage: _profilePic != null
+                      ? MemoryImage(base64Decode(_profilePic!.split(',')[1]))
+                      : AssetImage('assets/profile.png') as ImageProvider,
+                  backgroundColor: Colors.transparent,
+                ),
+              ),
             ),
           ),
         ],

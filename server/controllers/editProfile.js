@@ -1,17 +1,8 @@
 import User from '../models/User.js';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
-});
-
+// Configure multer to use memory storage
+const storage = multer.memoryStorage();
 export const upload = multer({ storage: storage });
 
 export const updateProfile = async (req, res) => {
@@ -54,50 +45,62 @@ export const updateProfile = async (req, res) => {
 };
 
 export const uploadProfilePic = async (req, res) => {
-  const { email } = req.body;
-  const profilePic = req.file.path;
+    const { email } = req.body;
 
-  try {
-    const user = await User.findOne({ email });
-    if (user && user.ProfilePic) {
-      // Remove the old profile picture
-      fs.unlink(user.ProfilePic, (err) => {
-        if (err) console.error('Failed to delete old profile picture:', err);
-      });
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Store the image in binary format
+        const profilePic = req.file.buffer;
+
+        const updatedUser = await User.findOneAndUpdate(
+            { email },
+            { ProfilePic: profilePic },
+            { new: true }
+        );
+
+        if (updatedUser) {
+            // Convert the ProfilePic buffer to a Base64 string
+            const profilePicBase64 = updatedUser.ProfilePic
+                ? `data:image/jpeg;base64,${updatedUser.ProfilePic.toString('base64')}`
+                : null;
+
+            return res.status(200).json({ 
+                data: { 
+                    ...updatedUser.toObject(), 
+                    ProfilePic: profilePicBase64 
+                } 
+            });
+        }
+
+        res.status(500).json({ error: 'Failed to update profile picture' });
+    } catch (error) {
+        console.error('Failed to upload profile picture:', error);
+        res.status(500).json({ error: 'Failed to upload profile picture' });
     }
-
-    const updatedUser = await User.findOneAndUpdate(
-      { email },
-      { ProfilePic: profilePic },
-      { new: true }
-    );
-    res.status(200).json({ data: updatedUser });
-  } catch (error) {
-    console.error('Failed to upload profile picture:', error);
-    res.status(500).json({ error: 'Failed to upload profile picture' });
-  }
 };
 
 export const removeProfilePic = async (req, res) => {
-  const { email } = req.body;
+    const { email } = req.body;
 
-  try {
-    const user = await User.findOne({ email });
-    if (user && user.ProfilePic) {
-      // Remove the profile picture
-      fs.unlink(user.ProfilePic, (err) => {
-        if (err) console.error('Failed to delete profile picture:', err);
-      });
+    try {
+        const user = await User.findOne({ email });
+        if (user && user.ProfilePic) {
+            // Remove the profile picture by setting it to null
+            const updatedUser = await User.findOneAndUpdate(
+                { email },
+                { ProfilePic: null },
+                { new: true }
+            );
+            return res.status(200).json({ data: updatedUser });
+        }
+
+        res.status(404).json({ error: 'Profile picture not found' });
+    } catch (error) {
+        console.error('Failed to remove profile picture:', error);
+        res.status(500).json({ error: 'Failed to remove profile picture' });
     }
-
-    const updatedUser = await User.findOneAndUpdate(
-      { email },
-      { ProfilePic: '' },
-      { new: true }
-    );
-    res.status(200).json({ data: updatedUser });
-  } catch (error) {
-    console.error('Failed to remove profile picture:', error);
-    res.status(500).json({ error: 'Failed to remove profile picture' });
-  }
 };

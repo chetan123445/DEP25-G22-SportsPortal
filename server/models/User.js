@@ -21,17 +21,8 @@ const userSchema = new mongoose.Schema({
         }
     },
     ProfilePic: { 
-        type: String, 
-        required: false,
-        validate: {
-            validator: function(v) {
-                // Allow null/empty values since it's not required
-                if (!v) return true;
-                // Basic path validation
-                return v.match(/^uploads\/.*\.(jpg|jpeg|png|gif)$/i);
-            },
-            message: 'Invalid profile picture path format'
-        }
+        type: Buffer, // Changed from String to Buffer to store binary data
+        required: false
     },
     notifications: [{
         message: { type: String, required: true },
