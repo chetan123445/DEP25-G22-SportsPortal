@@ -21,13 +21,13 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Create uploads directory if it doesn't exist
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir);
-}
+// // Create uploads directory if it doesn't exist
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+// const uploadsDir = path.join(__dirname, 'uploads');
+// if (!fs.existsSync(uploadsDir)) {
+//     fs.mkdirSync(uploadsDir);
+// }
 
 // Middleware
 app.use(express.json()); // Handles JSON requests
@@ -37,8 +37,8 @@ app.use(morgan("dev")); // Log HTTP requests
 app.use(helmet()); // Improve security
 app.use(compression()); // Compress responses for better performance
 
-// Serve static files from the uploads directory
-app.use('/uploads', express.static(uploadsDir));
+// // Serve static files from the uploads directory
+// app.use('/uploads', express.static(uploadsDir));
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {

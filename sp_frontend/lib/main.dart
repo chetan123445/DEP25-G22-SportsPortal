@@ -11,6 +11,7 @@ import 'IRCC.dart'; // Import the IRCCPage
 import 'PHL.dart'; // Import the PHLPage
 import 'BasketBrawl.dart'; // Import the BasketBrawlPage
 import 'PlayersPage.dart'; // Import the PlayersPage
+import 'Gallery.dart'; // Import the GalleryPage
 
 void main() {
   runApp(SportsPortalApp());
@@ -229,7 +230,13 @@ class MainPage extends StatelessWidget {
             ListTile(
               leading: Icon(Icons.photo_album),
               title: Text('Gallery'),
-              onTap: () {},
+              onTap: () {
+                // Navigate to GalleryPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => GalleryPage()),
+                );
+              },
             ),
             ListTile(
               leading: Icon(Icons.people),

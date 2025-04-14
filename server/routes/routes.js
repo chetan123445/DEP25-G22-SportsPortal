@@ -26,6 +26,7 @@ import { getUserEvents } from '../controllers/userEventsController.js'; // Impor
 import { getManagedEvents } from '../controllers/managedEventsController.js'; // Import the new controller
 import { getAllEvents, updateEvent, deleteEvent } from '../controllers/allEvents.js';
 import { getNotifications, sendNotification, markSingleNotificationAsRead } from '../controllers/notificationController.js';
+import { addImage, getImages } from '../controllers/updateGallery.js'; // Import the functions from updateGallery.js
 
 const router = express.Router();
 
@@ -149,5 +150,9 @@ router.get("/ircc/standings", getIRCCStandings);
 router.get("/notifications", getNotifications);
 router.post("/notifications/send", sendNotification);
 router.post("/notifications/mark-single-read", markSingleNotificationAsRead);
+
+// Add routes for gallery
+router.post('/add-image', upload.single('image'), addImage); // Route to add an image
+router.get('/get-images', getImages); // Route to get all images
 
 export default router;

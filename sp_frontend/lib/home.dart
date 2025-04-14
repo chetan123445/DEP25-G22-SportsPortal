@@ -18,6 +18,7 @@ import 'package:http/http.dart' as http; // Import for HTTP requests
 import 'MyEvents.dart'; // Import the MyEventsPage
 import 'ManagingEvents.dart'; // Import the ManagingEventsPage
 import 'NotificationsPage.dart'; // Import the NotificationsPage
+import 'Gallery.dart'; // Import the GalleryPage
 import 'dart:async';
 
 void main() {
@@ -357,7 +358,12 @@ class _HomePageState extends State<HomePage> {
             ListTile(
               leading: Icon(Icons.photo_album),
               title: Text('Gallery'),
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => GalleryPage()),
+                );
+              },
             ),
             ListTile(
               leading: Icon(Icons.people),
