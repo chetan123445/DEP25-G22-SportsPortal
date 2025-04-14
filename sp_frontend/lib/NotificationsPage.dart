@@ -19,7 +19,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     // Remove _markNotificationsAsRead call - we don't want to automatically mark as read
   }
 
-  Future<void> _markNotificationAsRead(String notificationId) async {
+  Future<void> _deleteNotification(String notificationId) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/notifications/mark-single-read'),
@@ -31,10 +31,23 @@ class _NotificationsPageState extends State<NotificationsPage> {
       );
 
       if (response.statusCode == 200) {
+        // Show a brief success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Notification deleted'),
+            duration: Duration(seconds: 2),
+          ),
+        );
         setState(() {}); // Refresh the list
       }
     } catch (e) {
-      print('Error marking notification as read: $e');
+      print('Error deleting notification: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error deleting notification'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -140,14 +153,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Have you read it?',
+                                  'Delete this notification?',
                                   style: TextStyle(color: Colors.white70),
                                 ),
                                 Row(
                                   children: [
                                     TextButton(
                                       onPressed:
-                                          () => _markNotificationAsRead(
+                                          () => _deleteNotification(
                                             notification['_id'],
                                           ),
                                       child: Text(
