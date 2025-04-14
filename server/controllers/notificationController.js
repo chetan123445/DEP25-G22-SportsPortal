@@ -85,12 +85,9 @@ export const markSingleNotificationAsRead = async (req, res) => {
         }
 
         const user = await User.findOneAndUpdate(
+            { email },
             { 
-                email,
-                "notifications._id": notificationId 
-            },
-            { 
-                $set: { "notifications.$.read": true }
+                $pull: { notifications: { _id: notificationId } }
             },
             { new: true }
         );
@@ -102,11 +99,11 @@ export const markSingleNotificationAsRead = async (req, res) => {
         const unreadCount = user.notifications.filter(n => !n.read).length;
 
         res.status(200).json({ 
-            message: 'Notification marked as read',
+            message: 'Notification deleted successfully',
             unreadCount
         });
     } catch (error) {
-        console.error('Error marking notification as read:', error);
-        res.status(500).json({ message: 'Error updating notification' });
+        console.error('Error deleting notification:', error);
+        res.status(500).json({ message: 'Error deleting notification' });
     }
 };
