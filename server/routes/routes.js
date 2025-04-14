@@ -26,6 +26,7 @@ import { getUserEvents } from '../controllers/userEventsController.js'; // Impor
 import { getManagedEvents } from '../controllers/managedEventsController.js'; // Import the new controller
 import { getAllEvents, updateEvent, deleteEvent } from '../controllers/allEvents.js';
 import { getNotifications, sendNotification, markSingleNotificationAsRead } from '../controllers/notificationController.js';
+import { updateEventDetails } from '../controllers/updateEventController.js';
 
 const router = express.Router();
 
@@ -149,5 +150,8 @@ router.get("/ircc/standings", getIRCCStandings);
 router.get("/notifications", getNotifications);
 router.post("/notifications/send", sendNotification);
 router.post("/notifications/mark-single-read", markSingleNotificationAsRead);
+
+// Add this new route before export default router
+router.patch("/update-event-details", updateEventDetails);
 
 export default router;

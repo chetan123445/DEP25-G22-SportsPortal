@@ -453,10 +453,15 @@ class _ManageEventPageState extends State<ManageEventPage> {
                                     },
                                     body: json.encode({
                                       'message':
-                                          'Event updated: ${team1Controller.text} vs ${team2Controller.text} - ${event['eventType']}',
+                                          '${team1Controller.text} vs ${team2Controller.text} - ${event['eventType']} event details have been updated',
                                       'eventType': event['eventType'],
                                       'date': dateController.text,
+                                      'time':
+                                          timeController
+                                              .text, // Use time from controller directly
                                       'venue': venueController.text,
+                                      'team1': team1Controller.text,
+                                      'team2': team2Controller.text,
                                     }),
                                   );
 

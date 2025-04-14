@@ -67,6 +67,149 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
     }
   }
 
+  Future<void> _editEvent(String eventType, dynamic event) async {
+    final TextEditingController venueController = TextEditingController(
+      text: event['venue'],
+    );
+    final TextEditingController dateController = TextEditingController(
+      text:
+          event['date'] != null
+              ? DateFormat('yyyy-MM-dd').format(DateTime.parse(event['date']))
+              : '',
+    );
+    final TextEditingController timeController = TextEditingController(
+      text: event['time'],
+    );
+
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Edit Event Details'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: venueController,
+                  decoration: InputDecoration(labelText: 'Venue'),
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: dateController,
+                  decoration: InputDecoration(
+                    labelText: 'Date (YYYY-MM-DD)',
+                    hintText: 'e.g. 2025-04-15',
+                  ),
+                ),
+                SizedBox(height: 16),
+                InkWell(
+                  onTap: () async {
+                    final TimeOfDay? picked = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.now(),
+                    );
+                    if (picked != null) {
+                      timeController.text =
+                          '${picked.hour}:${picked.minute.toString().padLeft(2, '0')}';
+                    }
+                  },
+                  child: IgnorePointer(
+                    child: TextField(
+                      controller: timeController,
+                      decoration: InputDecoration(labelText: 'Time'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Validate date format before saving
+                try {
+                  if (dateController.text.isNotEmpty) {
+                    DateTime.parse(dateController.text);
+                  }
+                  Navigator.of(context).pop({
+                    'venue': venueController.text,
+                    'date': dateController.text,
+                    'time': timeController.text,
+                  });
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Please enter a valid date in YYYY-MM-DD format',
+                      ),
+                    ),
+                  );
+                }
+              },
+              child: Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != null) {
+      try {
+        // First update the event
+        final response = await http.patch(
+          Uri.parse('$baseUrl/update-event-details?email=${widget.email}'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'eventType': eventType,
+            'eventId': event['_id'],
+            'venue': result['venue'],
+            'date': result['date'],
+            'time': result['time'],
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          // Then send notification about the update
+          final notificationResponse = await http.post(
+            Uri.parse('$baseUrl/notifications/send'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'message':
+                  '${event['team1']} vs ${event['team2']} - ${eventType} event details have been updated',
+              'eventType': eventType,
+              'date': result['date'],
+              'time': result['time'], // Use the time from dialog result
+              'venue': result['venue'],
+              'team1': event['team1'],
+              'team2': event['team2'],
+            }),
+          );
+
+          if (notificationResponse.statusCode == 200) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Event updated and notification sent')),
+            );
+          } else {
+            print('Failed to send notification');
+          }
+
+          fetchManagedEvents(); // Refresh the events list
+        } else {
+          throw Exception('Failed to update event: ${response.statusCode}');
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error updating event: $e')));
+      }
+    }
+  }
+
   bool _eventMatchesSearch(dynamic event) {
     final query = searchQuery.toLowerCase();
     if (query.isEmpty) return true;
@@ -483,6 +626,28 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
                           ),
                         ),
                         InkWell(
+                          onTap: () => _editEvent(eventType, event),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                              vertical: 4.0,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange,
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(color: Colors.black),
+                            ),
+                            child: Text(
+                              'Edit Event',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                        InkWell(
                           onTap: () {
                             if (eventType == 'PHL') {
                               Navigator.push(
@@ -508,9 +673,8 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
                                 context,
                                 MaterialPageRoute(
                                   builder:
-                                      (context) => IRCCEventDetailsPage(
-                                        event: event,
-                                      ),
+                                      (context) =>
+                                          IRCCEventDetailsPage(event: event),
                                 ),
                               );
                             }

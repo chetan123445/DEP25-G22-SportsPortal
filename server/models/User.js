@@ -25,12 +25,14 @@ const userSchema = new mongoose.Schema({
         required: false
     },
     notifications: [{
-        message: { type: String, required: true },
-        timestamp: { type: Date, default: Date.now },
-        read: { type: Boolean, default: false },
+        message: String,
         eventType: String,
         date: String,
-        venue: String
+        time: String,  // Changed from timestamp to explicit time field
+        venue: String,
+        team1: String,
+        team2: String,
+        read: { type: Boolean, default: false }
     }],
 });
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'constants.dart';
+import 'package:intl/intl.dart';
 
 class NotificationsPage extends StatefulWidget {
   final String email;
@@ -129,14 +130,22 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                   'Event Type: ${notification['eventType'] ?? 'N/A'}',
                                   style: TextStyle(color: Colors.white70),
                                 ),
+                                if (notification['team1'] != null &&
+                                    notification['team2'] != null)
+                                  Text(
+                                    'Teams: ${notification['team1']} vs ${notification['team2']}',
+                                    style: TextStyle(color: Colors.white70),
+                                  ),
                                 Text(
-                                  'Venue: ${notification['venue'] ?? 'N/A'}',
+                                  'Date: ${notification['date'] ?? 'N/A'}',
                                   style: TextStyle(color: Colors.white70),
                                 ),
                                 Text(
-                                  DateTime.parse(
-                                    notification['timestamp'],
-                                  ).toString(),
+                                  'Time: ${notification['time'] ?? 'N/A'}', // Directly use time field
+                                  style: TextStyle(color: Colors.white70),
+                                ),
+                                Text(
+                                  'Venue: ${notification['venue'] ?? 'N/A'}',
                                   style: TextStyle(color: Colors.white70),
                                 ),
                               ],

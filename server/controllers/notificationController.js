@@ -43,15 +43,17 @@ export const getNotifications = async (req, res) => {
 
 export const sendNotification = async (req, res) => {
     try {
-        const { message, eventType, date, venue } = req.body;
+        const { message, eventType, date, time, venue, team1, team2 } = req.body;
         
         const notification = {
             message,
-            timestamp: new Date(),
-            read: false,  // Always set new notifications as unread
             eventType,
             date,
-            venue
+            time,  // Store the actual event time
+            venue,
+            team1,
+            team2,
+            read: false
         };
 
         // Update all users with the new notification
