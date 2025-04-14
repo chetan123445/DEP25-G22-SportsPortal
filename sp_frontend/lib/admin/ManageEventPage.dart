@@ -123,6 +123,9 @@ class _ManageEventPageState extends State<ManageEventPage> {
     final TextEditingController genderController = TextEditingController(
       text: event['gender'],
     );
+    final TextEditingController winnerController = TextEditingController(
+      text: event['winner'] ?? '',
+    );
     List<Map<String, dynamic>> eventManagers = [];
     if (event['eventManagers'] != null) {
       eventManagers = List<Map<String, dynamic>>.from(
@@ -193,6 +196,11 @@ class _ManageEventPageState extends State<ManageEventPage> {
                       _buildEditField('Date (YYYY-MM-DD)', dateController),
                       _buildEditField('Description', descriptionController),
                       _buildEditField('Gender', genderController),
+                      _buildEditField(
+                        'Winner (Team name only or Draw)',
+                        winnerController,
+                        hintText: 'Leave empty if not decided',
+                      ),
 
                       // Team 1 Players Section
                       SizedBox(height: 16),
@@ -327,6 +335,13 @@ class _ManageEventPageState extends State<ManageEventPage> {
                               if (genderController.text !=
                                   originalEvent['gender'])
                                 updates['gender'] = genderController.text;
+                              if (winnerController.text !=
+                                  (originalEvent['winner'] ?? '')) {
+                                updates['winner'] =
+                                    winnerController.text.isEmpty
+                                        ? null
+                                        : winnerController.text;
+                              }
                               if (!listEquals(
                                 eventManagers.map((e) => e.toString()).toList(),
                                 (originalEvent['eventManagers'] ?? [])
@@ -424,6 +439,12 @@ class _ManageEventPageState extends State<ManageEventPage> {
                                 );
 
                                 if (response.statusCode == 200) {
+                                  Map<String, dynamic> updatedEvent = json
+                                      .decode(response.body);
+                                  print(
+                                    'Updated event: ${updatedEvent['winner']}',
+                                  ); // Debug log
+
                                   // Send notification about event update
                                   await http.post(
                                     Uri.parse('$baseUrl/notifications/send'),
@@ -533,13 +554,18 @@ class _ManageEventPageState extends State<ManageEventPage> {
     }
   }
 
-  Widget _buildEditField(String label, TextEditingController controller) {
+  Widget _buildEditField(
+    String label,
+    TextEditingController controller, {
+    String? hintText,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextField(
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
+          hintText: hintText,
           filled: true,
           fillColor: Colors.white,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),

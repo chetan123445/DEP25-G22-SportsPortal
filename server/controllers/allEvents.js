@@ -114,6 +114,20 @@ export const updateEvent = async (req, res) => {
                 return res.status(400).json({ message: 'Invalid event type' });
         }
 
+        // Find the event first to check if winner field exists
+        const existingEvent = await EventModel.findById(eventId);
+        if (!existingEvent) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        // If winner field doesn't exist in schema but is being updated,
+        // add it to the schema dynamically
+        if (updates.hasOwnProperty('winner') && !existingEvent.schema.path('winner')) {
+            EventModel.schema.add({
+                winner: { type: String, required: false }
+            });
+        }
+
         // Validate date format if it's being updated
         if (updates.date) {
             updates.date = new Date(updates.date);
@@ -129,15 +143,12 @@ export const updateEvent = async (req, res) => {
             }
         );
 
-        if (!updatedEvent) {
-            return res.status(404).json({ message: 'Event not found' });
-        }
-
         res.status(200).json({
             ...updatedEvent.toObject(),
             eventType: eventType
         });
     } catch (error) {
+        console.error('Error updating event:', error);
         res.status(500).json({ error: error.message });
     }
 };
