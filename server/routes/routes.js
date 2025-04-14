@@ -27,6 +27,7 @@ import { getManagedEvents } from '../controllers/managedEventsController.js'; //
 import { getAllEvents, updateEvent, deleteEvent } from '../controllers/allEvents.js';
 import { getNotifications, sendNotification, markSingleNotificationAsRead } from '../controllers/notificationController.js';
 import { addImage, getImages } from '../controllers/updateGallery.js'; // Import the functions from updateGallery.js
+import { updateEventDetails } from '../controllers/updateEventController.js';
 
 const router = express.Router();
 
@@ -154,5 +155,7 @@ router.post("/notifications/mark-single-read", markSingleNotificationAsRead);
 // Add routes for gallery
 router.post('/add-image', upload.single('image'), addImage); // Route to add an image
 router.get('/get-images', getImages); // Route to get all images
+// Add this new route before export default router
+router.patch("/update-event-details", updateEventDetails);
 
 export default router;
