@@ -445,6 +445,16 @@ class _ManageEventPageState extends State<ManageEventPage> {
                                     'Updated event: ${updatedEvent['winner']}',
                                   ); // Debug log
 
+                                  // Create notification message based on event type
+                                  String notificationMessage;
+                                  if (event['eventType'] == 'GC') {
+                                    notificationMessage =
+                                        'GC event details have been updated';
+                                  } else {
+                                    notificationMessage =
+                                        '${team1Controller.text} vs ${team2Controller.text} - ${event['eventType']} event details have been updated';
+                                  }
+
                                   // Send notification about event update
                                   await http.post(
                                     Uri.parse('$baseUrl/notifications/send'),
@@ -452,16 +462,19 @@ class _ManageEventPageState extends State<ManageEventPage> {
                                       'Content-Type': 'application/json',
                                     },
                                     body: json.encode({
-                                      'message':
-                                          '${team1Controller.text} vs ${team2Controller.text} - ${event['eventType']} event details have been updated',
+                                      'message': notificationMessage,
                                       'eventType': event['eventType'],
                                       'date': dateController.text,
-                                      'time':
-                                          timeController
-                                              .text, // Use time from controller directly
+                                      'time': timeController.text,
                                       'venue': venueController.text,
-                                      'team1': team1Controller.text,
-                                      'team2': team2Controller.text,
+                                      'team1':
+                                          event['eventType'] == 'GC'
+                                              ? null
+                                              : team1Controller.text,
+                                      'team2':
+                                          event['eventType'] == 'GC'
+                                              ? null
+                                              : team2Controller.text,
                                     }),
                                   );
 
@@ -543,19 +556,27 @@ class _ManageEventPageState extends State<ManageEventPage> {
         );
 
         if (response.statusCode == 200) {
+          // Create notification message based on event type
+          String notificationMessage;
+          if (event['eventType'] == 'GC') {
+            notificationMessage = 'GC event has been cancelled';
+          } else {
+            notificationMessage =
+                '${event['team1']} vs ${event['team2']} - ${event['eventType']} event has been cancelled';
+          }
+
           // Send notification about event deletion
           await http.post(
             Uri.parse('$baseUrl/notifications/send'),
             headers: {'Content-Type': 'application/json'},
             body: json.encode({
-              'message':
-                  '${event['team1']} vs ${event['team2']} - ${event['eventType']} event has been cancelled',
+              'message': notificationMessage,
               'eventType': event['eventType'],
               'date': event['date']?.toString().split('T')[0] ?? 'N/A',
               'time': event['time'] ?? 'N/A',
               'venue': event['venue'] ?? 'N/A',
-              'team1': event['team1'],
-              'team2': event['team2'],
+              'team1': event['eventType'] == 'GC' ? null : event['team1'],
+              'team2': event['eventType'] == 'GC' ? null : event['team2'],
             }),
           );
 

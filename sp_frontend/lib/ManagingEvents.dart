@@ -174,19 +174,27 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
         );
 
         if (response.statusCode == 200) {
+          // Create notification message based on event type
+          String notificationMessage;
+          if (eventType == 'GC') {
+            notificationMessage = 'GC event details have been updated';
+          } else {
+            notificationMessage =
+                '${event['team1']} vs ${event['team2']} - ${eventType} event details have been updated';
+          }
+
           // Then send notification about the update
           final notificationResponse = await http.post(
             Uri.parse('$baseUrl/notifications/send'),
             headers: {'Content-Type': 'application/json'},
             body: json.encode({
-              'message':
-                  '${event['team1']} vs ${event['team2']} - ${eventType} event details have been updated',
+              'message': notificationMessage,
               'eventType': eventType,
               'date': result['date'],
-              'time': result['time'], // Use the time from dialog result
+              'time': result['time'],
               'venue': result['venue'],
-              'team1': event['team1'],
-              'team2': event['team2'],
+              'team1': eventType == 'GC' ? null : event['team1'],
+              'team2': eventType == 'GC' ? null : event['team2'],
             }),
           );
 

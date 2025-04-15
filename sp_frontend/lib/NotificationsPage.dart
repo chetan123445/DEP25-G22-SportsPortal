@@ -108,7 +108,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 itemBuilder: (context, index) {
                   final notification = notifications[index];
                   if (!notification['read']) {
-                    // Only show unread notifications
                     return Card(
                       margin: EdgeInsets.only(bottom: 12),
                       color: Colors.black.withOpacity(0.8),
@@ -141,7 +140,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                   style: TextStyle(color: Colors.white70),
                                 ),
                                 Text(
-                                  'Time: ${notification['time'] ?? 'N/A'}', // Directly use time field
+                                  'Time: ${notification['time'] ?? 'N/A'}',
                                   style: TextStyle(color: Colors.white70),
                                 ),
                                 Text(
@@ -195,7 +194,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       ),
                     );
                   }
-                  return SizedBox.shrink(); // Skip read notifications
+                  return SizedBox.shrink();
                 },
               ),
             );

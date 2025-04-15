@@ -36,17 +36,27 @@ class EventServices {
           'venue': venue,
           'description': description,
           'winner': winner,
-          'participants': participants.map((participant) => {
-                'teamName': participant['teamName'],
-                'members': participant['members'].map((member) => {
-                      'name': member['name'],
-                      'email': member['email'],
-                    }).toList(),
-              }).toList(),
-          'eventManagers': eventManagers?.map((e) => {
-                'name': e.name,
-                'email': e.email,
-              }).toList(),
+          'participants':
+              participants
+                  .map(
+                    (participant) => {
+                      'teamName': participant['teamName'],
+                      'members':
+                          participant['members']
+                              .map(
+                                (member) => {
+                                  'name': member['name'],
+                                  'email': member['email'],
+                                },
+                              )
+                              .toList(),
+                    },
+                  )
+                  .toList(),
+          'eventManagers':
+              eventManagers
+                  ?.map((e) => {'name': e.name, 'email': e.email})
+                  .toList(),
         }),
       );
 
@@ -114,28 +124,30 @@ class EventServices {
           'winner': winner,
           'team1': team1,
           'team2': team2,
-          'team1Details': team1Details != null
-              ? {
-                  'teamName': team1Details.teamName,
-                  'members': team1Details.members.map((m) => {
-                        'name': m.name,
-                        'email': m.email,
-                      }).toList(),
-                }
-              : null,
-          'team2Details': team2Details != null
-              ? {
-                  'teamName': team2Details.teamName,
-                  'members': team2Details.members.map((m) => {
-                        'name': m.name,
-                        'email': m.email,
-                      }).toList(),
-                }
-              : null,
-          'eventManagers': eventManagers?.map((e) => {
-                'name': e.name,
-                'email': e.email,
-              }).toList(),
+          'team1Details':
+              team1Details != null
+                  ? {
+                    'teamName': team1Details.teamName,
+                    'members':
+                        team1Details.members
+                            .map((m) => {'name': m.name, 'email': m.email})
+                            .toList(),
+                  }
+                  : null,
+          'team2Details':
+              team2Details != null
+                  ? {
+                    'teamName': team2Details.teamName,
+                    'members':
+                        team2Details.members
+                            .map((m) => {'name': m.name, 'email': m.email})
+                            .toList(),
+                  }
+                  : null,
+          'eventManagers':
+              eventManagers
+                  ?.map((e) => {'name': e.name, 'email': e.email})
+                  .toList(),
         }),
       );
 
@@ -188,7 +200,8 @@ class _AddEventPageState extends State<AddEventPage> {
   String? selectedEventType;
   String? selectedMainType; // For GC option
   String? selectedType; // For the Type dropdown
-  final TextEditingController _customTypeController = TextEditingController(); // For custom type input
+  final TextEditingController _customTypeController =
+      TextEditingController(); // For custom type input
 
   // Event type dropdown options
   final List<String> eventTypeOptions = [
@@ -239,7 +252,7 @@ class _AddEventPageState extends State<AddEventPage> {
       'Badminton',
       'Basketball',
       'Volleyball',
-      'Other'
+      'Other',
     ],
   };
 
@@ -257,9 +270,12 @@ class _AddEventPageState extends State<AddEventPage> {
 
   // Add this to your state variables
   List<Map<String, dynamic>> participants = []; // List to store participants
-  final TextEditingController _teamNameController = TextEditingController(); // Controller for team name
-  final List<TextEditingController> _memberNameControllers = []; // Controllers for member names
-  final List<TextEditingController> _memberEmailControllers = []; // Controllers for member emails
+  final TextEditingController _teamNameController =
+      TextEditingController(); // Controller for team name
+  final List<TextEditingController> _memberNameControllers =
+      []; // Controllers for member names
+  final List<TextEditingController> _memberEmailControllers =
+      []; // Controllers for member emails
 
   @override
   void initState() {
@@ -288,10 +304,7 @@ class _AddEventPageState extends State<AddEventPage> {
   // Function to add a new participant
   void _addParticipant() {
     setState(() {
-      participants.add({
-        'teamName': '',
-        'members': [],
-      });
+      participants.add({'teamName': '', 'members': []});
       _memberNameControllers.add(TextEditingController());
       _memberEmailControllers.add(TextEditingController());
     });
@@ -307,10 +320,7 @@ class _AddEventPageState extends State<AddEventPage> {
   // Function to add a member to a participant
   void _addMember(int participantIndex) {
     setState(() {
-      participants[participantIndex]['members'].add({
-        'name': '',
-        'email': '',
-      });
+      participants[participantIndex]['members'].add({'name': '', 'email': ''});
       _memberNameControllers.add(TextEditingController());
       _memberEmailControllers.add(TextEditingController());
     });
@@ -581,7 +591,8 @@ class _AddEventPageState extends State<AddEventPage> {
       } else {
         // Check if each participant has team name
         for (int i = 0; i < participants.length; i++) {
-          if (participants[i]['teamName'] == null || participants[i]['teamName'].isEmpty) {
+          if (participants[i]['teamName'] == null ||
+              participants[i]['teamName'].isEmpty) {
             missingFields.add('Team name for Participant ${i + 1}');
           }
         }
@@ -650,7 +661,7 @@ class _AddEventPageState extends State<AddEventPage> {
     // GC doesn't need team member validation
     bool teamMembersValid = true;
     String errorMessage = '';
-    
+
     if (selectedEventType != 'GC') {
       // Validate team 1 members only if there are any
       if (_team1Members.isNotEmpty) {
@@ -681,7 +692,8 @@ class _AddEventPageState extends State<AddEventPage> {
         for (var member in participant['members']) {
           if (member['name'].isEmpty || member['email'].isEmpty) {
             teamMembersValid = false;
-            errorMessage = 'Please fill both name and email for all team members';
+            errorMessage =
+                'Please fill both name and email for all team members';
             break;
           }
         }
@@ -728,7 +740,7 @@ class _AddEventPageState extends State<AddEventPage> {
 
       try {
         bool success;
-        
+
         if (selectedEventType == 'GC') {
           // For GC events, use participants structure
           success = await EventServices.addGCEvent(
@@ -788,18 +800,32 @@ class _AddEventPageState extends State<AddEventPage> {
                   ? "${timeParts[0].padLeft(2, '0')}:${timeParts[1].padLeft(2, '0')}"
                   : _time;
 
+          // Create notification message based on event type
+          String notificationMessage;
+          if (selectedEventType == 'GC') {
+            notificationMessage =
+                'New GC event added: ${selectedMainType} - ${_type}';
+          } else {
+            notificationMessage =
+                'New event added: ${_team1} vs ${_team2} - ${selectedEventType}';
+          }
+
           // Send notifications to all users with formatted date and time
           await http.post(
             Uri.parse('$baseUrl/notifications/send'),
             headers: {'Content-Type': 'application/json'},
             body: json.encode({
-              'message': 'New event added: ${_team1} vs ${_team2} - ${selectedEventType}',
+              'message': notificationMessage,
               'eventType': selectedEventType,
               'date': formattedDate,
               'time': formattedTime,
               'venue': _venue,
-              'team1': _team1,
-              'team2': _team2,
+              // Only include team names for non-GC events
+              'team1': selectedEventType != 'GC' ? _team1 : null,
+              'team2': selectedEventType != 'GC' ? _team2 : null,
+              // Include main type and type for GC events
+              'mainType': selectedEventType == 'GC' ? selectedMainType : null,
+              'type': _type,
             }),
           );
 
@@ -808,10 +834,8 @@ class _AddEventPageState extends State<AddEventPage> {
             context,
             MaterialPageRoute(
               builder:
-                  (context) => DashboardScreen(
-                    email: widget.email,
-                    name: widget.name,
-                  ),
+                  (context) =>
+                      DashboardScreen(email: widget.email, name: widget.name),
             ),
           );
 
@@ -877,10 +901,8 @@ class _AddEventPageState extends State<AddEventPage> {
               context,
               MaterialPageRoute(
                 builder:
-                    (context) => DashboardScreen(
-                      email: widget.email,
-                      name: widget.name,
-                    ),
+                    (context) =>
+                        DashboardScreen(email: widget.email, name: widget.name),
               ),
             );
           },
@@ -1087,7 +1109,7 @@ class _AddEventPageState extends State<AddEventPage> {
                               // Reset secondary selections when main type changes
                               selectedMainType = null;
                               selectedType = null;
-                              
+
                               // Clear participants when switching event types
                               if (value != 'GC') {
                                 participants.clear();
@@ -1180,7 +1202,8 @@ class _AddEventPageState extends State<AddEventPage> {
                   ],
 
                   // Conditional Type dropdown for GC
-                  if (selectedEventType == 'GC' && selectedMainType != null) ...[
+                  if (selectedEventType == 'GC' &&
+                      selectedMainType != null) ...[
                     SizedBox(height: 10),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1221,8 +1244,10 @@ class _AddEventPageState extends State<AddEventPage> {
                               height: 56,
                             ),
                             menuItemStyleData: MenuItemStyleData(height: 40),
-                            items: (typeOptions[selectedMainType] ?? [])
-                                .map((String item) {
+                            items:
+                                (typeOptions[selectedMainType] ?? []).map((
+                                  String item,
+                                ) {
                                   return DropdownMenuItem<String>(
                                     value: item,
                                     child: Text(
@@ -1230,14 +1255,14 @@ class _AddEventPageState extends State<AddEventPage> {
                                       style: TextStyle(color: Colors.white),
                                     ),
                                   );
-                                })
-                                .toList(),
+                                }).toList(),
                             onChanged: (value) {
                               setState(() {
                                 selectedType = value as String?;
                                 if (selectedType != 'Other') {
                                   _type = selectedType!;
-                                  _customTypeController.clear(); // Clear custom type input if not "Other"
+                                  _customTypeController
+                                      .clear(); // Clear custom type input if not "Other"
                                 }
                               });
                             },
@@ -1266,7 +1291,8 @@ class _AddEventPageState extends State<AddEventPage> {
                         ),
                         onChanged: (value) {
                           setState(() {
-                            _type = value; // Update the _type variable with the custom input
+                            _type =
+                                value; // Update the _type variable with the custom input
                           });
                         },
                       ),
@@ -1307,7 +1333,8 @@ class _AddEventPageState extends State<AddEventPage> {
                             iconStyleData: IconStyleData(
                               icon: Icon(
                                 Icons.arrow_drop_down,
-                                color: Colors.white),
+                                color: Colors.white,
+                              ),
                             ),
                             buttonStyleData: ButtonStyleData(
                               padding: EdgeInsets.symmetric(horizontal: 12),
@@ -1350,7 +1377,11 @@ class _AddEventPageState extends State<AddEventPage> {
                           padding: const EdgeInsets.only(left: 4, bottom: 6),
                           child: Text(
                             'Participants',
-                            style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                         ...participants.asMap().entries.map((entry) {
@@ -1368,15 +1399,24 @@ class _AddEventPageState extends State<AddEventPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       "Team ${index + 1}",
-                                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                     IconButton(
-                                      icon: Icon(Icons.delete, color: Colors.redAccent),
-                                      onPressed: () => _removeParticipant(index),
+                                      icon: Icon(
+                                        Icons.delete,
+                                        color: Colors.redAccent,
+                                      ),
+                                      onPressed:
+                                          () => _removeParticipant(index),
                                     ),
                                   ],
                                 ),
@@ -1388,10 +1428,14 @@ class _AddEventPageState extends State<AddEventPage> {
                                     labelText: 'Team Name *',
                                     labelStyle: TextStyle(color: Colors.white),
                                     enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.grey),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey,
+                                      ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.blue),
+                                      borderSide: BorderSide(
+                                        color: Colors.blue,
+                                      ),
                                     ),
                                   ),
                                   onChanged: (value) {
@@ -1403,79 +1447,125 @@ class _AddEventPageState extends State<AddEventPage> {
                                 SizedBox(height: 15),
                                 Text(
                                   'Members',
-                                  style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 SizedBox(height: 10),
-                                ...(participant['members'] as List).asMap().entries.map((memberEntry) {
-                                  int memberIndex = memberEntry.key;
-                                  Map<String, dynamic> member = memberEntry.value;
+                                ...(participant['members'] as List)
+                                    .asMap()
+                                    .entries
+                                    .map((memberEntry) {
+                                      int memberIndex = memberEntry.key;
+                                      Map<String, dynamic> member =
+                                          memberEntry.value;
 
-                                  return Container(
-                                    margin: EdgeInsets.only(bottom: 10),
-                                    padding: EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.grey.shade700),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      return Container(
+                                        margin: EdgeInsets.only(bottom: 10),
+                                        padding: EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.grey.shade700,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                        child: Column(
                                           children: [
-                                            Text(
-                                              "Member ${memberIndex + 1}",
-                                              style: TextStyle(color: Colors.white),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  "Member ${memberIndex + 1}",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                                IconButton(
+                                                  icon: Icon(
+                                                    Icons.delete,
+                                                    color: Colors.redAccent,
+                                                  ),
+                                                  onPressed:
+                                                      () => _removeMember(
+                                                        index,
+                                                        memberIndex,
+                                                      ),
+                                                ),
+                                              ],
                                             ),
-                                            IconButton(
-                                              icon: Icon(Icons.delete, color: Colors.redAccent),
-                                              onPressed: () => _removeMember(index, memberIndex),
+                                            SizedBox(height: 5),
+                                            TextFormField(
+                                              initialValue: member['name'],
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                              decoration: InputDecoration(
+                                                labelText: 'Name *',
+                                                labelStyle: TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                                enabledBorder:
+                                                    OutlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                        color: Colors.grey,
+                                                      ),
+                                                    ),
+                                                focusedBorder:
+                                                    OutlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                        color: Colors.blue,
+                                                      ),
+                                                    ),
+                                              ),
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  participants[index]['members'][memberIndex]['name'] =
+                                                      value;
+                                                });
+                                              },
+                                            ),
+                                            SizedBox(height: 10),
+                                            TextFormField(
+                                              initialValue: member['email'],
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                              decoration: InputDecoration(
+                                                labelText: 'Email *',
+                                                labelStyle: TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                                enabledBorder:
+                                                    OutlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                        color: Colors.grey,
+                                                      ),
+                                                    ),
+                                                focusedBorder:
+                                                    OutlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                        color: Colors.blue,
+                                                      ),
+                                                    ),
+                                              ),
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  participants[index]['members'][memberIndex]['email'] =
+                                                      value;
+                                                });
+                                              },
                                             ),
                                           ],
                                         ),
-                                        SizedBox(height: 5),
-                                        TextFormField(
-                                          initialValue: member['name'],
-                                          style: TextStyle(color: Colors.white),
-                                          decoration: InputDecoration(
-                                            labelText: 'Name *',
-                                            labelStyle: TextStyle(color: Colors.white),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(color: Colors.grey),
-                                            ),
-                                            focusedBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(color: Colors.blue),
-                                            ),
-                                          ),
-                                          onChanged: (value) {
-                                            setState(() {
-                                              participants[index]['members'][memberIndex]['name'] = value;
-                                            });
-                                          },
-                                        ),
-                                        SizedBox(height: 10),
-                                        TextFormField(
-                                          initialValue: member['email'],
-                                          style: TextStyle(color: Colors.white),
-                                          decoration: InputDecoration(
-                                            labelText: 'Email *',
-                                            labelStyle: TextStyle(color: Colors.white),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(color: Colors.grey),
-                                            ),
-                                            focusedBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(color: Colors.blue),
-                                            ),
-                                          ),
-                                          onChanged: (value) {
-                                            setState(() {
-                                              participants[index]['members'][memberIndex]['email'] = value;
-                                            });
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
+                                      );
+                                    })
+                                    .toList(),
                                 SizedBox(height: 10),
                                 ElevatedButton.icon(
                                   icon: Icon(Icons.add),
@@ -1584,9 +1674,10 @@ class _AddEventPageState extends State<AddEventPage> {
                     ),
                     onSaved: (value) => _description = value,
                   ),
-                  
+
                   // Team 1 and Team 2 sections - only show for non-GC events
-                  if (selectedEventType != null && selectedEventType != 'GC') ...[
+                  if (selectedEventType != null &&
+                      selectedEventType != 'GC') ...[
                     SizedBox(height: 10),
                     TextFormField(
                       controller: _team1Controller,
@@ -1666,7 +1757,7 @@ class _AddEventPageState extends State<AddEventPage> {
                       },
                     ),
                   ],
-                  
+
                   SizedBox(height: 20),
                   Text(
                     "Event Managers (Optional)",
