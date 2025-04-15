@@ -67,9 +67,15 @@ class _PHLEventDetailsPageState extends State<PHLEventDetailsPage>
 
     socket.on('commentary-update', (data) {
       if (data['eventId'] == widget.event['_id']) {
-        setState(() {
-          commentary = List<Map<String, dynamic>>.from(data['commentary']);
-        });
+        if (data['newComment'] != null) {
+          setState(() {
+            commentary.add({
+              'id': data['newComment']['id'],
+              'text': data['newComment']['text'],
+              'timestamp': data['newComment']['timestamp'],
+            });
+          });
+        }
       }
     });
   }

@@ -114,7 +114,6 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
         setState(() {
           team1Score = CricketScore.fromJson(data['team1Score']);
           team2Score = CricketScore.fromJson(data['team2Score']);
-          // Update the event data for persistence
           widget.event['team1Score'] = data['team1Score'];
           widget.event['team2Score'] = data['team2Score'];
         });
@@ -123,10 +122,15 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
 
     socket.on('commentary-update', (data) {
       if (data['eventId'] == widget.event['_id'] && mounted) {
-        setState(() {
-          commentary = List<Map<String, dynamic>>.from(data['commentary']);
-          widget.event['commentary'] = data['commentary'];
-        });
+        if (data['newComment'] != null) {
+          setState(() {
+            commentary.add({
+              'id': data['newComment']['id'],
+              'text': data['newComment']['text'],
+              'timestamp': data['newComment']['timestamp'],
+            });
+          });
+        }
       }
     });
   }

@@ -15,6 +15,7 @@ export const getAllEvents = async (req, res) => {
             const searchTerms = search.split(',').map(term => term.trim());
             filter.$and = searchTerms.map(term => {
                 const dateSearch = term.match(/^\d{4}-\d{2}-\d{2}$/);
+                const timeSearch = term.match(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/);
                 const searchDate = dateSearch ? new Date(term) : null;
                 
                 let genderSearch = term;
@@ -26,12 +27,15 @@ export const getAllEvents = async (req, res) => {
 
                 const termFilter = {
                     $or: [
+                        { team1: { $regex: term, $options: 'i' } },  // Search in team1
+                        { team2: { $regex: term, $options: 'i' } },  // Search in team2
                         { venue: { $regex: term, $options: 'i' } },
                         { eventType: { $regex: term, $options: 'i' } },
                         { gender: new RegExp(`^${genderSearch}$`, 'i') }
                     ]
                 };
 
+                // Add date search
                 if (searchDate && !isNaN(searchDate)) {
                     const nextDay = new Date(searchDate);
                     nextDay.setDate(nextDay.getDate() + 1);
@@ -40,6 +44,13 @@ export const getAllEvents = async (req, res) => {
                             $gte: searchDate,
                             $lt: nextDay
                         }
+                    });
+                }
+
+                // Add time search
+                if (timeSearch) {
+                    termFilter.$or.push({
+                        time: { $regex: term, $options: 'i' }
                     });
                 }
 

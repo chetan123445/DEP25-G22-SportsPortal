@@ -28,16 +28,56 @@ class _ManageEventPageState extends State<ManageEventPage> {
 
   Future<void> fetchAllEvents() async {
     try {
-      String searchParam = Uri.encodeComponent(searchQuery);
-      final response = await http.get(
-        Uri.parse('$baseUrl/all-events?search=$searchParam'),
-      );
+      final response = await http.get(Uri.parse('$baseUrl/all-events'));
 
       if (response.statusCode == 200) {
+        List<dynamic> events = json.decode(response.body);
+
+        if (searchQuery.isNotEmpty) {
+          final searchTerms =
+              searchQuery
+                  .toLowerCase()
+                  .split(',')
+                  .map((e) => e.trim())
+                  .toList();
+          events =
+              events.where((event) {
+                return searchTerms.any((term) {
+                  // Search in team names
+                  final team1 = event['team1']?.toString().toLowerCase() ?? '';
+                  final team2 = event['team2']?.toString().toLowerCase() ?? '';
+
+                  // Search in date and time
+                  final eventDate =
+                      event['date']?.toString().split('T')[0].toLowerCase() ??
+                      '';
+                  final eventTime =
+                      event['time']?.toString().toLowerCase() ?? '';
+
+                  // Search in other fields
+                  final venue = event['venue']?.toString().toLowerCase() ?? '';
+                  final eventType =
+                      event['eventType']?.toString().toLowerCase() ?? '';
+                  final gender =
+                      event['gender']?.toString().toLowerCase() ?? '';
+
+                  return team1.contains(term) ||
+                      team2.contains(term) ||
+                      eventDate.contains(term) ||
+                      eventTime.contains(term) ||
+                      venue.contains(term) ||
+                      eventType.contains(term) ||
+                      gender.contains(term);
+                });
+              }).toList();
+        }
+
         setState(() {
-          allEvents = json.decode(response.body);
+          allEvents = events;
         });
-        print('Fetched ${allEvents.length} events'); // Debug log
+        print(
+          'Fetched ${allEvents.length} events after filtering',
+        ); // Debug log
       } else {
         print('Error: ${response.statusCode}'); // Debug log
       }
