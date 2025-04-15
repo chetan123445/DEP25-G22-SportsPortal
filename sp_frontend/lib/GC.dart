@@ -111,30 +111,62 @@ class _GCPageState extends State<GCPage> {
   }
 
   Future<void> _fetchGCEvents(BuildContext context, String MainType) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/get-gc-events?MainType=$MainType'),
-    );
-    if (response.statusCode == 200) {
-      final responseBody = json.decode(response.body);
-      final events = responseBody['data'];
-      if (events is List) {
-        if (events.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('No events found for $MainType')),
-          );
-        } else {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Center(child: CircularProgressIndicator());
+        },
+      );
+
+      print('Fetching GC events for MainType: $MainType');
+      final response = await http.get(
+        Uri.parse('$baseUrl/get-gc-events?MainType=$MainType'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      // Hide loading indicator
+      Navigator.pop(context);
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        final events = responseData['data'];
+
+        if (events == null) {
+          throw Exception('No data field in response');
+        }
+
+        if (events is List && events.isNotEmpty) {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => GCEventsPage(events: events),
             ),
           );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('No events found for $MainType'),
+              backgroundColor: Colors.orange,
+            ),
+          );
         }
       } else {
-        print('Unexpected response format');
+        throw Exception('Failed to load events: ${response.statusCode}');
       }
-    } else {
-      print('Failed to load events');
+    } catch (e) {
+      print('Error fetching GC events: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error loading events: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 

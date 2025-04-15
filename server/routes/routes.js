@@ -6,7 +6,7 @@ import { login } from '../controllers/login.js';
 import { getProfile } from '../controllers/profile.js';
 import { updateProfile, uploadProfilePic, removeProfilePic, upload } from '../controllers/editProfile.js';
 import { addIYSCevent } from '../controllers/addIYSCevent.js';
-import { addGCEvent } from '../controllers/addGCevent.js';
+import { addGCEvent, getGCEventsByMainType } from '../controllers/addGCevent.js';
 import { addIRCCevent, updateScore as updateIRCCScore, addMatchCommentary as addIRCCCommentary, deleteCommentary as deleteIRCCCommentary, getEventDetails as getIRCCEventDetails, getIRCCStandings } from '../controllers/addIRCCevent.js';
 import { addPHLevent, updateScore as updatePHLScore, addMatchCommentary as addPHLCommentary, deleteCommentary as deletePHLCommentary, getEventDetails as getPHLEventDetails, getPHLStandings } from '../controllers/addPHLevent.js';
 import { addBasketBrawlevent, updateScore as updateBasketBrawlScore, addMatchCommentary as addBasketBrawlCommentary, deleteCommentary as deleteBasketBrawlCommentary, getEventDetails as getBasketBrawlEventDetails, getBasketBrawlStandings } from '../controllers/addBasketBrawlevent.js';
@@ -89,7 +89,7 @@ router.get("/upcoming-events", getUpcomingEvents);
 router.get("/past-events", getPastEvents);
 
 router.get("/get-iysc-events", getIYSCevent);
-router.get("/get-gc-events", getGCevent);
+router.get("/get-gc-events", getGCEventsByMainType);
 router.get("/get-ircc-events", getIRCCevent);
 router.get("/get-phl-events", getPHLevent);
 router.get("/get-basketbrawl-events", getBasketBrawlevent);

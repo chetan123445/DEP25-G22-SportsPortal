@@ -45,3 +45,33 @@ export async function addGCEvent(req, res) {
         res.status(500).json({ message: 'Failed to add GC event', error });
     }
 }
+
+export async function getGCEventsByMainType(req, res) {
+    try {
+        const { MainType } = req.query;
+        console.log('Received request for MainType:', MainType);
+
+        if (!MainType) {
+            return res.status(400).json({ message: 'MainType parameter is required' });
+        }
+
+        // Case-insensitive search for MainType
+        const events = await GCevent.find({
+            MainType: { $regex: new RegExp('^' + MainType + '$', 'i') }
+        }).populate('participants');
+
+        console.log(`Found ${events.length} events for MainType: ${MainType}`);
+        
+        return res.status(200).json({ 
+            success: true,
+            data: events 
+        });
+    } catch (error) {
+        console.error('Error in getGCEventsByMainType:', error);
+        return res.status(500).json({ 
+            success: false, 
+            message: 'Failed to fetch GC events',
+            error: error.message 
+        });
+    }
+}
