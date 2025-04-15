@@ -543,6 +543,22 @@ class _ManageEventPageState extends State<ManageEventPage> {
         );
 
         if (response.statusCode == 200) {
+          // Send notification about event deletion
+          await http.post(
+            Uri.parse('$baseUrl/notifications/send'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'message':
+                  '${event['team1']} vs ${event['team2']} - ${event['eventType']} event has been cancelled',
+              'eventType': event['eventType'],
+              'date': event['date']?.toString().split('T')[0] ?? 'N/A',
+              'time': event['time'] ?? 'N/A',
+              'venue': event['venue'] ?? 'N/A',
+              'team1': event['team1'],
+              'team2': event['team2'],
+            }),
+          );
+
           await fetchAllEvents(); // Refresh the list
           ScaffoldMessenger.of(
             context,

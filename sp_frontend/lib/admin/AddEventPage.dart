@@ -505,15 +505,32 @@ class _AddEventPageState extends State<AddEventPage> {
         );
 
         if (success) {
-          // Send notifications to all users
+          // Format date and time properly for the notification
+          final formattedDate =
+              _date != null
+                  ? "${_date!.year}-${_date!.month.toString().padLeft(2, '0')}-${_date!.day.toString().padLeft(2, '0')}"
+                  : 'N/A';
+
+          // Format time to ensure it has proper padding
+          final List<String> timeParts = _time.split(':');
+          final formattedTime =
+              timeParts.length == 2
+                  ? "${timeParts[0].padLeft(2, '0')}:${timeParts[1].padLeft(2, '0')}"
+                  : _time;
+
+          // Send notifications to all users with formatted date and time
           await http.post(
             Uri.parse('$baseUrl/notifications/send'),
             headers: {'Content-Type': 'application/json'},
             body: json.encode({
-              'message': 'New event added: ${_team1} vs ${_team2} - ${selectedEventType}',
+              'message':
+                  'New event added: ${_team1} vs ${_team2} - ${selectedEventType}',
               'eventType': selectedEventType,
-              'date': _date.toString(),
+              'date': formattedDate,
+              'time': formattedTime,
               'venue': _venue,
+              'team1': _team1,
+              'team2': _team2,
             }),
           );
 
