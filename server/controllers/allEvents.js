@@ -26,8 +26,6 @@ export const getAllEvents = async (req, res) => {
 
                 const termFilter = {
                     $or: [
-                        { team1: { $regex: term, $options: 'i' } },
-                        { team2: { $regex: term, $options: 'i' } },
                         { venue: { $regex: term, $options: 'i' } },
                         { eventType: { $regex: term, $options: 'i' } },
                         { gender: new RegExp(`^${genderSearch}$`, 'i') }
@@ -49,44 +47,56 @@ export const getAllEvents = async (req, res) => {
             });
         }
 
-        // Fetch events from all collections with populated team details
+        // Fetch events from all collections with proper population
         const [iyscEvents, gcEvents, irccEvents, phlEvents, basketBrawlEvents] = await Promise.all([
             IYSC.find(filter).populate('team1Details team2Details'),
-            GC.find(filter).populate('participants'),
+            GC.find(filter).populate({
+                path: 'participants',
+                model: 'Team',
+                select: 'teamName members'
+            }),
             IRCC.find(filter).populate('team1Details team2Details'),
             PHL.find(filter).populate('team1Details team2Details'),
             BasketBrawl.find(filter).populate('team1Details team2Details')
         ]);
 
-        // Combine and format events, ensuring date is properly formatted
+        // Combine and format events
         let allEvents = [
             ...iyscEvents.map(e => ({
                 ...e.toObject(),
-                _id: e._id,  // Explicitly include _id
+                _id: e._id,
                 eventType: 'IYSC',
                 date: e.date ? new Date(e.date).toISOString().split('T')[0] : null
             })),
-            ...gcEvents.map(e => ({
-                ...e.toObject(),
-                _id: e._id,  // Explicitly include _id
-                eventType: 'GC',
-                date: e.date ? new Date(e.date).toISOString().split('T')[0] : null
-            })),
+            ...gcEvents.map(e => {
+                const eventObj = {
+                    ...e.toObject(),
+                    _id: e._id,
+                    eventType: 'GC',
+                    date: e.date ? new Date(e.date).toISOString().split('T')[0] : null,
+                    teamsList: e.participants?.map(team => ({
+                        teamId: team._id,
+                        teamName: team.teamName,
+                        members: team.members
+                    })) || []
+                };
+                return eventObj;
+            }),
             ...irccEvents.map(e => ({
                 ...e.toObject(),
-                _id: e._id,  // Explicitly include _id
+                _id: e._id,
                 eventType: 'IRCC',
                 date: e.date ? new Date(e.date).toISOString().split('T')[0] : null
             })),
             ...phlEvents.map(e => ({
                 ...e.toObject(),
-                _id: e._id,  // Explicitly include _id
+                _id: e._id,
                 eventType: 'PHL',
                 date: e.date ? new Date(e.date).toISOString().split('T')[0] : null
             })),
             ...basketBrawlEvents.map(e => ({
                 ...e.toObject(),
-                _id: e._id,  // Explicitly include _id
+                _id: e._id,
                 eventType: 'BasketBrawl',
                 date: e.date ? new Date(e.date).toISOString().split('T')[0] : null
             }))
@@ -114,12 +124,34 @@ export const updateEvent = async (req, res) => {
                 return res.status(400).json({ message: 'Invalid event type' });
         }
 
-        // Find the event first to check if winner field exists
         const existingEvent = await EventModel.findById(eventId);
         if (!existingEvent) {
             return res.status(404).json({ message: 'Event not found' });
         }
 
+        // If updating a GC event
+        if (eventType === 'GC') {
+            // Filter out team1 and team2 related updates
+            const { team1, team2, team1Details, team2Details, ...validUpdates } = updates;
+            
+            // Update the event
+            const updatedEvent = await EventModel.findByIdAndUpdate(
+                eventId,
+                validUpdates,
+                { 
+                    new: true,
+                    runValidators: true,
+                    populate: 'participants'
+                }
+            );
+
+            return res.status(200).json({
+                ...updatedEvent.toObject(),
+                eventType: eventType
+            });
+        }
+
+        // For non-GC events, proceed with normal update
         // If winner field doesn't exist in schema but is being updated,
         // add it to the schema dynamically
         if (updates.hasOwnProperty('winner') && !existingEvent.schema.path('winner')) {
@@ -160,8 +192,8 @@ export const deleteEvent = async (req, res) => {
 
         // Select the appropriate model based on event type
         switch (eventType) {
-            case 'IYSC': EventModel = IYSC; break;
             case 'GC': EventModel = GC; break;
+            case 'IYSC': EventModel = IYSC; break;
             case 'IRCC': EventModel = IRCC; break;
             case 'PHL': EventModel = PHL; break;
             case 'BasketBrawl': EventModel = BasketBrawl; break;
@@ -169,28 +201,24 @@ export const deleteEvent = async (req, res) => {
                 return res.status(400).json({ message: 'Invalid event type' });
         }
 
-        // Find the event and populate team details
-        const event = await EventModel.findById(eventId)
-            .populate('team1Details')
-            .populate('team2Details');
-
-        if (!event) {
-            return res.status(404).json({ message: 'Event not found' });
-        }
-
-        // Delete associated teams if they exist
-        try {
-            if (event.team1Details && mongoose.Types.ObjectId.isValid(event.team1Details._id)) {
+        // Find the event with appropriate population based on event type
+        let event;
+        if (eventType === 'GC') {
+            event = await EventModel.findById(eventId).populate('participants');
+            // Delete associated teams
+            if (event?.participants?.length > 0) {
+                await Team.deleteMany({ _id: { $in: event.participants } });
+                console.log('Deleted GC event teams:', event.participants);
+            }
+        } else {
+            event = await EventModel.findById(eventId).populate('team1Details team2Details');
+            // Delete associated teams
+            if (event.team1Details?._id) {
                 await Team.findByIdAndDelete(event.team1Details._id);
-                console.log('Team 1 deleted successfully');
             }
-            if (event.team2Details && mongoose.Types.ObjectId.isValid(event.team2Details._id)) {
+            if (event.team2Details?._id) {
                 await Team.findByIdAndDelete(event.team2Details._id);
-                console.log('Team 2 deleted successfully');
             }
-        } catch (teamError) {
-            console.error('Error deleting teams:', teamError);
-            // Continue with event deletion even if team deletion fails
         }
 
         // Delete the event
