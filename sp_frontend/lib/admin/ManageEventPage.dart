@@ -100,57 +100,55 @@ class _ManageEventPageState extends State<ManageEventPage> {
   }
 
   Future<void> _editEvent(Map<String, dynamic> event) async {
-    // Store the original values for comparison
     final Map<String, dynamic> originalEvent = Map.from(event);
-    final TextEditingController team1Controller = TextEditingController(
-      text: event['team1'],
-    );
-    final TextEditingController team2Controller = TextEditingController(
-      text: event['team2'],
-    );
-    final TextEditingController venueController = TextEditingController(
-      text: event['venue'],
-    );
-    final TextEditingController timeController = TextEditingController(
-      text: event['time'],
-    );
-    final TextEditingController dateController = TextEditingController(
-      text: event['date']?.toString().split('T')[0],
-    );
-    final TextEditingController descriptionController = TextEditingController(
-      text: event['description'] ?? '',
-    );
-    final TextEditingController genderController = TextEditingController(
-      text: event['gender'],
-    );
-    final TextEditingController winnerController = TextEditingController(
-      text: event['winner'] ?? '',
-    );
     List<Map<String, dynamic>> eventManagers = [];
+    List<Map<String, dynamic>> teamsList = [];
+
+    // For GC events, fetch teams data
+    if (event['eventType'] == 'GC') {
+      try {
+        final response = await http.get(
+          Uri.parse('$baseUrl/gc-event/${event['_id']}/teams'),
+        );
+
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          setState(() {
+            // Preserve existing team IDs when mapping
+            teamsList = List<Map<String, dynamic>>.from(
+              data['teams'].map(
+                (team) => {
+                  '_id': team['_id'],
+                  'teamName': team['teamName'],
+                  'members': List<Map<String, dynamic>>.from(team['members']),
+                },
+              ),
+            );
+          });
+          print('Fetched ${teamsList.length} teams with details');
+        }
+      } catch (e) {
+        print('Error fetching team details: $e');
+      }
+    }
+
     if (event['eventManagers'] != null) {
       eventManagers = List<Map<String, dynamic>>.from(
-        event['eventManagers'].map(
-          (manager) => Map<String, dynamic>.from(manager),
-        ),
+        event['eventManagers'].map((m) => Map<String, dynamic>.from(m)),
       );
     }
 
-    List<Map<String, dynamic>> team1Players = [];
-    List<Map<String, dynamic>> team2Players = [];
-
-    // Load existing team players if available
-    if (event['team1Details'] != null &&
-        event['team1Details']['members'] != null) {
-      team1Players = List<Map<String, dynamic>>.from(
-        event['team1Details']['members'],
-      );
-    }
-    if (event['team2Details'] != null &&
-        event['team2Details']['members'] != null) {
-      team2Players = List<Map<String, dynamic>>.from(
-        event['team2Details']['members'],
-      );
-    }
+    // Controllers for common fields
+    final venueController = TextEditingController(text: event['venue']);
+    final timeController = TextEditingController(text: event['time']);
+    final dateController = TextEditingController(
+      text: event['date']?.toString().split('T')[0],
+    );
+    final descriptionController = TextEditingController(
+      text: event['description'] ?? '',
+    );
+    final genderController = TextEditingController(text: event['gender']);
+    final winnerController = TextEditingController(text: event['winner'] ?? '');
 
     await showDialog(
       context: context,
@@ -188,57 +186,143 @@ class _ManageEventPageState extends State<ManageEventPage> {
                       ),
                       SizedBox(height: 16),
 
-                      // Edit form fields
-                      _buildEditField('Team 1', team1Controller),
-                      _buildEditField('Team 2', team2Controller),
+                      // Common fields
                       _buildEditField('Venue', venueController),
                       _buildEditField('Time', timeController),
                       _buildEditField('Date (YYYY-MM-DD)', dateController),
                       _buildEditField('Description', descriptionController),
                       _buildEditField('Gender', genderController),
                       _buildEditField(
-                        'Winner (Team name only or Draw)',
+                        'Winner',
                         winnerController,
                         hintText: 'Leave empty if not decided',
                       ),
 
-                      // Team 1 Players Section
-                      SizedBox(height: 16),
-                      _buildTeamPlayersSection(
-                        event['team1'] ?? 'Team 1',
-                        team1Players,
-                        (index) {
-                          setState(() => team1Players.removeAt(index));
-                        },
-                        () async {
-                          final result = await showDialog<Map<String, dynamic>>(
-                            context: context,
-                            builder: (context) => _AddPlayerDialog(),
-                          );
-                          if (result != null) {
-                            setState(() => team1Players.add(result));
-                          }
-                        },
-                      ),
+                      // GC Event Teams Section
+                      if (event['eventType'] == 'GC') ...[
+                        SizedBox(height: 20),
+                        Text(
+                          'Teams',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        // Show existing teams
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: teamsList.length,
+                          itemBuilder: (context, teamIndex) {
+                            final team = teamsList[teamIndex];
+                            return Card(
+                              margin: EdgeInsets.symmetric(vertical: 8),
+                              child: ExpansionTile(
+                                title: Text(team['teamName'] ?? 'Unnamed Team'),
+                                children: [
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: NeverScrollableScrollPhysics(),
+                                    itemCount: (team['members'] as List).length,
+                                    itemBuilder: (context, playerIndex) {
+                                      final player =
+                                          team['members'][playerIndex];
+                                      return ListTile(
+                                        leading: Icon(Icons.person),
+                                        title: Text(player['name'] ?? ''),
+                                        subtitle: Text(player['email'] ?? ''),
+                                        trailing: IconButton(
+                                          icon: Icon(Icons.delete),
+                                          onPressed: () {
+                                            setState(() {
+                                              team['members'].removeAt(
+                                                playerIndex,
+                                              );
+                                            });
+                                          },
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.all(8),
+                                    child: Column(
+                                      children: [
+                                        ElevatedButton.icon(
+                                          icon: Icon(Icons.add),
+                                          label: Text('Add Player'),
+                                          onPressed: () async {
+                                            final result = await showDialog<
+                                              Map<String, dynamic>
+                                            >(
+                                              context: context,
+                                              builder:
+                                                  (context) =>
+                                                      _AddPlayerDialog(),
+                                            );
+                                            if (result != null) {
+                                              setState(() {
+                                                if (team['members'] == null) {
+                                                  team['members'] = [];
+                                                }
+                                                team['members'].add(result);
+                                              });
+                                            }
+                                          },
+                                        ),
+                                        SizedBox(height: 8),
+                                        TextButton.icon(
+                                          icon: Icon(
+                                            Icons.delete,
+                                            color: Colors.red,
+                                          ),
+                                          label: Text('Delete Team'),
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: Colors.red,
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              teamsList.removeAt(teamIndex);
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
 
-                      // Team 2 Players Section
-                      SizedBox(height: 16),
-                      _buildTeamPlayersSection(
-                        event['team2'] ?? 'Team 2',
-                        team2Players,
-                        (index) {
-                          setState(() => team2Players.removeAt(index));
-                        },
-                        () async {
-                          final result = await showDialog<Map<String, dynamic>>(
-                            context: context,
-                            builder: (context) => _AddPlayerDialog(),
-                          );
-                          if (result != null) {
-                            setState(() => team2Players.add(result));
-                          }
-                        },
-                      ),
+                        // Add new team button
+                        SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          icon: Icon(Icons.add),
+                          label: Text('Add New Team'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () async {
+                            final result =
+                                await showDialog<Map<String, dynamic>>(
+                                  context: context,
+                                  builder: (context) => _AddGCTeamDialog(),
+                                );
+                            if (result != null) {
+                              setState(() {
+                                // Add new team to existing list without affecting others
+                                teamsList = List.from(teamsList)..add({
+                                  'teamName': result['teamName'],
+                                  'members': result['members'],
+                                });
+                              });
+                            }
+                          },
+                        ),
+                      ],
 
                       // Event Managers Section
                       SizedBox(height: 16),
@@ -290,7 +374,7 @@ class _ManageEventPageState extends State<ManageEventPage> {
                         },
                       ),
 
-                      SizedBox(height: 16),
+                      // Action Buttons
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -309,15 +393,9 @@ class _ManageEventPageState extends State<ManageEventPage> {
                               backgroundColor: Colors.green,
                             ),
                             onPressed: () async {
-                              // Collect only changed fields
                               Map<String, dynamic> updates = {};
 
-                              if (team1Controller.text !=
-                                  originalEvent['team1'])
-                                updates['team1'] = team1Controller.text;
-                              if (team2Controller.text !=
-                                  originalEvent['team2'])
-                                updates['team2'] = team2Controller.text;
+                              // Add common field updates
                               if (venueController.text !=
                                   originalEvent['venue'])
                                 updates['venue'] = venueController.text;
@@ -336,97 +414,62 @@ class _ManageEventPageState extends State<ManageEventPage> {
                                   originalEvent['gender'])
                                 updates['gender'] = genderController.text;
                               if (winnerController.text !=
-                                  (originalEvent['winner'] ?? '')) {
+                                  (originalEvent['winner'] ?? ''))
                                 updates['winner'] =
                                     winnerController.text.isEmpty
                                         ? null
                                         : winnerController.text;
-                              }
-                              if (!listEquals(
-                                eventManagers.map((e) => e.toString()).toList(),
-                                (originalEvent['eventManagers'] ?? [])
-                                    .map((e) => e.toString())
-                                    .toList(),
-                              )) {
-                                updates['eventManagers'] = eventManagers;
-                              }
 
-                              if (!listEquals(
-                                team1Players.map((e) => e.toString()).toList(),
-                                ((event['team1Details']?['members'] ?? []).map(
-                                  (e) => e.toString(),
-                                )).toList(),
-                              )) {
-                                updates['team1Players'] = team1Players;
-                              }
-                              if (!listEquals(
-                                team2Players.map((e) => e.toString()).toList(),
-                                ((event['team2Details']?['members'] ?? []).map(
-                                  (e) => e.toString(),
-                                )).toList(),
-                              )) {
-                                updates['team2Players'] = team2Players;
+                              // For GC events, update teams
+                              if (event['eventType'] == 'GC') {
+                                try {
+                                  // Prepare teams data with IDs preserved
+                                  final teamsData =
+                                      teamsList
+                                          .map(
+                                            (team) => {
+                                              'teamName': team['teamName'],
+                                              'members': team['members'],
+                                              '_id':
+                                                  team['_id'], // Preserve existing team ID
+                                            },
+                                          )
+                                          .toList();
+
+                                  final teamsUpdateResponse = await http.put(
+                                    Uri.parse(
+                                      '$baseUrl/gc-event/${event['_id']}/teams',
+                                    ),
+                                    headers: {
+                                      'Content-Type': 'application/json',
+                                    },
+                                    body: json.encode({
+                                      'teams': teamsData,
+                                      'eventManagers': eventManagers,
+                                    }),
+                                  );
+
+                                  if (teamsUpdateResponse.statusCode != 200) {
+                                    throw Exception(
+                                      'Failed to update teams and managers',
+                                    );
+                                  }
+                                } catch (e) {
+                                  print(
+                                    'Error updating teams and managers: $e',
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Error updating teams and managers',
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
                               }
 
                               try {
-                                // Handle team 1 players
-                                if (team1Players.isNotEmpty) {
-                                  if (event['team1Details'] != null) {
-                                    final teamId =
-                                        event['team1Details']['_id'] ??
-                                        event['team1Details'];
-                                    // Update existing team
-                                    await _updateTeamPlayers(
-                                      teamId.toString(),
-                                      team1Players,
-                                    );
-                                    updates['team1Details'] = teamId;
-                                  } else {
-                                    // Create new team
-                                    String? teamId = await _createNewTeam(
-                                      event['team1'],
-                                      team1Players,
-                                    );
-                                    if (teamId != null) {
-                                      updates['team1Details'] = teamId;
-                                    }
-                                  }
-                                }
-
-                                // Handle team 2 players
-                                if (team2Players.isNotEmpty) {
-                                  if (event['team2Details'] != null) {
-                                    final teamId =
-                                        event['team2Details']['_id'] ??
-                                        event['team2Details'];
-                                    // Update existing team
-                                    await _updateTeamPlayers(
-                                      teamId.toString(),
-                                      team2Players,
-                                    );
-                                    updates['team2Details'] = teamId;
-                                  } else {
-                                    // Create new team
-                                    String? teamId = await _createNewTeam(
-                                      event['team2'],
-                                      team2Players,
-                                    );
-                                    if (teamId != null) {
-                                      updates['team2Details'] = teamId;
-                                    }
-                                  }
-                                }
-
-                                // Add team details to updates
-                                if (event['team1Details'] != null) {
-                                  updates['team1Details'] =
-                                      event['team1Details'];
-                                }
-                                if (event['team2Details'] != null) {
-                                  updates['team2Details'] =
-                                      event['team2Details'];
-                                }
-
                                 // Send the updates to the server
                                 final response = await http.patch(
                                   Uri.parse('$baseUrl/update-event'),
@@ -445,6 +488,16 @@ class _ManageEventPageState extends State<ManageEventPage> {
                                     'Updated event: ${updatedEvent['winner']}',
                                   ); // Debug log
 
+                                  // Create notification message based on event type
+                                  String notificationMessage;
+                                  if (event['eventType'] == 'GC') {
+                                    notificationMessage =
+                                        'GC event details have been updated';
+                                  } else {
+                                    notificationMessage =
+                                        '${event['team1']} vs ${event['team2']} - ${event['eventType']} event details have been updated';
+                                  }
+
                                   // Send notification about event update
                                   await http.post(
                                     Uri.parse('$baseUrl/notifications/send'),
@@ -452,16 +505,19 @@ class _ManageEventPageState extends State<ManageEventPage> {
                                       'Content-Type': 'application/json',
                                     },
                                     body: json.encode({
-                                      'message':
-                                          '${team1Controller.text} vs ${team2Controller.text} - ${event['eventType']} event details have been updated',
+                                      'message': notificationMessage,
                                       'eventType': event['eventType'],
                                       'date': dateController.text,
-                                      'time':
-                                          timeController
-                                              .text, // Use time from controller directly
+                                      'time': timeController.text,
                                       'venue': venueController.text,
-                                      'team1': team1Controller.text,
-                                      'team2': team2Controller.text,
+                                      'team1':
+                                          event['eventType'] == 'GC'
+                                              ? null
+                                              : event['team1'],
+                                      'team2':
+                                          event['eventType'] == 'GC'
+                                              ? null
+                                              : event['team2'],
                                     }),
                                   );
 
@@ -509,6 +565,74 @@ class _ManageEventPageState extends State<ManageEventPage> {
     );
   }
 
+  Widget _buildGCTeamSection(
+    Map<String, dynamic> team, {
+    required Function(Map<String, dynamic>) onUpdateTeam,
+    required Function() onDeleteTeam,
+  }) {
+    return Card(
+      margin: EdgeInsets.symmetric(vertical: 8),
+      child: Padding(
+        padding: EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextFormField(
+              initialValue: team['teamName'],
+              decoration: InputDecoration(labelText: 'Team Name'),
+              onChanged: (value) {
+                team['teamName'] = value;
+                onUpdateTeam(team);
+              },
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: (team['members'] as List).length,
+              itemBuilder: (context, index) {
+                final player = team['members'][index];
+                return ListTile(
+                  title: Text(player['name']),
+                  subtitle: Text(player['email']),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () {
+                      team['members'].removeAt(index);
+                      onUpdateTeam(team);
+                    },
+                  ),
+                );
+              },
+            ),
+            ButtonBar(
+              children: [
+                TextButton.icon(
+                  icon: Icon(Icons.add),
+                  label: Text('Add Player'),
+                  onPressed: () async {
+                    final result = await showDialog<Map<String, dynamic>>(
+                      context: context,
+                      builder: (context) => _AddPlayerDialog(),
+                    );
+                    if (result != null) {
+                      team['members'].add(result);
+                      onUpdateTeam(team);
+                    }
+                  },
+                ),
+                TextButton.icon(
+                  icon: Icon(Icons.delete),
+                  label: Text('Delete Team'),
+                  onPressed: onDeleteTeam,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _deleteEvent(Map<String, dynamic> event) async {
     bool confirmDelete = await showDialog(
       context: context,
@@ -536,6 +660,20 @@ class _ManageEventPageState extends State<ManageEventPage> {
 
     if (confirmDelete == true) {
       try {
+        // For GC events, we need to delete associated teams from participants array
+        if (event['eventType'] == 'GC' && event['participants'] != null) {
+          // Delete each team in the participants array
+          for (var teamId in event['participants']) {
+            try {
+              await http.delete(
+                Uri.parse('$baseUrl/team/${teamId.toString()}'),
+              );
+            } catch (e) {
+              print('Error deleting team $teamId: $e');
+            }
+          }
+        }
+
         final response = await http.delete(
           Uri.parse(
             '$baseUrl/delete-event/${event['_id']}/${event['eventType']}',
@@ -543,6 +681,30 @@ class _ManageEventPageState extends State<ManageEventPage> {
         );
 
         if (response.statusCode == 200) {
+          // Create notification message based on event type
+          String notificationMessage;
+          if (event['eventType'] == 'GC') {
+            notificationMessage = 'GC event has been cancelled';
+          } else {
+            notificationMessage =
+                '${event['team1']} vs ${event['team2']} - ${event['eventType']} event has been cancelled';
+          }
+
+          // Send notification about event deletion
+          await http.post(
+            Uri.parse('$baseUrl/notifications/send'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'message': notificationMessage,
+              'eventType': event['eventType'],
+              'date': event['date']?.toString().split('T')[0] ?? 'N/A',
+              'time': event['time'] ?? 'N/A',
+              'venue': event['venue'] ?? 'N/A',
+              'team1': event['eventType'] == 'GC' ? null : event['team1'],
+              'team2': event['eventType'] == 'GC' ? null : event['team2'],
+            }),
+          );
+
           await fetchAllEvents(); // Refresh the list
           ScaffoldMessenger.of(
             context,
@@ -960,14 +1122,18 @@ class _ManageEventPageState extends State<ManageEventPage> {
 
                   // Teams
                   Center(
-                    child: Text(
-                      '${event['team1']} vs ${event['team2']}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+                    child:
+                        event['eventType'] == 'GC'
+                            ? Container()
+                            : // Don't show teams for GC events
+                            Text(
+                              '${event['team1']} vs ${event['team2']}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                   ),
                   SizedBox(height: 12),
 
@@ -1170,6 +1336,72 @@ class _AddPlayerDialog extends StatelessWidget {
             }
           },
           child: Text('Add'),
+        ),
+      ],
+    );
+  }
+}
+
+class _AddGCTeamDialog extends StatelessWidget {
+  final teamNameController = TextEditingController();
+  final List<Map<String, dynamic>> players = [];
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Add New Team'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: teamNameController,
+              decoration: InputDecoration(labelText: 'Team Name'),
+            ),
+            SizedBox(height: 16),
+            Text('Players:'),
+            ...players
+                .map(
+                  (player) => ListTile(
+                    title: Text(player['name']),
+                    subtitle: Text(player['email']),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete),
+                      onPressed: () => players.remove(player),
+                    ),
+                  ),
+                )
+                .toList(),
+            ElevatedButton(
+              child: Text('Add Player'),
+              onPressed: () async {
+                final result = await showDialog<Map<String, dynamic>>(
+                  context: context,
+                  builder: (context) => _AddPlayerDialog(),
+                );
+                if (result != null) {
+                  players.add(result);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          child: Text('Cancel'),
+          onPressed: () => Navigator.pop(context),
+        ),
+        TextButton(
+          child: Text('Add Team'),
+          onPressed: () {
+            if (teamNameController.text.isNotEmpty && players.isNotEmpty) {
+              Navigator.pop(context, {
+                'teamName': teamNameController.text,
+                'members': players,
+              });
+            }
+          },
         ),
       ],
     );

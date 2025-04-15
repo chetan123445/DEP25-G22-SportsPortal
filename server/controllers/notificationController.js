@@ -45,14 +45,16 @@ export const sendNotification = async (req, res) => {
     try {
         const { message, eventType, date, time, venue, team1, team2 } = req.body;
         
+        // Build notification object based on event type
         const notification = {
             message,
             eventType,
             date,
-            time,  // Store the actual event time
+            time,
             venue,
-            team1,
-            team2,
+            // Only include team1 and team2 if they are provided (non-GC events)
+            ...(team1 && { team1 }),
+            ...(team2 && { team2 }),
             read: false
         };
 

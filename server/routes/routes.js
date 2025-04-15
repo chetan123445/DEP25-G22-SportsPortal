@@ -28,6 +28,8 @@ import { getAllEvents, updateEvent, deleteEvent } from '../controllers/allEvents
 import { getNotifications, sendNotification, markSingleNotificationAsRead } from '../controllers/notificationController.js';
 import { addImage, getImages } from '../controllers/updateGallery.js'; // Import the functions from updateGallery.js
 import { updateEventDetails } from '../controllers/updateEventController.js';
+import { updateGCEventTeams } from '../controllers/GCeventController.js'; // Add new import for GC team management
+import GC from '../models/GCevent.js'; // Change from GC.js to GCevent.js
 
 const router = express.Router();
 
@@ -157,5 +159,19 @@ router.post('/add-image', upload.single('image'), addImage); // Route to add an 
 router.get('/get-images', getImages); // Route to get all images
 // Add this new route before export default router
 router.patch("/update-event-details", updateEventDetails);
+
+// Add new routes for managing GC event teams
+router.put('/gc-event/:eventId/teams', updateGCEventTeams);
+router.get('/gc-event/:eventId/teams', async (req, res) => {
+    try {
+        const event = await GC.findById(req.params.eventId).populate('participants');
+        if (!event) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+        res.json({ teams: event.participants });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching teams', error: error.message });
+    }
+});
 
 export default router;
