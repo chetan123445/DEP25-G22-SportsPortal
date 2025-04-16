@@ -388,13 +388,8 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
       );
 
       if (response.statusCode == 200) {
-        // The state will be updated by the socket event
-        // But update locally as fallback if socket fails
-        if (mounted) {
-          setState(() {
-            commentary.removeWhere((c) => c['id'] == commentaryId);
-          });
-        }
+        // Don't update state here - let the socket event handle it
+        // This prevents race conditions and ensures all clients stay in sync
       }
     } catch (e) {
       print('Error deleting commentary: $e');

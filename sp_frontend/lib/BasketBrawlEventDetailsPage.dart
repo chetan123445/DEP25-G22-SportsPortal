@@ -50,7 +50,7 @@ class _BasketBrawlEventDetailsPageState
   }
 
   void connectToSocket() {
-    socket = IO.io('your_server_url', <String, dynamic>{
+    socket = IO.io(baseUrl, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });
@@ -59,7 +59,7 @@ class _BasketBrawlEventDetailsPageState
     socket.emit('join-event', widget.event['_id']);
 
     socket.on('score-update', (data) {
-      if (data['eventId'] == widget.event['_id']) {
+      if (data['eventId'] == widget.event['_id'] && mounted) {
         setState(() {
           team1Goals = data['team1Goals'];
           team2Goals = data['team2Goals'];
@@ -68,16 +68,18 @@ class _BasketBrawlEventDetailsPageState
     });
 
     socket.on('commentary-update', (data) {
-      if (data['eventId'] == widget.event['_id']) {
-        if (data['newComment'] != null) {
-          setState(() {
+      if (data['eventId'] == widget.event['_id'] && mounted) {
+        setState(() {
+          if (data['type'] == 'add') {
             commentary.add({
               'id': data['newComment']['id'],
               'text': data['newComment']['text'],
               'timestamp': data['newComment']['timestamp'],
             });
-          });
-        }
+          } else if (data['type'] == 'delete') {
+            commentary.removeWhere((c) => c['id'] == data['commentaryId']);
+          }
+        });
       }
     });
   }
@@ -136,14 +138,16 @@ class _BasketBrawlEventDetailsPageState
       );
 
       if (response.statusCode == 200) {
-        setState(() {
-          commentary.removeWhere((c) => c['id'] == commentaryId);
-        });
+        // Don't update state here - let the socket event handle it
+        // This prevents race conditions and ensures all clients stay in sync
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error deleting commentary: $e')));
+      print('Error deleting commentary: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting commentary: $e')),
+        );
+      }
     }
   }
 
@@ -203,10 +207,9 @@ class _BasketBrawlEventDetailsPageState
 
   Future<void> addCommentary(String text) async {
     if (text.isEmpty) return;
-
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/basketbrawl/add-commentary'), // Updated URL
+        Uri.parse('$baseUrl/basketbrawl/add-commentary'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'eventId': widget.event['_id'],
@@ -216,26 +219,17 @@ class _BasketBrawlEventDetailsPageState
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          commentary = List<Map<String, dynamic>>.from(
-            data['event']['commentary'].map(
-              (c) => {
-                'id': c['_id'],
-                'text': c['text'],
-                'timestamp': c['timestamp'],
-              },
-            ),
-          );
-        });
+        // Only clear the input field after successful post
         _commentaryController.clear();
-      } else {
-        throw Exception('Failed to add commentary');
+        // Let the socket event handle adding the commentary to the list
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error adding commentary: $e')));
+      print('Error adding commentary: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error adding commentary: $e')));
+      }
     }
   }
 

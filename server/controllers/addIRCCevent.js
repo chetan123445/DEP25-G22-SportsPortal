@@ -240,15 +240,18 @@ export const deleteCommentary = async (req, res) => {
 
         const io = req.app.get('io');
         if (io) {
-            // Emit to all clients in the event room
+            // Emit the delete event to all clients in the room with the commentaryId
             io.to(eventId).emit('commentary-update', {
                 eventId,
-                commentaryId,
-                type: 'delete'
+                type: 'delete',
+                commentaryId: commentaryId
             });
         }
         
-        res.json({ message: 'Commentary deleted successfully', event });
+        res.json({ 
+            message: 'Commentary deleted successfully', 
+            commentaryId 
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error deleting commentary', error });
     }

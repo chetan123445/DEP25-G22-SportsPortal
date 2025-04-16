@@ -124,7 +124,6 @@ export const addMatchCommentary = async (req, res) => {
             return res.status(404).json({ message: 'Event not found' });
         }
 
-        // Create new commentary object
         const newCommentary = { text, timestamp };
         event.commentary.push(newCommentary);
         await event.save();
@@ -136,6 +135,7 @@ export const addMatchCommentary = async (req, res) => {
         if (io) {
             io.to(eventId).emit('commentary-update', {
                 eventId,
+                type: 'add',
                 newComment: {
                     id: addedCommentary._id,
                     text: addedCommentary.text,
@@ -144,7 +144,10 @@ export const addMatchCommentary = async (req, res) => {
             });
         }
 
-        res.json({ message: 'Commentary added successfully', event });
+        res.json({ 
+            message: 'Commentary added successfully', 
+            commentary: addedCommentary 
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error adding commentary', error });
     }
@@ -163,14 +166,25 @@ export const deleteCommentary = async (req, res) => {
             comment => comment._id.toString() !== commentaryId
         );
         await event.save();
+
+        const io = req.app.get('io');
+        if (io) {
+            io.to(eventId).emit('commentary-update', {
+                eventId,
+                type: 'delete',
+                commentaryId
+            });
+        }
         
-        res.json({ message: 'Commentary deleted successfully', event });
+        res.json({ 
+            message: 'Commentary deleted successfully',
+            commentaryId
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error deleting commentary', error });
     }
 };
 
-// Add a new controller to get event details
 export const getEventDetails = async (req, res) => {
     try {
         const { eventId } = req.params;
