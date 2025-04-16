@@ -61,8 +61,8 @@ class _BasketBrawlEventDetailsPageState
     socket.on('score-update', (data) {
       if (data['eventId'] == widget.event['_id'] && mounted) {
         setState(() {
-          team1Goals = data['team1Goals'];
-          team2Goals = data['team2Goals'];
+          team1Goals = data['team1Score'] ?? 0; // Changed from team1Goals
+          team2Goals = data['team2Score'] ?? 0; // Changed from team2Goals
         });
       }
     });
@@ -71,7 +71,7 @@ class _BasketBrawlEventDetailsPageState
       if (data['eventId'] == widget.event['_id'] && mounted) {
         setState(() {
           if (data['type'] == 'add') {
-            commentary.add({
+            commentary.insert(0, {
               'id': data['newComment']['id'],
               'text': data['newComment']['text'],
               'timestamp': data['newComment']['timestamp'],
@@ -221,7 +221,7 @@ class _BasketBrawlEventDetailsPageState
       if (response.statusCode == 200) {
         // Only clear the input field after successful post
         _commentaryController.clear();
-        // Let the socket event handle adding the commentary to the list
+        // Remove the setState - let the socket event handle adding the commentary
       }
     } catch (e) {
       print('Error adding commentary: $e');
@@ -257,7 +257,7 @@ class _BasketBrawlEventDetailsPageState
   Future<void> updateScore(String team, bool increment) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/basketbrawl/update-score'), // Updated URL
+        Uri.parse('$baseUrl/basketbrawl/update-score'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'eventId': widget.event['_id'],
@@ -266,20 +266,17 @@ class _BasketBrawlEventDetailsPageState
         }),
       );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          team1Goals = data['event']['team1Score'] ?? 0; // Add null check
-          team2Goals = data['event']['team2Score'] ?? 0; // Add null check
-        });
-      } else {
+      // Remove setState here as it will be handled by the socket
+      if (response.statusCode != 200) {
         throw Exception('Failed to update score');
       }
     } catch (e) {
       print('Error updating score: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error updating score: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error updating score: $e')));
+      }
     }
   }
 
@@ -631,6 +628,9 @@ class _BasketBrawlEventDetailsPageState
         ),
         Expanded(
           child: ListView.builder(
+            reverse:
+                true, // This ensures latest messages are at the top for everyone
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             itemCount: commentary.length,
             itemBuilder: (context, index) {
               final comment = commentary[index];

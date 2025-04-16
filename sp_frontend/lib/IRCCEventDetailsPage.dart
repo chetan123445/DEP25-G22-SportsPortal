@@ -124,7 +124,7 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
       if (data['eventId'] == widget.event['_id'] && mounted) {
         setState(() {
           if (data['type'] == 'add') {
-            commentary.add({
+            commentary.insert(0, {
               'id': data['newComment']['id'],
               'text': data['newComment']['text'],
               'timestamp': data['newComment']['timestamp'],
@@ -885,6 +885,7 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
           ),
           Expanded(
             child: ListView.builder(
+              reverse: true,
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               itemCount: commentary.length,
               itemBuilder: (context, index) {

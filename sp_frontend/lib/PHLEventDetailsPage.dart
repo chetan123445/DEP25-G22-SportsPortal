@@ -69,7 +69,7 @@ class _PHLEventDetailsPageState extends State<PHLEventDetailsPage>
       if (data['eventId'] == widget.event['_id'] && mounted) {
         setState(() {
           if (data['type'] == 'add') {
-            commentary.add({
+            commentary.insert(0, {
               'id': data['newComment']['id'],
               'text': data['newComment']['text'],
               'timestamp': data['newComment']['timestamp'],
@@ -623,6 +623,8 @@ class _PHLEventDetailsPageState extends State<PHLEventDetailsPage>
         ),
         Expanded(
           child: ListView.builder(
+            reverse: true,
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             itemCount: commentary.length,
             itemBuilder: (context, index) {
               final comment = commentary[index];

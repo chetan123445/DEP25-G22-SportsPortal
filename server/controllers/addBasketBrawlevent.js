@@ -82,7 +82,7 @@ export const updateScore = async (req, res) => {
         
         await event.save();
 
-        // Emit update to all clients watching this event
+        // Emit score update through socket
         const io = req.app.get('io');
         if (io) {
             io.to(eventId).emit('score-update', {
