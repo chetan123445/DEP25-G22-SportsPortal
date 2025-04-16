@@ -579,86 +579,225 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
   }
 
   Widget _buildTeamScoreRow(String team, String teamName, CricketScore score) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
       children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            teamName,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ),
-        if (isMatchLive && !widget.isReadOnly) ...[
-          IconButton(
-            icon: Icon(Icons.remove_circle, color: Colors.red),
-            onPressed: () => updateScore(team, 'runs', false),
-          ),
-        ],
-        Text(
-          score.scoreString,
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        Text(
-          '(${score.oversString})',
-          style: TextStyle(fontSize: 16, color: Colors.white70),
-        ),
-        if (isMatchLive && !widget.isReadOnly) ...[
-          IconButton(
-            icon: Icon(Icons.add_circle, color: Colors.green),
-            onPressed: () => updateScore(team, 'runs', true),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              border: Border.all(color: Colors.black, width: 1),
-            ),
-            child: InkWell(
-              onTap: () => updateScore(team, 'ball', true),
-              child: Padding(
-                padding: EdgeInsets.all(8),
-                child: Text(
-                  'B',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              flex: 2,
+              child: Text(
+                teamName,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
             ),
-          ),
-          SizedBox(width: 4),
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              border: Border.all(color: Colors.black, width: 1),
-            ),
-            child: InkWell(
-              onTap: () => updateScore(team, 'wickets', true),
-              child: Padding(
-                padding: EdgeInsets.all(8),
-                child: Text(
-                  'W',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+            Text(
+              score.scoreString,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
+            Text(
+              '(${score.oversString})',
+              style: TextStyle(fontSize: 16, color: Colors.white70),
+            ),
+          ],
+        ),
+        if (isMatchLive && !widget.isReadOnly) ...[
+          SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildScoreButton(
+                team,
+                '1',
+                () => updateScore(team, 'runs', true),
+              ),
+              _buildScoreButton(
+                team,
+                '4',
+                () => updateScore(team, 'four', true),
+              ),
+              _buildScoreButton(
+                team,
+                '6',
+                () => updateScore(team, 'six', true),
+              ),
+            ],
+          ),
+          SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildBallControl(team),
+              _buildWicketControl(team),
+              _buildExtraRunsControl(team),
+            ],
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildScoreButton(String team, String value, VoidCallback onPressed) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.blue.shade700,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: InkWell(
+        onTap: onPressed,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Text(
+            '+$value',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBallControl(String team) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade700,
+            borderRadius: BorderRadius.horizontal(left: Radius.circular(8)),
+          ),
+          child: InkWell(
+            onTap: () => updateScore(team, 'ball', false),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Text(
+                '-B',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.green.shade700,
+            borderRadius: BorderRadius.horizontal(right: Radius.circular(8)),
+          ),
+          child: InkWell(
+            onTap: () => updateScore(team, 'ball', true),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Text(
+                '+B',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWicketControl(String team) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade700,
+            borderRadius: BorderRadius.horizontal(left: Radius.circular(8)),
+          ),
+          child: InkWell(
+            onTap: () => updateScore(team, 'wickets', false),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Text(
+                '-W',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.red.shade700,
+            borderRadius: BorderRadius.horizontal(right: Radius.circular(8)),
+          ),
+          child: InkWell(
+            onTap: () => updateScore(team, 'wickets', true),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Text(
+                '+W',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExtraRunsControl(String team) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildExtraButton(
+          team,
+          'NB',
+          () => updateScore(team, 'nb', true),
+          Colors.orange.shade700,
+        ),
+        SizedBox(width: 4),
+        _buildExtraButton(
+          team,
+          'WD',
+          () => updateScore(team, 'wd', true),
+          Colors.purple.shade700,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExtraButton(
+    String team,
+    String label,
+    VoidCallback onPressed,
+    Color color,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: InkWell(
+        onTap: onPressed,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Text(
+            label,
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
     );
   }
 

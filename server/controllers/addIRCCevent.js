@@ -105,19 +105,43 @@ export const updateScore = async (req, res) => {
             case 'runs':
                 score.runs = increment ? score.runs + 1 : Math.max(0, score.runs - 1);
                 break;
+            case 'four':
+                score.runs = increment ? score.runs + 4 : score.runs;
+                break;
+            case 'six':
+                score.runs = increment ? score.runs + 6 : score.runs;
+                break;
             case 'wickets':
-                score.wickets = increment ? Math.min(10, score.wickets + 1) : Math.max(0, score.wickets - 1);
+                if (increment) {
+                    score.wickets = Math.min(10, score.wickets + 1);
+                } else {
+                    score.wickets = Math.max(0, score.wickets - 1);
+                }
                 break;
             case 'ball':
-                score.balls = score.balls + 1;
-                if (score.balls >= 6) {
-                    score.overs = score.overs + 1;
-                    score.balls = 0;
+                if (increment) {
+                    score.balls = score.balls + 1;
+                    if (score.balls >= 6) {
+                        score.overs = score.overs + 1;
+                        score.balls = 0;
+                    }
+                } else {
+                    if (score.balls > 0) {
+                        score.balls = score.balls - 1;
+                    } else if (score.overs > 0) {
+                        score.overs = score.overs - 1;
+                        score.balls = 5;
+                    }
                 }
+                break;
+            case 'nb':
+            case 'wd':
+                // For both No Ball and Wide, add one run but don't increment the ball count
+                score.runs = score.runs + 1;
                 break;
         }
 
-        // Update winner based on scores - similar to PHL's approach
+        // Update winner logic
         if (event.team1Score.runs > event.team2Score.runs) {
             event.winner = event.team1;
         } else if (event.team2Score.runs > event.team1Score.runs) {
