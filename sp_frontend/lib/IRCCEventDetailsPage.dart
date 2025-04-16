@@ -122,15 +122,15 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
 
     socket.on('commentary-update', (data) {
       if (data['eventId'] == widget.event['_id'] && mounted) {
-        if (data['newComment'] != null) {
-          setState(() {
+        setState(() {
+          if (data['type'] == 'add') {
             commentary.add({
               'id': data['newComment']['id'],
               'text': data['newComment']['text'],
               'timestamp': data['newComment']['timestamp'],
             });
-          });
-        }
+          }
+        });
       }
     });
   }
@@ -360,19 +360,9 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          commentary = List<Map<String, dynamic>>.from(
-            data['event']['commentary'].map(
-              (c) => {
-                'id': c['_id'],
-                'text': c['text'],
-                'timestamp': c['timestamp'],
-              },
-            ),
-          );
-        });
+        // Clear the input field immediately after successful post
         _commentaryController.clear();
+        // Don't update state here - let the socket handle it
       } else {
         throw Exception('Failed to add commentary');
       }

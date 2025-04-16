@@ -170,17 +170,22 @@ export const addMatchCommentary = async (req, res) => {
         
         const io = req.app.get('io');
         if (io) {
+            // Emit to all clients in the event room
             io.to(eventId).emit('commentary-update', {
                 eventId,
                 newComment: {
                     id: addedCommentary._id,
                     text: addedCommentary.text,
                     timestamp: addedCommentary.timestamp
-                }
+                },
+                type: 'add'
             });
         }
 
-        res.json({ message: 'Commentary added successfully', event });
+        res.json({ 
+            message: 'Commentary added successfully', 
+            commentary: addedCommentary 
+        });
     } catch (error) {
         console.error('Error adding commentary:', error);
         res.status(500).json({ message: 'Error adding commentary', error: error.message });
