@@ -510,6 +510,9 @@ class _ManageEventPageState extends State<ManageEventPage> {
                               }
 
                               try {
+                                // Add event managers to updates for all event types
+                                updates['eventManagers'] = eventManagers;
+
                                 // Send the updates to the server
                                 final response = await http.patch(
                                   Uri.parse('$baseUrl/update-event'),
