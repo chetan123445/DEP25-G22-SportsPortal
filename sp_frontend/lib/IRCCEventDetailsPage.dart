@@ -646,21 +646,57 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
   }
 
   Widget _buildScoreButton(String team, String value, VoidCallback onPressed) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.blue.shade700,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: InkWell(
-        onTap: onPressed,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Text(
-            '+$value',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade700,
+            borderRadius: BorderRadius.horizontal(left: Radius.circular(8)),
+          ),
+          child: InkWell(
+            onTap:
+                () => updateScore(
+                  team,
+                  value == '1'
+                      ? 'runs'
+                      : value == '4'
+                      ? 'four'
+                      : 'six',
+                  false,
+                ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Text(
+                '-$value',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ),
         ),
-      ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.blue.shade700,
+            borderRadius: BorderRadius.horizontal(right: Radius.circular(8)),
+          ),
+          child: InkWell(
+            onTap: onPressed,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Text(
+                '+$value',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

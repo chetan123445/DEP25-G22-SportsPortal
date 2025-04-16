@@ -106,10 +106,18 @@ export const updateScore = async (req, res) => {
                 score.runs = increment ? score.runs + 1 : Math.max(0, score.runs - 1);
                 break;
             case 'four':
-                score.runs = increment ? score.runs + 4 : score.runs;
+                if (increment) {
+                    score.runs = score.runs + 4;
+                } else {
+                    score.runs = Math.max(0, score.runs - 4);
+                }
                 break;
             case 'six':
-                score.runs = increment ? score.runs + 6 : score.runs;
+                if (increment) {
+                    score.runs = score.runs + 6;
+                } else {
+                    score.runs = Math.max(0, score.runs - 6);
+                }
                 break;
             case 'wickets':
                 if (increment) {
