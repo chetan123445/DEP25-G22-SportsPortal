@@ -129,6 +129,8 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
               'text': data['newComment']['text'],
               'timestamp': data['newComment']['timestamp'],
             });
+          } else if (data['type'] == 'delete') {
+            commentary.removeWhere((c) => c['id'] == data['commentaryId']);
           }
         });
       }
@@ -360,16 +362,17 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
       );
 
       if (response.statusCode == 200) {
-        // Clear the input field immediately after successful post
+        // Only clear the input field after successful post
         _commentaryController.clear();
-        // Don't update state here - let the socket handle it
-      } else {
-        throw Exception('Failed to add commentary');
+        // Let the socket event handle adding the commentary to the list
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error adding commentary: $e')));
+      print('Error adding commentary: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error adding commentary: $e')));
+      }
     }
   }
 
@@ -385,14 +388,21 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
       );
 
       if (response.statusCode == 200) {
-        setState(() {
-          commentary.removeWhere((c) => c['id'] == commentaryId);
-        });
+        // The state will be updated by the socket event
+        // But update locally as fallback if socket fails
+        if (mounted) {
+          setState(() {
+            commentary.removeWhere((c) => c['id'] == commentaryId);
+          });
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error deleting commentary: $e')));
+      print('Error deleting commentary: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting commentary: $e')),
+        );
+      }
     }
   }
 

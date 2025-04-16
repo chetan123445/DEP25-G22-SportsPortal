@@ -205,6 +205,16 @@ export const deleteCommentary = async (req, res) => {
             comment => comment._id.toString() !== commentaryId
         );
         await event.save();
+
+        const io = req.app.get('io');
+        if (io) {
+            // Emit to all clients in the event room
+            io.to(eventId).emit('commentary-update', {
+                eventId,
+                commentaryId,
+                type: 'delete'
+            });
+        }
         
         res.json({ message: 'Commentary deleted successfully', event });
     } catch (error) {
