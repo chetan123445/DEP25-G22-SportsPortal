@@ -25,7 +25,7 @@ import { getPlayerDetails } from '../controllers/playerProfileController.js'; //
 import { getUserEvents } from '../controllers/userEventsController.js'; // Import the new controller
 import { getManagedEvents } from '../controllers/managedEventsController.js'; // Import the new controller
 import { getAllEvents, updateEvent, deleteEvent } from '../controllers/allEvents.js';
-import { getNotifications, sendNotification, markSingleNotificationAsRead } from '../controllers/notificationController.js';
+import { getNotifications, sendNotification, markSingleNotificationAsRead, deleteAllNotifications } from '../controllers/notificationController.js'; // Add this importificationController.js';
 import { addImage, getImages } from '../controllers/updateGallery.js'; // Import the functions from updateGallery.js
 import { updateEventDetails } from '../controllers/updateEventController.js';
 import { updateGCEventTeams } from '../controllers/GCeventController.js'; // Add new import for GC team management
@@ -153,13 +153,13 @@ router.get("/ircc/standings", getIRCCStandings);
 router.get("/notifications", getNotifications);
 router.post("/notifications/send", sendNotification);
 router.post("/notifications/mark-single-read", markSingleNotificationAsRead);
-
+router.post("/notifications/delete-all", deleteAllNotifications);  // Add this new route
 // Add routes for gallery
 router.post('/add-image', upload.single('image'), addImage); // Route to add an image
-router.get('/get-images', getImages); // Route to get all images
-// Add this new route before export default router
+router.get('/get-images', getImages); // Route to get all imagesRoute to add an image
+// Add this new route before export default routerget all images
 router.patch("/update-event-details", updateEventDetails);
-
+router.patch("/update-event-details", updateEventDetails);
 // Add new routes for managing GC event teams
 router.put('/gc-event/:eventId/teams', updateGCEventTeams);
 router.get('/gc-event/:eventId/teams', async (req, res) => {

@@ -52,6 +52,34 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
+  Future<void> _deleteAllNotifications() async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/notifications/delete-all'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': widget.email}),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('All notifications deleted'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        setState(() {}); // Refresh the list
+      }
+    } catch (e) {
+      print('Error deleting all notifications: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error deleting notifications'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   Future<List<dynamic>> _fetchNotifications() async {
     try {
       final response = await http.get(
@@ -78,6 +106,48 @@ class _NotificationsPageState extends State<NotificationsPage> {
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          TextButton.icon(
+            icon: Icon(Icons.delete_sweep, color: Colors.white),
+            label: Text('Delete All', style: TextStyle(color: Colors.white)),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder:
+                    (context) => AlertDialog(
+                      backgroundColor: Colors.black87,
+                      title: Text(
+                        'Delete All Notifications?',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      content: Text(
+                        'This action cannot be undone.',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _deleteAllNotifications();
+                          },
+                          child: Text(
+                            'Delete All',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+              );
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<dynamic>>(
         future: _fetchNotifications(),
@@ -161,31 +231,18 @@ class _NotificationsPageState extends State<NotificationsPage> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Delete this notification?',
+                                  'Delete this notification',
                                   style: TextStyle(color: Colors.white70),
                                 ),
-                                Row(
-                                  children: [
-                                    TextButton(
-                                      onPressed:
-                                          () => _deleteNotification(
-                                            notification['_id'],
-                                          ),
-                                      child: Text(
-                                        'Yes',
-                                        style: TextStyle(color: Colors.green),
+                                TextButton(
+                                  onPressed:
+                                      () => _deleteNotification(
+                                        notification['_id'],
                                       ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        // Do nothing for "No"
-                                      },
-                                      child: Text(
-                                        'No',
-                                        style: TextStyle(color: Colors.red),
-                                      ),
-                                    ),
-                                  ],
+                                  child: Text(
+                                    'Delete',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
                                 ),
                               ],
                             ),
