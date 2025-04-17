@@ -141,8 +141,10 @@ class _IYSCPageState extends State<IYSCPage> {
   }
 
   Future<void> _fetchIYSCEvents(BuildContext context, String type) async {
+    // Convert type to lowercase before sending to API
+    final normalizedType = type.toLowerCase();
     final response = await http.get(
-      Uri.parse('$baseUrl/get-iysc-events?type=$type'),
+      Uri.parse('$baseUrl/get-iysc-events?type=$normalizedType'),
     );
     if (response.statusCode == 200) {
       final responseBody = json.decode(response.body);

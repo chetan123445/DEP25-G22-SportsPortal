@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async'; // Add this import for Timer
 import 'constants.dart';
 import 'package:intl/intl.dart';
 import 'PlayerProfilePage.dart';
 import 'PHLEventDetailsPage.dart';
-import 'BasketBrawlEventDetailsPage.dart'; // Add this import
-import 'IRCCEventDetailsPage.dart'; // Add this import
+import 'BasketBrawlEventDetailsPage.dart';
+import 'IRCCEventDetailsPage.dart';
+import 'IYSCEventDetailsPage.dart'; // Add this import
 
 class ManagingEventsPage extends StatefulWidget {
   final String email;
@@ -21,6 +23,7 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
     with SingleTickerProviderStateMixin {
   Map<String, dynamic>? managedEvents;
   bool isLoading = true;
+  bool _isBlinking = true; // Add this variable
   String searchQuery = '';
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
@@ -32,6 +35,18 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
       length: 5,
       vsync: this,
     ); // 5 tabs for different event types
+
+    // Fix Timer initialization
+    Timer.periodic(Duration(milliseconds: 500), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _isBlinking = !_isBlinking;
+      });
+    });
+
     fetchManagedEvents();
   }
 
@@ -266,6 +281,13 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
                 builder: (context) => IRCCEventDetailsPage(event: event),
               ),
             );
+          } else if (eventType == 'IYSC') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => IYSCEventDetailsPage(event: event),
+              ),
+            );
           }
         },
         child: Card(
@@ -273,24 +295,27 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.0),
           ),
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black, width: 1.5),
-              borderRadius: BorderRadius.circular(8.0),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.purple.shade200,
-                  Colors.blue.shade200,
-                  Colors.pink.shade100,
-                ],
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
-            child: Stack(
-              children: [
-                Column(
+          child: Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black, width: 1.5),
+                  borderRadius: BorderRadius.circular(8.0),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.purple.shade200,
+                      Colors.blue.shade200,
+                      Colors.pink.shade100,
+                    ],
+                  ),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 6.0,
+                  horizontal: 8.0,
+                ),
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Align(
@@ -685,6 +710,15 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
                                           IRCCEventDetailsPage(event: event),
                                 ),
                               );
+                            } else if (eventType == 'IYSC') {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) =>
+                                          IYSCEventDetailsPage(event: event),
+                                ),
+                              );
                             }
                           },
                           child: Container(
@@ -712,10 +746,25 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
                     SizedBox(height: 4.0),
                   ],
                 ),
-                if (isLive)
-                  Positioned(left: 8, bottom: 8, child: BlinkingDot()),
-              ],
-            ),
+              ),
+              if (isLive)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: AnimatedOpacity(
+                    opacity: _isBlinking ? 1.0 : 0.0,
+                    duration: Duration(milliseconds: 500),
+                    child: Container(
+                      width: 12.0,
+                      height: 12.0,
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       );

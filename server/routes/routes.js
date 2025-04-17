@@ -5,7 +5,7 @@ import { verify_email } from '../controllers/verify_email.js';
 import { login } from '../controllers/login.js';
 import { getProfile } from '../controllers/profile.js';
 import { updateProfile, uploadProfilePic, removeProfilePic, upload } from '../controllers/editProfile.js';
-import { addIYSCevent } from '../controllers/addIYSCevent.js';
+import { addIYSCevent, updateScore, addMatchCommentary as addIYSCCommentary, deleteCommentary as deleteIYSCCommentary, getEventDetails as getIYSCEventDetails, getIYSCStandings } from '../controllers/addIYSCevent.js';
 import { addGCEvent, getGCEventsByMainType } from '../controllers/addGCevent.js';
 import { addIRCCevent, updateScore as updateIRCCScore, addMatchCommentary as addIRCCCommentary, deleteCommentary as deleteIRCCCommentary, getEventDetails as getIRCCEventDetails, getIRCCStandings } from '../controllers/addIRCCevent.js';
 import { addPHLevent, updateScore as updatePHLScore, addMatchCommentary as addPHLCommentary, deleteCommentary as deletePHLCommentary, getEventDetails as getPHLEventDetails, getPHLStandings } from '../controllers/addPHLevent.js';
@@ -148,6 +148,13 @@ router.post("/ircc/add-commentary", addIRCCCommentary);
 router.post("/ircc/delete-commentary", deleteIRCCCommentary);
 router.get("/ircc/event/:eventId", getIRCCEventDetails);
 router.get("/ircc/standings", getIRCCStandings);
+
+// Add IYSC Event Routes
+router.post("/iysc/update-score", updateScore);
+router.post("/iysc/add-commentary", addIYSCCommentary);
+router.post("/iysc/delete-commentary", deleteIYSCCommentary);
+router.get("/iysc/standings", getIYSCStandings);
+router.get("/iysc/event/:eventId", getIYSCEventDetails);
 
 // Add notification routes
 router.get("/notifications", getNotifications);

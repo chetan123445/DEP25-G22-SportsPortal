@@ -12,19 +12,22 @@ const addEventType = (events, type) => {
 };
 
 export const getIYSCevent = async (req, res) => {
-    console.log(`Request received: ${JSON.stringify(req.query)}`); // Log the entire query object
+    console.log(`Request received: ${JSON.stringify(req.query)}`);
     const { type } = req.query;
     console.log(`Received type to fetch iyscevents: ${type}`);
   
     if (!type) {
-        return res.status(400).json({ message: "Type parameter is required" }); // Handle missing type parameter
+        return res.status(400).json({ message: "Type parameter is required" });
     }
   
     try {
         const trimmedtype = type.trim().toLowerCase();
         console.log(`Trimmed and lowercased type: ${trimmedtype}`);
   
-        const data = await IYSCEvent.find({ type: trimmedtype });
+        // Use regex for case-insensitive search
+        const data = await IYSCEvent.find({ 
+            type: new RegExp(`^${trimmedtype}$`, 'i') 
+        });
         const eventsWithTypes = addEventType(data, 'IYSC');
         console.log(`Database query result: ${data}`);
   

@@ -4,7 +4,7 @@ import 'services/favorite_service.dart';
 import 'dart:async'; // Add this import for blinking animation
 import 'team_details_page.dart'; // Import TeamDetailsPage
 import 'PlayerProfilePage.dart'; // Import PlayerProfilePage
-// Add any authentication imports here
+import 'IYSCEventDetailsPage.dart'; // Add this import at the top with other imports Import IYSCEventDetailsPage
 
 class IYSCEventsPage extends StatefulWidget {
   final List<dynamic> events;
@@ -119,14 +119,31 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
     final filteredEvents =
         widget.events.where((event) {
           final query = _searchQuery.toLowerCase();
-          return (event['gender']?.toLowerCase() ==
+          final eventType = (event['type'] ?? '').toLowerCase();
+
+          // Normalize common sport type variations
+          bool matchesType = false;
+          if (eventType.contains('cricket') || query.contains('cricket')) {
+            matchesType =
+                'cricket'.contains(query) || query.contains('cricket');
+          } else if (eventType.contains('football') ||
+              query.contains('football')) {
+            matchesType =
+                'football'.contains(query) || query.contains('football');
+          } else if (eventType.contains('hockey') || query.contains('hockey')) {
+            matchesType = 'hockey'.contains(query) || query.contains('hockey');
+          } else {
+            matchesType = eventType.contains(query);
+          }
+
+          return matchesType ||
+              (event['gender']?.toString().toLowerCase() ==
                   query) || // Exact match for gender
               (event['date'] ?? '').toLowerCase().contains(query) ||
               (event['time'] ?? '').toLowerCase().contains(query) ||
               (event['team1'] ?? '').toLowerCase().contains(query) ||
               (event['team2'] ?? '').toLowerCase().contains(query) ||
-              (event['venue'] ?? '').toLowerCase().contains(query) ||
-              (event['type'] ?? '').toLowerCase().contains(query);
+              (event['venue'] ?? '').toLowerCase().contains(query);
         }).toList();
 
     return Scaffold(
@@ -201,7 +218,10 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
     String team2 = event['team2'] ?? 'Team 2';
     String date = event['date']?.split('T')[0] ?? 'No Date';
     String time = event['time'] ?? 'No Time';
-    String type = event['type'] ?? 'No Type';
+    String type = (event['type'] ?? 'No Type').toLowerCase();
+    // Normalize sport type display
+    type =
+        type.isNotEmpty ? type[0].toUpperCase() + type.substring(1) : 'No Type';
     String gender = event['gender'] ?? 'Unknown';
     String venue = event['venue'] ?? 'No Venue';
     String eventId = event['_id'] ?? '';
@@ -228,421 +248,103 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
                 ],
               ),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
+            padding: const EdgeInsets.all(12.0),
             child: Column(
               children: [
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 6.0,
-                      vertical: 3.0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Text(
-                      eventType,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.bold,
-                      ),
+                if (isLive)
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: _buildLiveIndicator(),
                     ),
                   ),
-                ),
-                SizedBox(height: 4.0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                          onTap: () {
-                            if (event['team1Details'] == null) {
-                              showDialog(
-                                context: context,
-                                builder:
-                                    (context) => AlertDialog(
-                                      title: Text('Team Details Not Available'),
-                                      content: Text(
-                                        'Team member details for "${event['team1'] ?? 'Team 1'}" have not been added yet.',
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed:
-                                              () => Navigator.pop(context),
-                                          child: Text('OK'),
-                                        ),
-                                      ],
-                                    ),
-                              );
-                            } else {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) => TeamDetailsPage(
-                                        teamId: event['team1Details'],
-                                      ),
-                                ),
-                              );
-                            }
-                          },
-                          child: Text(
-                            team1,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
-                            ),
-                          ),
+                      child: Text(
+                        event['team1']?.toString() ?? 'TBA',
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
                         ),
                       ),
                     ),
-                    Text(
-                      'v/s',
-                      style: TextStyle(
-                        fontSize: 14.0,
-                        fontWeight: FontWeight.bold,
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 4),
+                      child: Text(
+                        "vs",
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     Expanded(
-                      child: MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                          onTap: () {
-                            if (event['team2Details'] == null) {
-                              showDialog(
-                                context: context,
-                                builder:
-                                    (context) => AlertDialog(
-                                      title: Text('Team Details Not Available'),
-                                      content: Text(
-                                        'Team member details for "${event['team2'] ?? 'Team 2'}" have not been added yet.',
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed:
-                                              () => Navigator.pop(context),
-                                          child: Text('OK'),
-                                        ),
-                                      ],
-                                    ),
-                              );
-                            } else {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) => TeamDetailsPage(
-                                        teamId: event['team2Details'],
-                                      ),
-                                ),
-                              );
-                            }
-                          },
-                          child: Text(
-                            team2,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
-                            ),
-                          ),
+                      child: Text(
+                        event['team2']?.toString() ?? 'TBA',
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
                         ),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 4.0),
-                Column(
-                  children: [
-                    Text(
-                      date,
-                      style: TextStyle(
-                        fontSize: 13.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      time,
-                      style: TextStyle(
-                        fontSize: 13.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 4.0),
+                SizedBox(height: 8),
+                Text(date, style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(time, style: TextStyle(fontWeight: FontWeight.bold)),
+                SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [Text(type), Text(gender)],
+                ),
+                SizedBox(height: 8),
+                Text('Venue: $venue'),
+                SizedBox(height: 16),
+                Wrap(
+                  spacing: 8.0, // Horizontal spacing between buttons
+                  runSpacing: 8.0, // Vertical spacing between rows
+                  alignment: WrapAlignment.spaceEvenly,
                   children: [
-                    Text(
-                      type,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      gender,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 4.0),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Text(
-                    'Venue: $venue',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                SizedBox(height: 4.0),
-                InkWell(
-                  onTap: () {
-                    String message = '';
-                    DateTime eventDate = DateTime.parse(date);
-                    DateTime now = DateTime.now();
-
-                    if (eventDate.isAfter(now)) {
-                      message = 'Match has not started yet';
-                    } else if (eventDate.year == now.year &&
-                        eventDate.month == now.month &&
-                        eventDate.day == now.day) {
-                      message = 'Match is live, results will be updated soon';
-                    } else {
-                      if (event['winner'] == null || event['winner'].isEmpty) {
-                        message = 'No results available';
-                      } else if (event['winner'] == 'Draw') {
-                        message = 'Match ended in a draw';
-                      } else {
-                        message = '${event['winner']} won this match!';
-                      }
-                    }
-
-                    showDialog(
-                      context: context,
-                      builder:
-                          (context) => AlertDialog(
-                            title: Text('Match Status'),
-                            content: Text(message),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: Text('OK'),
-                              ),
-                            ],
-                          ),
-                    );
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 6.0,
-                      vertical: 3.0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade200,
-                      borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: Colors.black),
-                    ),
-                    child: Text(
-                      'View Match Result',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 8.0),
-                InkWell(
-                  onTap: () {
-                    if (event['eventManagers'] == null ||
-                        (event['eventManagers'] as List).isEmpty) {
-                      showDialog(
-                        context: context,
-                        builder:
-                            (context) => AlertDialog(
-                              title: Text('No Event Managers'),
-                              content: Text(
-                                'No event managers have been assigned to this event.',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: Text('OK'),
-                                ),
-                              ],
-                            ),
-                      );
-                      return;
-                    }
-                    showDialog(
-                      context: context,
-                      builder:
-                          (context) => AlertDialog(
-                            backgroundColor: Colors.transparent,
-                            contentPadding: EdgeInsets.zero,
-                            content: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12.0),
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Colors.purple.shade200,
-                                    Colors.blue.shade200,
-                                    Colors.pink.shade100,
-                                  ],
-                                ),
-                              ),
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.people,
-                                        size: 24,
-                                        color: Colors.black,
-                                      ),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'Event Managers',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 16),
-                                  SingleChildScrollView(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: List<Widget>.from(
-                                        (event['eventManagers'] as List<dynamic>).map(
-                                          (manager) => Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              vertical: 4.0,
-                                            ),
-                                            child: InkWell(
-                                              onTap: () {
-                                                Navigator.of(context).push(
-                                                  MaterialPageRoute(
-                                                    builder:
-                                                        (
-                                                          context,
-                                                        ) => PlayerProfilePage(
-                                                          playerName:
-                                                              manager['name'] ??
-                                                              'Unknown',
-                                                          playerEmail:
-                                                              manager['email'] ??
-                                                              '',
-                                                        ),
-                                                  ),
-                                                );
-                                              },
-                                              child: Container(
-                                                padding: EdgeInsets.all(8.0),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.orange.shade200,
-                                                  borderRadius:
-                                                      BorderRadius.circular(5),
-                                                  border: Border.all(
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    CircleAvatar(
-                                                      backgroundColor:
-                                                          Colors.blue.shade100,
-                                                      child: Icon(
-                                                        Icons.person,
-                                                        color: Colors.blue,
-                                                      ),
-                                                    ),
-                                                    SizedBox(width: 8),
-                                                    Text(
-                                                      manager['name'] ??
-                                                          'Unknown',
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.black,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(height: 16),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.black,
-                                      foregroundColor: Colors.white,
-                                    ),
-                                    onPressed: () => Navigator.pop(context),
-                                    child: Text('Close'),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                    );
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 8.0,
-                      vertical: 4.0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.orange,
-                      borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: Colors.black),
-                    ),
-                    child: Text(
+                    _buildActionButton(
                       'Event Managers',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12.0,
+                      () => _showEventManagers(context, event),
+                    ),
+                    _buildActionButton(
+                      'Event Details',
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => IYSCEventDetailsPage(
+                                event: event,
+                                isReadOnly: true,
+                              ),
+                        ),
                       ),
                     ),
-                  ),
+                    _buildActionButton(
+                      'View Result',
+                      () => _showMatchResult(context, event, date),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 4.0),
                 Align(
                   alignment: Alignment.centerRight,
                   child: IconButton(
                     icon: Icon(
                       isFavorite ? Icons.star : Icons.star_border,
                       color: isFavorite ? Colors.yellow : null,
-                      size: 18,
                     ),
                     onPressed: () => _toggleFavorite(eventId, isFavorite),
                   ),
@@ -650,25 +352,221 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
               ],
             ),
           ),
-          if (isLive)
-            Positioned(
-              bottom: 8.0,
-              left: 8.0,
-              child: AnimatedOpacity(
-                opacity: _isBlinking ? 1.0 : 0.0,
-                duration: Duration(milliseconds: 500),
-                child: Container(
-                  width: 12.0,
-                  height: 12.0,
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
     );
+  }
+
+  Widget _buildTeamButton(
+    BuildContext context,
+    Map<String, dynamic> event,
+    String teamName,
+    bool isTeam1,
+  ) {
+    return TextButton(
+      onPressed:
+          () => _showTeamDetails(
+            context,
+            event,
+            isTeam1 ? 'team1Details' : 'team2Details',
+            teamName,
+          ),
+      child: Text(
+        teamName,
+        textAlign: TextAlign.center,
+        style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildActionButton(String label, VoidCallback onPressed) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 4),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.orange.shade200,
+          foregroundColor: Colors.black,
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
+        child: Text(label, style: TextStyle(fontSize: 12)),
+      ),
+    );
+  }
+
+  Widget _buildLiveIndicator() {
+    return AnimatedOpacity(
+      opacity: _isBlinking ? 1.0 : 0.0,
+      duration: Duration(milliseconds: 500),
+      child: Container(
+        width: 12.0,
+        height: 12.0,
+        decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+      ),
+    );
+  }
+
+  void _showEventManagers(BuildContext context, Map<String, dynamic> event) {
+    if (event['eventManagers'] == null ||
+        (event['eventManagers'] as List).isEmpty) {
+      showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: Text('No Event Managers'),
+              content: Text(
+                'No event managers have been assigned to this event.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('OK'),
+                ),
+              ],
+            ),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: Colors.transparent,
+            contentPadding: EdgeInsets.zero,
+            content: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12.0),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.purple.shade200,
+                    Colors.blue.shade200,
+                    Colors.pink.shade100,
+                  ],
+                ),
+              ),
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Event Managers',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 16),
+                  ...event['eventManagers']
+                      .map<Widget>(
+                        (manager) => ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.blue.shade100,
+                            child: Icon(Icons.person, color: Colors.blue),
+                          ),
+                          title: Text(manager['name'] ?? 'Unknown'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => PlayerProfilePage(
+                                      playerName: manager['name'],
+                                      playerEmail: manager['email'],
+                                    ),
+                              ),
+                            );
+                          },
+                        ),
+                      )
+                      .toList(),
+                  SizedBox(height: 16),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('Close'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+    );
+  }
+
+  void _showMatchResult(
+    BuildContext context,
+    Map<String, dynamic> event,
+    String date,
+  ) {
+    String message = '';
+    DateTime eventDate = DateTime.parse(date);
+    DateTime now = DateTime.now();
+
+    if (eventDate.isAfter(now)) {
+      message = 'Match has not started yet';
+    } else if (eventDate.year == now.year &&
+        eventDate.month == now.month &&
+        eventDate.day == now.day) {
+      message = 'Match is live, results will be updated soon';
+    } else {
+      if (event['winner'] == null || event['winner'].isEmpty) {
+        message = 'No results available';
+      } else if (event['winner'] == 'Draw') {
+        message = 'Match ended in a draw';
+      } else {
+        message = '${event['winner']} won this match!';
+      }
+    }
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('Match Status'),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('OK'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _showTeamDetails(
+    BuildContext context,
+    Map<String, dynamic> event,
+    String teamKey,
+    String teamName,
+  ) {
+    if (event[teamKey] == null) {
+      showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: Text('Team Details Not Available'),
+              content: Text(
+                'Team member details for "$teamName" have not been added yet.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('OK'),
+                ),
+              ],
+            ),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TeamDetailsPage(teamId: event[teamKey]),
+        ),
+      );
+    }
   }
 }
