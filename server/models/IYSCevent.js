@@ -23,7 +23,11 @@ const IYSCeventSchema = new mongoose.Schema({
         overs: { type: Number, default: 0 },
         balls: { type: Number, default: 0 },
         goals: { type: Number, default: 0 },
-        rounds: [{ type: Number, default: 0 }]
+        currentRound: { type: Number, default: 1 },
+        roundHistory: [{
+            roundNumber: { type: Number, required: true },
+            score: { type: Number, default: 0 }
+        }]
     },
     team2Score: {
         runs: { type: Number, default: 0 },
@@ -31,7 +35,11 @@ const IYSCeventSchema = new mongoose.Schema({
         overs: { type: Number, default: 0 },
         balls: { type: Number, default: 0 },
         goals: { type: Number, default: 0 },
-        rounds: [{ type: Number, default: 0 }]
+        currentRound: { type: Number, default: 1 },
+        roundHistory: [{
+            roundNumber: { type: Number, required: true },
+            score: { type: Number, default: 0 }
+        }]
     },
     commentary: [{
         text: String,
@@ -57,7 +65,7 @@ IYSCeventSchema.methods.getFormattedScore = function(team) {
         // For volleyball, basketball, tennis, table tennis, etc.
         return {
             scoreString: score.goals,
-            roundsString: score.rounds.join(' - ')
+            roundsString: score.roundHistory.map(round => `Round ${round.roundNumber}: ${round.score}`).join(' - ')
         };
     }
 };
@@ -68,7 +76,7 @@ IYSCeventSchema.methods.isValidScoreUpdate = function(team, scoreType) {
     } else if (['hockey', 'football'].includes(this.type.toLowerCase())) {
         return ['goals'].includes(scoreType);
     } else {
-        return ['goals', 'rounds'].includes(scoreType);
+        return ['goals', 'roundHistory'].includes(scoreType);
     }
 };
 

@@ -94,32 +94,53 @@ export const addIYSCevent = async (req, res) => {
 
 export const updateScore = async (req, res) => {
     try {
-        const { eventId, team, scoreType, increment, roundIndex } = req.body;
+        const { eventId, team, scoreType, increment } = req.body;
         const event = await IYSCevent.findById(eventId);
         
         if (!event) {
             return res.status(404).json({ message: 'Event not found' });
         }
 
-        if (!event.isValidScoreUpdate(team, scoreType)) {
-            return res.status(400).json({ message: 'Invalid score update for this sport type' });
-        }
-
         const score = team === 'team1' ? event.team1Score : event.team2Score;
 
-        switch (event.type.toLowerCase()) {
-            case 'cricket':
-                updateCricketScore(score, scoreType, increment);
-                break;
-            case 'hockey':
-            case 'football':
-                updateGoalScore(score, increment);
-                break;
-            default:
-                updateRoundBasedScore(score, scoreType, increment, roundIndex);
+        if (scoreType === 'completeRound') {
+            // Save current round scores to history
+            event.team1Score.roundHistory.push({
+                roundNumber: event.team1Score.currentRound,
+                score: event.team1Score.goals
+            });
+            event.team2Score.roundHistory.push({
+                roundNumber: event.team2Score.currentRound,
+                score: event.team2Score.goals
+            });
+
+            // Increment round number and reset scores
+            event.team1Score.currentRound++;
+            event.team2Score.currentRound++;
+            event.team1Score.goals = 0;
+            event.team2Score.goals = 0;
+        } else if (scoreType === 'goals') {
+            score.goals = increment ? score.goals + 1 : Math.max(0, score.goals - 1);
+        } else {
+            switch (event.type.toLowerCase()) {
+                case 'cricket':
+                    updateCricketScore(score, scoreType, increment);
+                    break;
+                case 'hockey':
+                case 'football':
+                    updateGoalScore(score, increment);
+                    break;
+                default:
+                    // For round-based sports, keep rounds in sync for both teams
+                    if (scoreType === 'rounds') {
+                        updateRoundBasedScore(score, scoreType, increment);
+                        updateRoundBasedScore(otherScore, scoreType, increment);
+                    } else {
+                        updateRoundBasedScore(score, scoreType, increment, roundIndex);
+                    }
+            }
         }
 
-        // Update winner logic based on sport type
         updateWinner(event);
         await event.save();
         
@@ -190,28 +211,37 @@ function updateGoalScore(score, increment) {
     score.goals = increment ? score.goals + 1 : Math.max(0, score.goals - 1);
 }
 
-function updateRoundBasedScore(score, scoreType, increment, roundIndex) {
+function updateRoundBasedScore(score, scoreType, increment, roundIndex = 0) {
     if (scoreType === 'goals') {
         score.goals = increment ? score.goals + 1 : Math.max(0, score.goals - 1);
     } else if (scoreType === 'rounds') {
         if (!Array.isArray(score.rounds)) {
-            score.rounds = [0];
+            score.rounds = [];
         }
 
-        let currentRound = score.rounds[0] || 0;
-        
-        if (increment) {
-            currentRound++;
-        } else {
-            currentRound = Math.max(0, currentRound - 1);
+        // Add new round
+        if (increment && roundIndex >= score.rounds.length) {
+            score.rounds.push({
+                roundNumber: score.rounds.length + 1,
+                score: 0
+            });
         }
-
-        score.rounds = [currentRound];
+        // Remove last round
+        else if (!increment && score.rounds.length > 0) {
+            score.rounds.pop();
+        }
+    } else if (scoreType === 'roundScore') {
+        if (roundIndex < score.rounds.length) {
+            score.rounds[roundIndex].score = increment 
+                ? score.rounds[roundIndex].score + 1 
+                : Math.max(0, score.rounds[roundIndex].score - 1);
+        }
     }
 }
 
 function updateWinner(event) {
     if (event.type.toLowerCase() === 'cricket') {
+        // For cricket: Compare total runs
         if (event.team1Score.runs > event.team2Score.runs) {
             event.winner = event.team1;
         } else if (event.team2Score.runs > event.team1Score.runs) {
@@ -220,9 +250,16 @@ function updateWinner(event) {
             event.winner = 'draw';
         }
     } else {
-        if (event.team1Score.goals > event.team2Score.goals) {
+        // For round-based sports like basketball, volleyball, etc.
+        const team1RoundsWon = event.team1Score.roundHistory.reduce((count, round) => 
+            count + (round.score > event.team2Score.roundHistory[round.roundNumber - 1].score ? 1 : 0), 0);
+            
+        const team2RoundsWon = event.team1Score.roundHistory.reduce((count, round) => 
+            count + (round.score < event.team2Score.roundHistory[round.roundNumber - 1].score ? 1 : 0), 0);
+
+        if (team1RoundsWon > team2RoundsWon) {
             event.winner = event.team1;
-        } else if (event.team2Score.goals > event.team1Score.goals) {
+        } else if (team2RoundsWon > team1RoundsWon) {
             event.winner = event.team2;
         } else {
             event.winner = 'draw';

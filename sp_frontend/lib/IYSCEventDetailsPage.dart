@@ -6,13 +6,28 @@ import 'PlayerProfilePage.dart';
 import 'package:intl/intl.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
+class Round {
+  final int roundNumber;
+  final int score;
+
+  Round({required this.roundNumber, required this.score});
+
+  factory Round.fromJson(Map<String, dynamic> json) {
+    return Round(
+      roundNumber: json['roundNumber'] ?? 0,
+      score: json['score'] ?? 0,
+    );
+  }
+}
+
 class SportScore {
   final int runs;
   final int wickets;
   final int overs;
   final int balls;
   final int goals;
-  final List<int> rounds;
+  final int currentRound;
+  final List<Round> roundHistory;
 
   SportScore({
     this.runs = 0,
@@ -20,30 +35,39 @@ class SportScore {
     this.overs = 0,
     this.balls = 0,
     this.goals = 0,
-    this.rounds = const [],
+    this.currentRound = 1,
+    this.roundHistory = const [],
   });
 
   factory SportScore.fromJson(Map<String, dynamic> json) {
+    var historyJson = json['roundHistory'] as List<dynamic>?;
+    List<Round> parsedHistory = [];
+    if (historyJson != null) {
+      parsedHistory =
+          historyJson.map((round) => Round.fromJson(round)).toList();
+    }
+
     return SportScore(
       runs: json['runs'] ?? 0,
       wickets: json['wickets'] ?? 0,
       overs: json['overs'] ?? 0,
       balls: json['balls'] ?? 0,
       goals: json['goals'] ?? 0,
-      rounds: List<int>.from(json['rounds'] ?? []),
+      currentRound: json['currentRound'] ?? 1,
+      roundHistory: parsedHistory,
     );
   }
 
   String getFormattedScore(String sportType) {
     switch (sportType.toLowerCase()) {
       case 'cricket':
-        return '$runs/$wickets ($overs.${balls})';
+        return '$runs/$wickets ($overs.$balls)';
       case 'hockey':
       case 'football':
         return '$goals';
       default:
-        if (rounds.isEmpty) return '$goals';
-        return '${rounds.join(' - ')}';
+        if (roundHistory.isEmpty) return '$goals';
+        return roundHistory.map((r) => r.score.toString()).join(' - ');
     }
   }
 }
@@ -429,57 +453,50 @@ class _IYSCEventDetailsPageState extends State<IYSCEventDetailsPage>
                     ),
                   ],
                 ),
-                // Single Round Display for non-cricket sports
-                if (isMatchLive)
-                  Container(
-                    margin: EdgeInsets.only(top: 16),
-                    padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.white24),
+                if (isMatchLive && !widget.isReadOnly) ...[
+                  SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    icon: Icon(Icons.done_all),
+                    label: Text('Complete Round ${team1Score.currentRound}'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                     ),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Round',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          '${team1Score.rounds.isNotEmpty ? team1Score.rounds[0] : 0}',
-                          style: TextStyle(
-                            fontSize: 24,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        if (!widget.isReadOnly)
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: Icon(
-                                  Icons.remove_circle,
-                                  color: Colors.red,
-                                ),
-                                onPressed:
-                                    () => updateScore('team1', 'rounds', false),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder:
+                            (context) => AlertDialog(
+                              title: Text('Complete Round'),
+                              content: Text(
+                                'Are you sure you want to complete this round and start the next one?',
                               ),
-                              IconButton(
-                                icon: Icon(
-                                  Icons.add_circle,
-                                  color: Colors.green,
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text('Cancel'),
                                 ),
-                                onPressed:
-                                    () => updateScore('team1', 'rounds', true),
-                              ),
-                            ],
-                          ),
-                      ],
+                                TextButton(
+                                  onPressed: () {
+                                    updateScore('team1', 'completeRound', true);
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text('Yes'),
+                                ),
+                              ],
+                            ),
+                      );
+                    },
+                  ),
+                ],
+                if (team1Score.roundHistory.isNotEmpty)
+                  TextButton(
+                    onPressed: () => _showRoundHistory(),
+                    child: Text(
+                      isMatchLive ? 'View Previous Rounds' : 'View All Rounds',
                     ),
                   ),
               ],
@@ -688,6 +705,10 @@ class _IYSCEventDetailsPageState extends State<IYSCEventDetailsPage>
                 color: Colors.white,
               ),
             ),
+            Text(
+              'Round ${score.currentRound}',
+              style: TextStyle(fontSize: 14, color: Colors.white70),
+            ),
             SizedBox(height: 8),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -742,6 +763,165 @@ class _IYSCEventDetailsPageState extends State<IYSCEventDetailsPage>
     );
   }
 
+  void _showRoundHistory() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Center(
+              child: Text(
+                isMatchLive ? 'Previous Rounds' : 'Match Rounds',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+            content: Container(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (
+                      int i = 0;
+                      i < team1Score.roundHistory.length;
+                      i++
+                    ) ...[
+                      Container(
+                        margin: EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 3,
+                              offset: Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade700,
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(8),
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Round ${i + 1}',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  Column(
+                                    children: [
+                                      Text(
+                                        widget.event["team1"],
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.green.shade100,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '${team1Score.roundHistory[i].score}',
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.green.shade800,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    'vs',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  Column(
+                                    children: [
+                                      Text(
+                                        widget.event["team2"],
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.blue.shade100,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '${team2Score.roundHistory[i].score}',
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.blue.shade800,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (i < team1Score.roundHistory.length - 1)
+                        Icon(Icons.arrow_downward, color: Colors.grey),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Close'),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.blue.shade700,
+                ),
+              ),
+            ],
+          ),
+    );
+  }
+
   String _getWinningText() {
     final sportType = widget.event['type'].toString().toLowerCase();
 
@@ -756,12 +936,26 @@ class _IYSCEventDetailsPageState extends State<IYSCEventDetailsPage>
         return '${widget.event['team2']} Won by ${10 - team2Score.wickets} wickets';
       }
     } else {
-      if (team1Score.goals == team2Score.goals) {
+      // For round-based sports
+      int team1RoundsWon = 0;
+      int team2RoundsWon = 0;
+
+      for (int i = 0; i < team1Score.roundHistory.length; i++) {
+        if (team1Score.roundHistory[i].score >
+            team2Score.roundHistory[i].score) {
+          team1RoundsWon++;
+        } else if (team2Score.roundHistory[i].score >
+            team1Score.roundHistory[i].score) {
+          team2RoundsWon++;
+        }
+      }
+
+      if (team1RoundsWon == team2RoundsWon) {
         return 'Match Drawn';
       }
-      return team1Score.goals > team2Score.goals
-          ? '${widget.event['team1']} Won'
-          : '${widget.event['team2']} Won';
+      return team1RoundsWon > team2RoundsWon
+          ? '${widget.event['team1']} Won (${team1RoundsWon}-${team2RoundsWon})'
+          : '${widget.event['team2']} Won (${team2RoundsWon}-${team1RoundsWon})';
     }
   }
 
