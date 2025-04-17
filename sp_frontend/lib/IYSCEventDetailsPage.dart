@@ -954,8 +954,8 @@ class _IYSCEventDetailsPageState extends State<IYSCEventDetailsPage>
         return 'Match Drawn';
       }
       return team1RoundsWon > team2RoundsWon
-          ? '${widget.event['team1']} Won (${team1RoundsWon}-${team2RoundsWon})'
-          : '${widget.event['team2']} Won (${team2RoundsWon}-${team1RoundsWon})';
+          ? '${widget.event['team1']} Won'
+          : '${widget.event['team2']} Won';
     }
   }
 
