@@ -6,7 +6,7 @@ import { login } from '../controllers/login.js';
 import { getProfile } from '../controllers/profile.js';
 import { updateProfile, uploadProfilePic, removeProfilePic, upload } from '../controllers/editProfile.js';
 import { addIYSCevent, updateScore, addMatchCommentary as addIYSCCommentary, deleteCommentary as deleteIYSCCommentary, getEventDetails as getIYSCEventDetails, getIYSCStandings } from '../controllers/addIYSCevent.js';
-import { addGCEvent, getGCEventsByMainType } from '../controllers/addGCevent.js';
+import { addGCEvent, getGCEventsByMainType, addMatchCommentary as addGCCommentary, deleteCommentary as deleteGCCommentary, getEventDetails as getGCEventDetails, } from '../controllers/addGCevent.js';
 import { addIRCCevent, updateScore as updateIRCCScore, addMatchCommentary as addIRCCCommentary, deleteCommentary as deleteIRCCCommentary, getEventDetails as getIRCCEventDetails, getIRCCStandings } from '../controllers/addIRCCevent.js';
 import { addPHLevent, updateScore as updatePHLScore, addMatchCommentary as addPHLCommentary, deleteCommentary as deletePHLCommentary, getEventDetails as getPHLEventDetails, getPHLStandings } from '../controllers/addPHLevent.js';
 import { addBasketBrawlevent, updateScore as updateBasketBrawlScore, addMatchCommentary as addBasketBrawlCommentary, deleteCommentary as deleteBasketBrawlCommentary, getEventDetails as getBasketBrawlEventDetails, getBasketBrawlStandings } from '../controllers/addBasketBrawlevent.js';
@@ -155,6 +155,11 @@ router.post("/iysc/add-commentary", addIYSCCommentary);
 router.post("/iysc/delete-commentary", deleteIYSCCommentary);
 router.get("/iysc/standings", getIYSCStandings);
 router.get("/iysc/event/:eventId", getIYSCEventDetails);
+
+// Add GC Event Routes - Update the route parameter format
+router.get("/gc/event/:id", getGCEventDetails); // Changed from :eventId to :id to match controller
+router.post("/gc/add-commentary", addGCCommentary);
+router.post("/gc/delete-commentary", deleteGCCommentary);
 
 // Add notification routes
 router.get("/notifications", getNotifications);

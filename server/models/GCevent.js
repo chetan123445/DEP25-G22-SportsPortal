@@ -14,7 +14,11 @@ const GCeventSchema = new mongoose.Schema({
     eventManagers: [{
         name: { type: String, required: true },
         email: { type: String, required: true }
-    }] // Array of event manager objects
+    }], // Array of event manager objects
+    commentary: [{
+        text: String,
+        timestamp: { type: Date, default: Date.now }
+    }]
 });
 
 const GCevent = mongoose.model('GCevent', GCeventSchema);

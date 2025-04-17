@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'services/favorite_service.dart';
 import 'participants_page.dart'; // Import ParticipantsPage
 import 'PlayerProfilePage.dart';
+import 'GCEventDetailsPage.dart'; // Add this import
 
 class GCEventsPage extends StatefulWidget {
   final List<dynamic> events;
@@ -419,21 +420,15 @@ class _GCEventsPageState extends State<GCEventsPage> {
                       icon: Icon(Icons.info_outline, size: 16),
                       label: Text('Event Details'),
                       onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder:
-                              (context) => AlertDialog(
-                                title: Text('Event Details'),
-                                content: Text(
-                                  'Event details feature for GC events will be available soon.',
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => GCEventDetailsPage(
+                                  event: event,
+                                  isReadOnly: true,
                                 ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: Text('OK'),
-                                  ),
-                                ],
-                              ),
+                          ),
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -452,7 +447,6 @@ class _GCEventsPageState extends State<GCEventsPage> {
                         String message = '';
                         DateTime eventDate = DateTime.parse(date);
                         DateTime now = DateTime.now();
-
                         if (eventDate.isAfter(now)) {
                           message = 'Event has not started yet';
                         } else if (eventDate.year == now.year &&
@@ -470,7 +464,6 @@ class _GCEventsPageState extends State<GCEventsPage> {
                             message = '${event['winner']} won this event!';
                           }
                         }
-
                         showDialog(
                           context: context,
                           builder:
@@ -498,7 +491,6 @@ class _GCEventsPageState extends State<GCEventsPage> {
                   ],
                 ),
                 SizedBox(height: 4.0),
-
                 // Bottom Row - Favorite and View Participants
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

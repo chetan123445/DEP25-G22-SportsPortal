@@ -9,6 +9,7 @@ import 'PHLEventDetailsPage.dart';
 import 'BasketBrawlEventDetailsPage.dart';
 import 'IRCCEventDetailsPage.dart';
 import 'IYSCEventDetailsPage.dart'; // Add this import
+import 'GCEventDetailsPage.dart'; // Add this import
 
 class ManagingEventsPage extends StatefulWidget {
   final String email;
@@ -95,6 +96,9 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
     final TextEditingController timeController = TextEditingController(
       text: event['time'],
     );
+    final TextEditingController winnerController = TextEditingController(
+      text: event['winner'] ?? '',
+    );
 
     final result = await showDialog<Map<String, String>>(
       context: context,
@@ -136,6 +140,14 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
                     ),
                   ),
                 ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: winnerController,
+                  decoration: InputDecoration(
+                    labelText: 'Winner',
+                    hintText: 'Enter winner name or "Draw"',
+                  ),
+                ),
               ],
             ),
           ),
@@ -155,6 +167,7 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
                     'venue': venueController.text,
                     'date': dateController.text,
                     'time': timeController.text,
+                    'winner': winnerController.text,
                   });
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -185,6 +198,7 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
             'venue': result['venue'],
             'date': result['date'],
             'time': result['time'],
+            'winner': result['winner'], // Add winner field
           }),
         );
 
@@ -260,35 +274,32 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
       bool isLive = isEventLive(event['date']);
       return InkWell(
         onTap: () {
-          if (eventType == 'PHL') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => PHLEventDetailsPage(event: event),
-              ),
-            );
-          } else if (eventType == 'BasketBrawl') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => BasketBrawlEventDetailsPage(event: event),
-              ),
-            );
-          } else if (eventType == 'IRCC') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => IRCCEventDetailsPage(event: event),
-              ),
-            );
-          } else if (eventType == 'IYSC') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => IYSCEventDetailsPage(event: event),
-              ),
-            );
+          // Navigation logic for different event types
+          Widget detailsPage;
+          switch (eventType) {
+            case 'PHL':
+              detailsPage = PHLEventDetailsPage(event: event);
+              break;
+            case 'BasketBrawl':
+              detailsPage = BasketBrawlEventDetailsPage(event: event);
+              break;
+            case 'IRCC':
+              detailsPage = IRCCEventDetailsPage(event: event);
+              break;
+            case 'IYSC':
+              detailsPage = IYSCEventDetailsPage(event: event);
+              break;
+            case 'GC':
+              detailsPage = GCEventDetailsPage(event: event, isReadOnly: false);
+              break;
+            default:
+              return;
           }
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => detailsPage),
+          );
         },
         child: Card(
           elevation: 3.0,
@@ -717,6 +728,15 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
                                   builder:
                                       (context) =>
                                           IYSCEventDetailsPage(event: event),
+                                ),
+                              );
+                            } else if (eventType == 'GC') {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) =>
+                                          GCEventDetailsPage(event: event),
                                 ),
                               );
                             }
