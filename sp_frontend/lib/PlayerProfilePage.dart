@@ -55,6 +55,14 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
     }
   }
 
+  ImageProvider _getImageProvider(String imageData) {
+    if (imageData.startsWith('data:image')) {
+      String base64Image = imageData.split(',')[1];
+      return MemoryImage(base64Decode(base64Image));
+    }
+    return NetworkImage(imageData);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -107,11 +115,17 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
                           isRegistered &&
                                   playerDetails!['ProfilePic'].isNotEmpty
                               ? ClipOval(
-                                child: Image.network(
-                                  '$baseUrl/${playerDetails!['ProfilePic']}',
-                                  fit: BoxFit.cover,
+                                child: Container(
                                   width: 100,
                                   height: 100,
+                                  decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                      image: _getImageProvider(
+                                        playerDetails!['ProfilePic'],
+                                      ),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
                                 ),
                               )
                               : Icon(

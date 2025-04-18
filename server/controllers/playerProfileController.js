@@ -7,18 +7,23 @@ export const getPlayerDetails = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user) {
-      // If user is found, return all their details
+      // Convert user to object and handle profile picture
+      const userData = user.toObject();
+      if (userData.ProfilePic) {
+        userData.ProfilePic = `data:image/jpeg;base64,${userData.ProfilePic.toString('base64')}`;
+      }
+
       return res.status(200).json({
         success: true,
         data: {
-          name: user.name,
-          email: user.email,
-          mobileNo: user.mobileNo || '',
-          DOB: user.DOB ? user.DOB.toISOString().split('T')[0] : '',
-          Degree: user.Degree || '',
-          Department: user.Department || '',
-          CurrentYear: user.CurrentYear || '',
-          ProfilePic: user.ProfilePic || '',
+          name: userData.name,
+          email: userData.email,
+          mobileNo: userData.mobileNo || '',
+          DOB: userData.DOB ? userData.DOB.toISOString().split('T')[0] : '',
+          Degree: userData.Degree || '',
+          Department: userData.Department || '',
+          CurrentYear: userData.CurrentYear || '',
+          ProfilePic: userData.ProfilePic || '',
         },
       });
     } else {
