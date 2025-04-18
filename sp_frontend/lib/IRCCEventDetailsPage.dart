@@ -164,12 +164,16 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
             team2Players = List<Map<String, dynamic>>.from(
               eventData['team2Players'] ?? [],
             );
-            print('Team 1 Players: $team1Players'); // Debug print
-            print('Team 2 Players: $team2Players'); // Debug print
 
-            // Update commentary if needed
+            // Sort commentary by timestamp in descending order
+            List<dynamic> commentaryData = eventData['commentary'] ?? [];
+            commentaryData.sort(
+              (a, b) => DateTime.parse(
+                b['timestamp'],
+              ).compareTo(DateTime.parse(a['timestamp'])),
+            );
             commentary = List<Map<String, dynamic>>.from(
-              (eventData['commentary'] ?? []).map(
+              commentaryData.map(
                 (c) => {
                   'id': c['_id'] ?? '',
                   'text': c['text'] ?? '',
@@ -885,7 +889,6 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
           ),
           Expanded(
             child: ListView.builder(
-              reverse: true,
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               itemCount: commentary.length,
               itemBuilder: (context, index) {

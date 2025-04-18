@@ -116,11 +116,10 @@ export const addMatchCommentary = async (req, res) => {
         }
 
         const newCommentary = { text, timestamp };
-        event.commentary.push(newCommentary);
+        event.commentary = [newCommentary, ...event.commentary]; // Changed: Add to start of array
         await event.save();
 
-        // Get the newly added commentary with its ID
-        const addedCommentary = event.commentary[event.commentary.length - 1];
+        const addedCommentary = event.commentary[0]; // Get the first (newest) commentary
         
         const io = req.app.get('io');
         if (io) {

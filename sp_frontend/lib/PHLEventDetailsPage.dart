@@ -91,7 +91,7 @@ class _PHLEventDetailsPageState extends State<PHLEventDetailsPage>
   Future<void> fetchEventDetails() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/phl/event/${widget.event['_id']}'), // Updated URL
+        Uri.parse('$baseUrl/phl/event/${widget.event['_id']}'),
       );
 
       if (response.statusCode == 200) {
@@ -99,8 +99,15 @@ class _PHLEventDetailsPageState extends State<PHLEventDetailsPage>
         setState(() {
           team1Goals = data['event']['team1Goals'] ?? 0;
           team2Goals = data['event']['team2Goals'] ?? 0;
+          // Sort commentary by timestamp in descending order
+          List<dynamic> commentaryData = data['event']['commentary'] ?? [];
+          commentaryData.sort(
+            (a, b) => DateTime.parse(
+              b['timestamp'],
+            ).compareTo(DateTime.parse(a['timestamp'])),
+          );
           commentary = List<Map<String, dynamic>>.from(
-            data['event']['commentary'].map(
+            commentaryData.map(
               (c) => {
                 'id': c['_id'],
                 'text': c['text'],
@@ -623,7 +630,7 @@ class _PHLEventDetailsPageState extends State<PHLEventDetailsPage>
         ),
         Expanded(
           child: ListView.builder(
-            reverse: true,
+            // Remove reverse: true since we're already sorting the list
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             itemCount: commentary.length,
             itemBuilder: (context, index) {

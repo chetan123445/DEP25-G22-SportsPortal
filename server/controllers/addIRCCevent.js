@@ -192,25 +192,24 @@ export const addMatchCommentary = async (req, res) => {
             return res.status(404).json({ message: 'Event not found' });
         }
 
-        // Create new commentary object
+        // Change: Add new commentary to start of array
         const newCommentary = { text, timestamp };
-        event.commentary.push(newCommentary);
+        event.commentary = [newCommentary, ...event.commentary];
         await event.save();
 
-        // Get the newly added commentary with its ID
-        const addedCommentary = event.commentary[event.commentary.length - 1];
+        // Get the first (newest) commentary
+        const addedCommentary = event.commentary[0];
         
         const io = req.app.get('io');
         if (io) {
-            // Emit to all clients in the event room
             io.to(eventId).emit('commentary-update', {
                 eventId,
+                type: 'add',
                 newComment: {
                     id: addedCommentary._id,
                     text: addedCommentary.text,
                     timestamp: addedCommentary.timestamp
-                },
-                type: 'add'
+                }
             });
         }
 
