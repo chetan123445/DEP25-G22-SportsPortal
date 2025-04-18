@@ -26,7 +26,7 @@ import { getUserEvents } from '../controllers/userEventsController.js'; // Impor
 import { getManagedEvents } from '../controllers/managedEventsController.js'; // Import the new controller
 import { getAllEvents, updateEvent, deleteEvent } from '../controllers/allEvents.js';
 import { getNotifications, sendNotification, markSingleNotificationAsRead, deleteAllNotifications } from '../controllers/notificationController.js'; // Add this importificationController.js';
-import { addImage, getImages } from '../controllers/updateGallery.js'; // Import the functions from updateGallery.js
+import { addImage, getImages, deleteImages } from '../controllers/updateGallery.js'; // Import the functions from updateGallery.js
 import { updateEventDetails } from '../controllers/updateEventController.js';
 import { updateGCEventTeams } from '../controllers/GCeventController.js'; // Add new import for GC team management
 import GC from '../models/GCevent.js'; // Change from GC.js to GCevent.js
@@ -169,6 +169,7 @@ router.post("/notifications/delete-all", deleteAllNotifications);  // Add this n
 // Add routes for gallery
 router.post('/add-image', upload.single('image'), addImage); // Route to add an image
 router.get('/get-images', getImages); // Route to get all imagesRoute to add an image
+router.post('/delete-images', deleteImages); // New route for deleting images
 // Add this new route before export default routerget all images
 router.patch("/update-event-details", updateEventDetails);
 router.patch("/update-event-details", updateEventDetails);

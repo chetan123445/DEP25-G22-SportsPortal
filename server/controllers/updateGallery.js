@@ -35,4 +35,19 @@ const getImages = async (req, res) => {
     }
 };
 
-export { addImage, getImages }; // Use ES module export
+// Function to delete images
+const deleteImages = async (req, res) => {
+    try {
+        const { imageIds } = req.body;
+        if (!imageIds || !Array.isArray(imageIds)) {
+            return res.status(400).json({ message: 'Invalid image IDs' });
+        }
+
+        await Gallery.deleteMany({ _id: { $in: imageIds } });
+        res.status(200).json({ message: 'Images deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting images', error: error.message });
+    }
+};
+
+export { addImage, getImages, deleteImages }; // Use ES module export

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'constants.dart'; // Import the constants file
+import 'admin/ImagePreviewPage.dart'; // Import the ImagePreviewPage
 
 class GalleryPage extends StatefulWidget {
   @override
@@ -9,7 +10,7 @@ class GalleryPage extends StatefulWidget {
 }
 
 class _GalleryPageState extends State<GalleryPage> {
-  List<String> galleryImages = [];
+  List<Map<String, dynamic>> galleryImages = [];
   bool isLoading = true;
 
   @override
@@ -28,7 +29,9 @@ class _GalleryPageState extends State<GalleryPage> {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          galleryImages = data.map((image) => image['image'] as String).toList();
+          galleryImages = data
+              .map((image) => {'image': image['image'] as String})
+              .toList();
           isLoading = false;
         });
       } else {
@@ -58,7 +61,7 @@ class _GalleryPageState extends State<GalleryPage> {
           // Background Image
           Positioned.fill(
             child: Image.asset(
-              'assets/galleryBackground.jpg', // Path to the background image
+              'assets/galleryBackground.webp', // Path to the background image
               fit: BoxFit.cover,
             ),
           ),
@@ -92,13 +95,14 @@ class _GalleryPageState extends State<GalleryPage> {
                       itemBuilder: (context, index) {
                         return GestureDetector(
                           onTap: () {
-                            _showImageDialog(galleryImages[index]);
+                            _navigateToImagePreview(index);
                           },
                           child: Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8.0),
                               image: DecorationImage(
-                                image: MemoryImage(base64Decode(galleryImages[index])),
+                                image: MemoryImage(
+                                    base64Decode(galleryImages[index]['image'])),
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -115,21 +119,15 @@ class _GalleryPageState extends State<GalleryPage> {
     );
   }
 
-  void _showImageDialog(String base64Image) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          child: Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: MemoryImage(base64Decode(base64Image)),
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
-        );
-      },
+  void _navigateToImagePreview(int index) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ImagePreviewPage(
+          images: galleryImages,
+          initialIndex: index,
+        ),
+      ),
     );
   }
 }
