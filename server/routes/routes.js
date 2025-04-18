@@ -19,14 +19,14 @@ import { verifyFavouriteEvent } from '../controllers/verifyFavouriteEvent.js';
 import { getFavouriteEvent } from '../controllers/getFavouriteEvent.js';
 import { getTeamDetails, getTeamDetailsByName, updateTeam, createTeam } from '../controllers/teamController.js'; // Import the new controller
 import { getEventParticipants } from '../controllers/participantsController.js'; // Import the new controller
-import { addAdmin, verifyAdmin } from '../controllers/Admin.js'; // Import the verifyAdmin controller
+import { addAdmin, verifyAdmin, removeAdmin } from '../controllers/Admin.js'; // Import the verifyAdmin controller
 import { getAllPlayersWithDetails, getAllPlayersFromTeams } from '../controllers/playersController.js'; // Import the updated controller
 import { getPlayerDetails } from '../controllers/playerProfileController.js'; // Import the new controller
 import { getUserEvents } from '../controllers/userEventsController.js'; // Import the new controller
 import { getManagedEvents } from '../controllers/managedEventsController.js'; // Import the new controller
 import { getAllEvents, updateEvent, deleteEvent } from '../controllers/allEvents.js';
 import { getNotifications, sendNotification, markSingleNotificationAsRead, deleteAllNotifications } from '../controllers/notificationController.js'; // Add this importificationController.js';
-import { addImage, getImages } from '../controllers/updateGallery.js'; // Import the functions from updateGallery.js
+import { addImage, getImages, deleteImages } from '../controllers/updateGallery.js'; // Import the functions from updateGallery.js
 import { updateEventDetails } from '../controllers/updateEventController.js';
 import { updateGCEventTeams } from '../controllers/GCeventController.js'; // Add new import for GC team management
 import GC from '../models/GCevent.js'; // Change from GC.js to GCevent.js
@@ -113,6 +113,7 @@ router.get("/get-team-details-by-name/:teamName", getTeamDetailsByName); // Add 
 router.get("/get-event-participants/:eventId", getEventParticipants); // Add route for fetching event participants
 router.post("/add-admin", addAdmin); // Add route for adding an admin
 router.post("/verify-admin", verifyAdmin); // Add route for verifying an admin
+router.post("/remove-admin", removeAdmin); // Add route for removing an admin
 router.get("/all-players", getAllPlayersWithDetails); // Add route for fetching all players with details
 router.get("/all-players-from-teams", getAllPlayersFromTeams); // Add route for fetching all players from teams
 router.get("/player-details/:email", getPlayerDetails); // Add route to fetch player details
@@ -169,6 +170,7 @@ router.post("/notifications/delete-all", deleteAllNotifications);  // Add this n
 // Add routes for gallery
 router.post('/add-image', upload.single('image'), addImage); // Route to add an image
 router.get('/get-images', getImages); // Route to get all imagesRoute to add an image
+router.post('/delete-images', deleteImages); // New route for deleting images
 // Add this new route before export default routerget all images
 router.patch("/update-event-details", updateEventDetails);
 router.patch("/update-event-details", updateEventDetails);
