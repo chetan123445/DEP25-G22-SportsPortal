@@ -66,9 +66,27 @@ class _LoginPageState extends State<LoginPage> {
         (Route<dynamic> route) => false, // Remove all previous routes
       );
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Login failed: ${response.body}')));
+      final responseData = jsonDecode(response.body);
+      final errorMessage = responseData['message'] ?? 'Login failed';
+
+      // Show error dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text(errorMessage),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 
