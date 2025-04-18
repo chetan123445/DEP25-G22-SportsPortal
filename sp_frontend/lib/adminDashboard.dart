@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http; // Import for HTTP requests
 import '../admin/ManageEventPage.dart'; // Add this import at the top
 import '../admin/AddGalleryPage.dart'; // Import the AddGalleryPage
 import '../admin/RemoveGalleryPage.dart'; // Import the RemoveGalleryPage
+import '../admin/AddRemoveAdminPage.dart'; // Import the AddRemoveAdminPage
 
 void main() {
   runApp(
@@ -56,6 +57,7 @@ class DashboardScreen extends StatelessWidget {
     {'name': 'Manage Event and Event Managers', 'icon': Icons.admin_panel_settings},
     {'name': 'Add Gallery Pics', 'icon': Icons.photo_library},
     {'name': 'Remove Gallery Pics', 'icon': Icons.delete}, // New option
+    {'name': 'Add/Remove Admin', 'icon': Icons.person_add}, // New option
   ];
 
   @override
@@ -261,6 +263,13 @@ class CategoryTile extends StatelessWidget {
             context,
             MaterialPageRoute(
               builder: (context) => RemoveGalleryPage(email: email, name: name), // Navigate to RemoveGalleryPage
+            ),
+          );
+        } else if (title == 'Add/Remove Admin') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddRemoveAdminPage(email: email, name: name),
             ),
           );
         }
