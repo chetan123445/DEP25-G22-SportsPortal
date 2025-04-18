@@ -86,11 +86,6 @@ class _ManageEventPageState extends State<ManageEventPage> {
     }
   }
 
-  Future<void> _showFilterDialog() async {
-    // Copy from Events.dart _showFilterDialog implementation
-    // ...existing code from Events.dart...
-  }
-
   Future<void> _updateTeamPlayers(
     String teamId,
     List<Map<String, dynamic>> players,
@@ -189,6 +184,29 @@ class _ManageEventPageState extends State<ManageEventPage> {
     );
     final genderController = TextEditingController(text: event['gender']);
     final winnerController = TextEditingController(text: event['winner'] ?? '');
+
+    // Add non-GC teams section
+    if (event['eventType'] != 'GC') {
+      // Fetch team details for non-GC events
+      try {
+        final response = await http.get(
+          Uri.parse(
+            '$baseUrl/event/${event['_id']}/${event['eventType']}/teams',
+          ),
+        );
+
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          event['team1Details'] = data['team1']['details'];
+          event['team2Details'] = data['team2']['details'];
+        }
+      } catch (e) {
+        print('Error fetching team details: $e');
+      }
+    }
+
+    // Create a map for updates
+    Map<String, dynamic> updates = {};
 
     await showDialog(
       context: context,
@@ -364,53 +382,151 @@ class _ManageEventPageState extends State<ManageEventPage> {
                         ),
                       ],
 
-                      // Event Managers Section
-                      SizedBox(height: 16),
-                      Text(
-                        'Event Managers',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Container(
-                        constraints: BoxConstraints(maxHeight: 200),
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: eventManagers.length,
-                          itemBuilder: (context, index) {
-                            return ListTile(
-                              title: Text(eventManagers[index]['name'] ?? ''),
-                              subtitle: Text(
-                                eventManagers[index]['email'] ?? '',
-                              ),
-                              trailing: IconButton(
-                                icon: Icon(Icons.delete),
-                                onPressed: () {
+                      // Non-GC Event Teams Section
+                      if (event['eventType'] != 'GC') ...[
+                        SizedBox(height: 20),
+                        Text(
+                          'Teams',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        // Team 1 Section
+                        Card(
+                          margin: EdgeInsets.symmetric(vertical: 8),
+                          child: ExpansionTile(
+                            title: Text(event['team1'] ?? 'Team 1'),
+                            children: [
+                              _buildTeamPlayersSection(
+                                event['team1'],
+                                (event['team1Details']?['members'] ?? [])
+                                    .cast<Map<String, dynamic>>(),
+                                (index) {
                                   setState(() {
-                                    eventManagers.removeAt(index);
-                                    // Update the original event immediately
-                                    event['eventManagers'] = List.from(
-                                      eventManagers,
+                                    if (event['team1Details'] == null) {
+                                      event['team1Details'] = {'members': []};
+                                    }
+                                    event['team1Details']['members'].removeAt(
+                                      index,
                                     );
                                   });
                                 },
+                                () async {
+                                  final result =
+                                      await showDialog<Map<String, dynamic>>(
+                                        context: context,
+                                        builder:
+                                            (context) => _AddPlayerDialog(),
+                                      );
+                                  if (result != null) {
+                                    setState(() {
+                                      if (event['team1Details'] == null) {
+                                        event['team1Details'] = {'members': []};
+                                      }
+                                      event['team1Details']['members'].add(
+                                        result,
+                                      );
+                                    });
+                                  }
+                                },
                               ),
-                            );
-                          },
+                            ],
+                          ),
                         ),
+                        // Team 2 Section
+                        Card(
+                          margin: EdgeInsets.symmetric(vertical: 8),
+                          child: ExpansionTile(
+                            title: Text(event['team2'] ?? 'Team 2'),
+                            children: [
+                              _buildTeamPlayersSection(
+                                event['team2'],
+                                (event['team2Details']?['members'] ?? [])
+                                    .cast<Map<String, dynamic>>(),
+                                (index) {
+                                  setState(() {
+                                    if (event['team2Details'] == null) {
+                                      event['team2Details'] = {'members': []};
+                                    }
+                                    event['team2Details']['members'].removeAt(
+                                      index,
+                                    );
+                                  });
+                                },
+                                () async {
+                                  final result =
+                                      await showDialog<Map<String, dynamic>>(
+                                        context: context,
+                                        builder:
+                                            (context) => _AddPlayerDialog(),
+                                      );
+                                  if (result != null) {
+                                    setState(() {
+                                      if (event['team2Details'] == null) {
+                                        event['team2Details'] = {'members': []};
+                                      }
+                                      event['team2Details']['members'].add(
+                                        result,
+                                      );
+                                    });
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+
+                      // Event Managers Section
+                      SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Event Managers',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            icon: Icon(Icons.add),
+                            label: Text('Add Manager'),
+                            onPressed: () async {
+                              final result =
+                                  await showDialog<Map<String, dynamic>>(
+                                    context: context,
+                                    builder:
+                                        (context) => _AddEventManagerDialog(),
+                                  );
+                              if (result != null) {
+                                setState(() {
+                                  eventManagers.add(result);
+                                });
+                              }
+                            },
+                          ),
+                        ],
                       ),
-                      ElevatedButton(
-                        child: Text('Add Event Manager'),
-                        onPressed: () async {
-                          final result = await showDialog<Map<String, dynamic>>(
-                            context: context,
-                            builder: (context) => _AddEventManagerDialog(),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: eventManagers.length,
+                        itemBuilder: (context, index) {
+                          final manager = eventManagers[index];
+                          return ListTile(
+                            title: Text(manager['name'] ?? ''),
+                            subtitle: Text(manager['email'] ?? ''),
+                            trailing: IconButton(
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              onPressed: () {
+                                setState(() {
+                                  eventManagers.removeAt(index);
+                                });
+                              },
+                            ),
                           );
-                          if (result != null) {
-                            setState(() {
-                              eventManagers.add(result);
-                              // Update the original event immediately
-                              event['eventManagers'] = List.from(eventManagers);
-                            });
-                          }
                         },
                       ),
 
@@ -433,87 +549,43 @@ class _ManageEventPageState extends State<ManageEventPage> {
                               backgroundColor: Colors.green,
                             ),
                             onPressed: () async {
-                              Map<String, dynamic> updates = {};
-
-                              // Add common field updates
-                              if (venueController.text !=
-                                  originalEvent['venue'])
+                              // Collect updates
+                              if (venueController.text != event['venue'])
                                 updates['venue'] = venueController.text;
-                              if (timeController.text != originalEvent['time'])
+                              if (timeController.text != event['time'])
                                 updates['time'] = timeController.text;
                               if (dateController.text !=
-                                  originalEvent['date']?.toString().split(
-                                    'T',
-                                  )[0])
+                                  event['date']?.toString().split('T')[0])
                                 updates['date'] = dateController.text;
                               if (descriptionController.text !=
-                                  originalEvent['description'])
+                                  event['description'])
                                 updates['description'] =
                                     descriptionController.text;
-                              if (genderController.text !=
-                                  originalEvent['gender'])
+                              if (genderController.text != event['gender'])
                                 updates['gender'] = genderController.text;
                               if (winnerController.text !=
-                                  (originalEvent['winner'] ?? ''))
+                                  (event['winner'] ?? ''))
                                 updates['winner'] =
                                     winnerController.text.isEmpty
                                         ? null
                                         : winnerController.text;
 
-                              // For GC events, update teams
-                              if (event['eventType'] == 'GC') {
-                                try {
-                                  // Prepare teams data with IDs preserved
-                                  final teamsData =
-                                      teamsList
-                                          .map(
-                                            (team) => {
-                                              'teamName': team['teamName'],
-                                              'members': team['members'],
-                                              '_id':
-                                                  team['_id'], // Preserve existing team ID
-                                            },
-                                          )
-                                          .toList();
-
-                                  final teamsUpdateResponse = await http.put(
-                                    Uri.parse(
-                                      '$baseUrl/gc-event/${event['_id']}/teams',
-                                    ),
-                                    headers: {
-                                      'Content-Type': 'application/json',
-                                    },
-                                    body: json.encode({
-                                      'teams': teamsData,
-                                      'eventManagers': eventManagers,
-                                    }),
-                                  );
-
-                                  if (teamsUpdateResponse.statusCode != 200) {
-                                    throw Exception(
-                                      'Failed to update teams and managers',
-                                    );
-                                  }
-                                } catch (e) {
-                                  print(
-                                    'Error updating teams and managers: $e',
-                                  );
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Error updating teams and managers',
-                                      ),
-                                    ),
-                                  );
-                                  return;
-                                }
+                              // Add team updates for non-GC events
+                              if (event['eventType'] != 'GC') {
+                                updates['team1Details'] = event['team1Details'];
+                                updates['team2Details'] = event['team2Details'];
                               }
 
-                              try {
-                                // Add event managers to updates for all event types
-                                updates['eventManagers'] = eventManagers;
+                              // Add team updates for GC events
+                              if (event['eventType'] == 'GC') {
+                                updates['teams'] = teamsList;
+                              }
 
-                                // Send the updates to the server
+                              // Always include event managers in updates
+                              updates['eventManagers'] = eventManagers;
+
+                              // Rest of the update logic
+                              try {
                                 final response = await http.patch(
                                   Uri.parse('$baseUrl/update-event'),
                                   headers: {'Content-Type': 'application/json'},

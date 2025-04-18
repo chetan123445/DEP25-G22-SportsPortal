@@ -186,4 +186,88 @@ router.get('/gc-event/:eventId/teams', async (req, res) => {
     }
 });
 
+// Add new routes for team management
+router.get('/event/:eventId/:eventType/teams', async (req, res) => {
+    try {
+        const { eventId, eventType } = req.params;
+        let EventModel;
+        
+        switch (eventType) {
+            case 'IYSC': EventModel = IYSC; break;
+            case 'IRCC': EventModel = IRCC; break;
+            case 'PHL': EventModel = PHL; break;
+            case 'BasketBrawl': EventModel = BasketBrawl; break;
+            default:
+                return res.status(404).json({ message: 'Invalid event type' });
+        }
+
+        const event = await EventModel.findById(eventId)
+            .populate('team1Details')
+            .populate('team2Details');
+
+        if (!event) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        res.json({
+            team1: {
+                name: event.team1,
+                details: event.team1Details
+            },
+            team2: {
+                name: event.team2,
+                details: event.team2Details
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching teams', error: error.message });
+    }
+});
+
+// Add route to update team details for non-GC events
+router.put('/event/:eventId/:eventType/team/:teamNumber', async (req, res) => {
+    try {
+        const { eventId, eventType, teamNumber } = req.params;
+        const { members } = req.body;
+        let EventModel;
+
+        switch (eventType) {
+            case 'IYSC': EventModel = IYSC; break;
+            case 'IRCC': EventModel = IRCC; break;
+            case 'PHL': EventModel = PHL; break;
+            case 'BasketBrawl': EventModel = BasketBrawl; break;
+            default:
+                return res.status(404).json({ message: 'Invalid event type' });
+        }
+
+        const event = await EventModel.findById(eventId);
+        if (!event) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        const teamField = teamNumber === '1' ? 'team1Details' : 'team2Details';
+        const teamId = event[teamField];
+
+        if (teamId) {
+            await Team.findByIdAndUpdate(teamId, { members });
+        } else {
+            const newTeam = new Team({
+                teamName: event[teamNumber === '1' ? 'team1' : 'team2'],
+                members
+            });
+            const savedTeam = await newTeam.save();
+            event[teamField] = savedTeam._id;
+            await event.save();
+        }
+
+        const updatedEvent = await EventModel.findById(eventId)
+            .populate('team1Details')
+            .populate('team2Details');
+
+        res.json({ message: 'Team updated successfully', event: updatedEvent });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating team', error: error.message });
+    }
+});
+
 export default router;

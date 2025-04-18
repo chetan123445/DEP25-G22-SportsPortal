@@ -140,15 +140,85 @@ export const updateEvent = async (req, res) => {
             return res.status(404).json({ message: 'Event not found' });
         }
 
+        // Handle team updates for non-GC events
+        if (eventType !== 'GC' && (updates.team1Details || updates.team2Details)) {
+            try {
+                // Update team1 if provided
+                if (updates.team1Details) {
+                    if (updates.team1Details._id) {
+                        // Update existing team
+                        await Team.findByIdAndUpdate(
+                            updates.team1Details._id,
+                            { members: updates.team1Details.members }
+                        );
+                    } else {
+                        // Create new team
+                        const newTeam = new Team({
+                            teamName: updates.team1,
+                            members: updates.team1Details.members
+                        });
+                        const savedTeam = await newTeam.save();
+                        updates.team1Details = savedTeam._id;
+                    }
+                }
+
+                // Update team2 if provided
+                if (updates.team2Details) {
+                    if (updates.team2Details._id) {
+                        // Update existing team
+                        await Team.findByIdAndUpdate(
+                            updates.team2Details._id,
+                            { members: updates.team2Details.members }
+                        );
+                    } else {
+                        // Create new team
+                        const newTeam = new Team({
+                            teamName: updates.team2,
+                            members: updates.team2Details.members
+                        });
+                        const savedTeam = await newTeam.save();
+                        updates.team2Details = savedTeam._id;
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating teams:', error);
+                return res.status(500).json({ message: 'Error updating teams', error: error.message });
+            }
+        }
+
         // If updating a GC event
         if (eventType === 'GC') {
-            // Filter out team1 and team2 related updates
-            const { team1, team2, team1Details, team2Details, ...validUpdates } = updates;
-            
-            // Update the event
+            // Handle GC event teams and managers together
+            const validUpdates = { ...updates };
+            if (updates.teams) {
+                // Process teams
+                for (const team of updates.teams) {
+                    if (team._id) {
+                        // Update existing team
+                        await Team.findByIdAndUpdate(team._id, {
+                            teamName: team.teamName,
+                            members: team.members
+                        });
+                    } else {
+                        // Create new team
+                        const newTeam = new Team({
+                            teamName: team.teamName,
+                            members: team.members
+                        });
+                        const savedTeam = await newTeam.save();
+                        team._id = savedTeam._id;
+                    }
+                }
+                validUpdates.participants = updates.teams.map(team => team._id);
+            }
+
+            // Update the event with teams and other fields
             const updatedEvent = await EventModel.findByIdAndUpdate(
                 eventId,
-                validUpdates,
+                {
+                    ...validUpdates,
+                    eventManagers: updates.eventManagers // Preserve event managers
+                },
                 { 
                     new: true,
                     runValidators: true,
