@@ -5,6 +5,7 @@ import 'home.dart'; // Import the HomePage
 import 'signup.dart'; // Import the SignUpPage
 import 'constants.dart'; // Import the constants file
 import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
+import 'forgot_password.dart'; // Import the ForgotPasswordPage
 
 void main() {
   runApp(MyApp());
@@ -150,7 +151,10 @@ class _LoginPageState extends State<LoginPage> {
                 SizedBox(height: 16),
                 TextButton(
                   onPressed: () {
-                    // Handle forgot password logic here
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ForgotPasswordPage()),
+                    );
                   },
                   child: Text(
                     'Forgot password?',
