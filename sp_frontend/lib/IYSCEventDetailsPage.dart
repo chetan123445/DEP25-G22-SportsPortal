@@ -777,135 +777,161 @@ class _IYSCEventDetailsPageState extends State<IYSCEventDetailsPage>
             content: Container(
               width: double.maxFinite,
               child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (
-                      int i = 0;
-                      i < team1Score.roundHistory.length;
-                      i++
-                    ) ...[
-                      Container(
-                        margin: EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 3,
-                              offset: Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(vertical: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.shade700,
-                                borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(8),
-                                ),
+                scrollDirection: Axis.horizontal,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (
+                        int i = 0;
+                        i < team1Score.roundHistory.length;
+                        i++
+                      ) ...[
+                        Container(
+                          margin: EdgeInsets.symmetric(vertical: 12),
+                          // Removed fixed width to allow natural content width
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 3,
+                                offset: Offset(0, 1),
                               ),
-                              child: Center(
-                                child: Text(
-                                  'Round ${i + 1}',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  Column(
-                                    children: [
-                                      Text(
-                                        widget.event["team1"],
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 6,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.green.shade100,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          '${team1Score.roundHistory[i].score}',
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.green.shade800,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Text(
-                                    'vs',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.grey,
+                            ],
+                          ),
+                          child: IntrinsicWidth(
+                            // Added to ensure container takes minimum required width
+                            child: Column(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: 8,
+                                    horizontal: 24,
+                                  ), // Added horizontal padding
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade700,
+                                    borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(8),
                                     ),
                                   ),
-                                  Column(
+                                  child: Center(
+                                    child: Text(
+                                      'Round ${i + 1}',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(
-                                        widget.event["team2"],
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                              widget.event["team1"],
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            SizedBox(height: 4),
+                                            Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 12,
+                                                vertical: 6,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.green.shade100,
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                '${team1Score.roundHistory[i].score}',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.green.shade800,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      SizedBox(height: 4),
-                                      Container(
+                                      Padding(
                                         padding: EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 6,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.blue.shade100,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
+                                          horizontal: 16,
                                         ),
                                         child: Text(
-                                          '${team2Score.roundHistory[i].score}',
+                                          'vs',
                                           style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.blue.shade800,
+                                            fontSize: 16,
+                                            color: Colors.grey,
                                           ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                              widget.event["team2"],
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            SizedBox(height: 4),
+                                            Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 12,
+                                                vertical: 6,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.blue.shade100,
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                '${team2Score.roundHistory[i].score}',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.blue.shade800,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                      if (i < team1Score.roundHistory.length - 1)
-                        Icon(Icons.arrow_downward, color: Colors.grey),
+                        if (i < team1Score.roundHistory.length - 1)
+                          Icon(Icons.arrow_downward, color: Colors.grey),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
