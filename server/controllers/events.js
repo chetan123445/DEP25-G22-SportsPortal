@@ -61,9 +61,20 @@ const buildQuery = (req) => {
 export const getLiveEvents = async (req, res) => {
     try {
         const query = buildQuery(req);
-        const startOfDay = moment().startOf('day').toDate();
-        const endOfDay = moment().endOf('day').toDate();
-        query.date = { $gte: startOfDay, $lte: endOfDay };
+        
+        // Get today's date without time component
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Get tomorrow's date
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        // Set date filter for today only
+        query.date = { 
+            $gte: today,
+            $lt: tomorrow
+        };
 
         const [iyscEvents, gcEvents, irccEvents, phlEvents, basketbrawlEvents] = await Promise.all([
             IYSCevent.find(query),
@@ -73,12 +84,13 @@ export const getLiveEvents = async (req, res) => {
             BasketBrawlevent.find(query)
         ]);
 
+        // Mark all today's events as live without time check
         const liveEvents = [
-            ...addEventType(iyscEvents, 'IYSC', true),
-            ...addEventType(gcEvents, 'GC', true),
-            ...addEventType(irccEvents, 'IRCC', true),
-            ...addEventType(phlEvents, 'PHL', true),
-            ...addEventType(basketbrawlEvents, 'BasketBrawl', true)
+            ...iyscEvents.map(event => ({...event.toObject(), eventType: 'IYSC', isLive: true})),
+            ...gcEvents.map(event => ({...event.toObject(), eventType: 'GC', isLive: true})),
+            ...irccEvents.map(event => ({...event.toObject(), eventType: 'IRCC', isLive: true})),
+            ...phlEvents.map(event => ({...event.toObject(), eventType: 'PHL', isLive: true})),
+            ...basketbrawlEvents.map(event => ({...event.toObject(), eventType: 'BasketBrawl', isLive: true}))
         ];
 
         res.status(200).json(liveEvents);
@@ -90,7 +102,12 @@ export const getLiveEvents = async (req, res) => {
 export const getUpcomingEvents = async (req, res) => {
     try {
         const query = buildQuery(req);
-        const tomorrow = moment().add(1, 'days').startOf('day').toDate();
+        
+        // Get tomorrow's date
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+        
         query.date = { $gte: tomorrow };
 
         const [iyscEvents, gcEvents, irccEvents, phlEvents, basketbrawlEvents] = await Promise.all([
@@ -118,8 +135,12 @@ export const getUpcomingEvents = async (req, res) => {
 export const getPastEvents = async (req, res) => {
     try {
         const query = buildQuery(req);
-        const today = moment().startOf('day').toDate();
-        query.date = { $lt: today }; // Fetch all events before today
+        
+        // Get today's date
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        query.date = { $lt: today };
 
         const [iyscEvents, gcEvents, irccEvents, phlEvents, basketbrawlEvents] = await Promise.all([
             IYSCevent.find(query),

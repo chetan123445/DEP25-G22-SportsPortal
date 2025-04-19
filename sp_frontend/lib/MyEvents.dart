@@ -23,6 +23,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
   List<dynamic> allEvents = [];
   List<dynamic> filteredEvents = [];
   String searchQuery = '';
+  bool isLoading = true; // Add loading state
 
   Future<List<dynamic>> _fetchMyEvents(String email) async {
     try {
@@ -32,14 +33,41 @@ class _MyEventsPageState extends State<MyEventsPage> {
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        // Print event data to debug
-        print('Fetched events data: ${data['events']}');
         return data['events'] ?? [];
       }
     } catch (e) {
       print('Error fetching events: $e');
     }
     return [];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEvents();
+  }
+
+  Future<void> _loadEvents() async {
+    setState(() {
+      isLoading = true; // Show loading state while fetching
+    });
+
+    try {
+      final events = await _fetchMyEvents(widget.email);
+      if (mounted) {
+        setState(() {
+          allEvents = events;
+          filteredEvents = events;
+          isLoading = false; // Hide loading state after fetch completes
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isLoading = false; // Hide loading state even if there's an error
+        });
+      }
+    }
   }
 
   Future<Map<String, dynamic>> _fetchUpdatedEventDetails(
@@ -227,17 +255,6 @@ class _MyEventsPageState extends State<MyEventsPage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _fetchMyEvents(widget.email).then((events) {
-      setState(() {
-        allEvents = events;
-        filteredEvents = events;
-      });
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -260,23 +277,50 @@ class _MyEventsPageState extends State<MyEventsPage> {
           ),
           Expanded(
             child:
-                filteredEvents.isEmpty
+                isLoading
                     ? Center(
-                      child: Container(
-                        padding: EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8.0),
-                          border: Border.all(color: Colors.green, width: 1.5),
-                        ),
-                        child: Text(
-                          'No Events found for you',
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text(
+                            'Loading your events...',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
+                        ],
+                      ),
+                    )
+                    : filteredEvents.isEmpty
+                    ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.event_busy, size: 64, color: Colors.grey),
+                          SizedBox(height: 16),
+                          Container(
+                            padding: EdgeInsets.all(16.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8.0),
+                              border: Border.all(
+                                color: Colors.green,
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Text(
+                              'No Events found for you',
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     )
                     : ListView.builder(

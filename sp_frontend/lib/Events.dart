@@ -32,6 +32,7 @@ class _EventsPageState extends State<EventsPage>
   Map<String, bool> favoriteStatus = {};
   String? userId;
   Map<String, dynamic> filters = {'eventType': [], 'gender': [], 'year': []};
+  bool isLoading = true; // Add loading state
 
   @override
   void initState() {
@@ -335,45 +336,59 @@ class _EventsPageState extends State<EventsPage>
   }
 
   Future<void> fetchEvents() async {
-    String query = '?';
-    if (searchQuery.isNotEmpty) {
-      query += 'search=$searchQuery&';
-    }
-    if (filters['eventType'].isNotEmpty) {
-      query += 'eventType=${filters['eventType'].join(',')}&';
-    }
-    if (filters['gender'].isNotEmpty) {
-      query += 'gender=${filters['gender'].join(',')}&';
-    }
-    if (filters['year'].isNotEmpty) {
-      query += 'year=${filters['year'].join(',')}&';
-    }
+    setState(() {
+      isLoading = true; // Set loading to true when fetching starts
+    });
 
-    final liveResponse = await http.get(
-      Uri.parse('$baseUrl/live-events$query'),
-    );
-    final upcomingResponse = await http.get(
-      Uri.parse('$baseUrl/upcoming-events$query'),
-    );
-    final pastResponse = await http.get(
-      Uri.parse('$baseUrl/past-events$query'),
-    );
+    try {
+      String query = '?';
+      if (searchQuery.isNotEmpty) {
+        query += 'search=$searchQuery&';
+      }
+      if (filters['eventType'].isNotEmpty) {
+        query += 'eventType=${filters['eventType'].join(',')}&';
+      }
+      if (filters['gender'].isNotEmpty) {
+        query += 'gender=${filters['gender'].join(',')}&';
+      }
+      if (filters['year'].isNotEmpty) {
+        query += 'year=${filters['year'].join(',')}&';
+      }
 
-    if (liveResponse.statusCode == 200 &&
-        upcomingResponse.statusCode == 200 &&
-        pastResponse.statusCode == 200) {
-      setState(() {
-        liveEvents = json.decode(liveResponse.body);
-        upcomingEvents = json.decode(upcomingResponse.body);
-        pastEvents = json.decode(pastResponse.body);
-      });
+      final liveResponse = await http.get(
+        Uri.parse('$baseUrl/live-events$query'),
+      );
+      final upcomingResponse = await http.get(
+        Uri.parse('$baseUrl/upcoming-events$query'),
+      );
+      final pastResponse = await http.get(
+        Uri.parse('$baseUrl/past-events$query'),
+      );
 
-      // Load favorites for all event lists
-      await _loadFavoriteStatus(liveEvents);
-      await _loadFavoriteStatus(upcomingEvents);
-      await _loadFavoriteStatus(pastEvents);
-    } else {
-      print('Failed to load events');
+      if (liveResponse.statusCode == 200 &&
+          upcomingResponse.statusCode == 200 &&
+          pastResponse.statusCode == 200) {
+        if (mounted) {
+          setState(() {
+            liveEvents = json.decode(liveResponse.body);
+            upcomingEvents = json.decode(upcomingResponse.body);
+            pastEvents = json.decode(pastResponse.body);
+            isLoading = false; // Set loading to false when fetch completes
+          });
+        }
+
+        // Load favorites after events are loaded
+        await _loadFavoriteStatus(liveEvents);
+        await _loadFavoriteStatus(upcomingEvents);
+        await _loadFavoriteStatus(pastEvents);
+      }
+    } catch (error) {
+      print('Error fetching events: $error');
+      if (mounted) {
+        setState(() {
+          isLoading = false; // Set loading to false even if there's an error
+        });
+      }
     }
   }
 
@@ -443,6 +458,23 @@ class _EventsPageState extends State<EventsPage>
     List<dynamic> events, {
     bool isLive = false,
   }) {
+    // Show loading indicator while loading
+    if (isLoading) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text(
+              'Loading events...',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+      );
+    }
+
     // Filter events if showFavoritesOnly is true
     var filteredEvents =
         showFavoritesOnly
@@ -451,11 +483,25 @@ class _EventsPageState extends State<EventsPage>
                 .toList()
             : events;
 
-    if (filteredEvents.isEmpty) {
+    // Only show "No events found" when not loading and there are no events
+    if (!isLoading && filteredEvents.isEmpty) {
       return Center(
-        child: Text(
-          showFavoritesOnly ? 'No favorite events found' : 'No events found',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.event_busy, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              showFavoritesOnly
+                  ? 'No favorite events found'
+                  : 'No events found',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
         ),
       );
     }

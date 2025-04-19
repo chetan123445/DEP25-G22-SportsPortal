@@ -799,6 +799,74 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
     }
   }
 
+  Widget _buildEventTypeList(String eventType) {
+    if (isLoading) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text(
+              'Loading events...',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final events = managedEvents?[eventType] ?? [];
+    final filteredEvents = events.where(_eventMatchesSearch).toList();
+
+    if (!isLoading && (managedEvents == null || events.isEmpty)) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.event_busy, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              'No $eventType events to manage',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (!isLoading && filteredEvents.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.search_off, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              'No $eventType events match your search',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: filteredEvents.length,
+      itemBuilder: (context, index) {
+        return _buildEventCard(eventType, filteredEvents[index]);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -857,9 +925,40 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
           Expanded(
             child:
                 isLoading
-                    ? Center(child: CircularProgressIndicator())
+                    ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text(
+                            'Loading your managed events...',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
                     : managedEvents == null
-                    ? Center(child: Text('You are not an event manager'))
+                    ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.event_busy, size: 64, color: Colors.grey),
+                          SizedBox(height: 16),
+                          Text(
+                            'You are not an event manager',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
                     : TabBarView(
                       controller: _tabController,
                       children: [
@@ -873,27 +972,6 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildEventTypeList(String eventType) {
-    final events = managedEvents?[eventType] ?? [];
-    final filteredEvents = events.where(_eventMatchesSearch).toList();
-
-    if (filteredEvents.isEmpty) {
-      return Center(
-        child: Text(
-          'No $eventType events to manage',
-          style: TextStyle(fontSize: 18),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      itemCount: filteredEvents.length,
-      itemBuilder: (context, index) {
-        return _buildEventCard(eventType, filteredEvents[index]);
-      },
     );
   }
 }
