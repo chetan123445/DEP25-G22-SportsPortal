@@ -631,7 +631,8 @@ class _PHLPageState extends State<PHLPage> {
                             builder:
                                 (context) => PHLEventDetailsPage(
                                   event: event,
-                                  isReadOnly: true,
+                                  isReadOnly:
+                                      true, // Set to true for regular users
                                 ),
                           ),
                         );

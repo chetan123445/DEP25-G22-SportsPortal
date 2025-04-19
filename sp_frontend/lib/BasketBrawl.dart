@@ -577,7 +577,8 @@ class _BasketBrawlPageState extends State<BasketBrawlPage> {
                             builder:
                                 (context) => BasketBrawlEventDetailsPage(
                                   event: event,
-                                  isReadOnly: true,
+                                  isReadOnly:
+                                      true, // Set to true for regular users
                                 ),
                           ),
                         );

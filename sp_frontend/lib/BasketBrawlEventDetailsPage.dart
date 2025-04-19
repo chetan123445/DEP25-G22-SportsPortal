@@ -61,8 +61,8 @@ class _BasketBrawlEventDetailsPageState
     socket.on('score-update', (data) {
       if (data['eventId'] == widget.event['_id'] && mounted) {
         setState(() {
-          team1Goals = data['team1Score'] ?? 0;
-          team2Goals = data['team2Score'] ?? 0;
+          team1Goals = data['team1Score'] ?? 0; // Changed from team1Goals
+          team2Goals = data['team2Score'] ?? 0; // Changed from team2Goals
         });
       }
     });
@@ -77,10 +77,7 @@ class _BasketBrawlEventDetailsPageState
               'timestamp': data['newComment']['timestamp'],
             });
           } else if (data['type'] == 'delete') {
-            commentary =
-                commentary
-                    .where((c) => c['id'] != data['commentaryId'])
-                    .toList();
+            commentary.removeWhere((c) => c['id'] == data['commentaryId']);
           }
         });
       }
@@ -96,23 +93,18 @@ class _BasketBrawlEventDetailsPageState
   Future<void> fetchEventDetails() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/basketbrawl/event/${widget.event['_id']}'),
+        Uri.parse(
+          '$baseUrl/basketbrawl/event/${widget.event['_id']}',
+        ), // Updated URL
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          team1Goals = data['event']['team1Score'] ?? 0;
-          team2Goals = data['event']['team2Score'] ?? 0;
-          // Sort commentary by timestamp in descending order
-          List<dynamic> commentaryData = data['event']['commentary'] ?? [];
-          commentaryData.sort(
-            (a, b) => DateTime.parse(
-              b['timestamp'],
-            ).compareTo(DateTime.parse(a['timestamp'])),
-          );
+          team1Goals = data['event']['team1Score'] ?? 0; // Add null check
+          team2Goals = data['event']['team2Score'] ?? 0; // Add null check
           commentary = List<Map<String, dynamic>>.from(
-            commentaryData.map(
+            data['event']['commentary'].map(
               (c) => {
                 'id': c['_id'],
                 'text': c['text'],
@@ -120,6 +112,7 @@ class _BasketBrawlEventDetailsPageState
               },
             ),
           );
+          // Always update team players regardless of read-only status
           team1Players = List<Map<String, dynamic>>.from(
             data['event']['team1Players'] ?? [],
           );
@@ -144,10 +137,10 @@ class _BasketBrawlEventDetailsPageState
         }),
       );
 
-      if (response.statusCode != 200) {
-        throw Exception('Failed to delete commentary');
+      if (response.statusCode == 200) {
+        // Don't update state here - let the socket event handle it
+        // This prevents race conditions and ensures all clients stay in sync
       }
-      // Don't modify state here - let socket event handle it
     } catch (e) {
       print('Error deleting commentary: $e');
       if (mounted) {
@@ -635,6 +628,8 @@ class _BasketBrawlEventDetailsPageState
         ),
         Expanded(
           child: ListView.builder(
+            reverse:
+                true, // This ensures latest messages are at the top for everyone
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             itemCount: commentary.length,
             itemBuilder: (context, index) {
@@ -646,7 +641,10 @@ class _BasketBrawlEventDetailsPageState
 
               return Dismissible(
                 key: Key(comment['id']),
-                direction: DismissDirection.endToStart,
+                direction:
+                    !widget.isReadOnly
+                        ? DismissDirection.endToStart
+                        : DismissDirection.none,
                 background: Container(
                   alignment: Alignment.centerRight,
                   padding: EdgeInsets.symmetric(horizontal: 20),

@@ -91,7 +91,7 @@ class _PHLEventDetailsPageState extends State<PHLEventDetailsPage>
   Future<void> fetchEventDetails() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/phl/event/${widget.event['_id']}'),
+        Uri.parse('$baseUrl/phl/event/${widget.event['_id']}'), // Updated URL
       );
 
       if (response.statusCode == 200) {
@@ -99,15 +99,8 @@ class _PHLEventDetailsPageState extends State<PHLEventDetailsPage>
         setState(() {
           team1Goals = data['event']['team1Goals'] ?? 0;
           team2Goals = data['event']['team2Goals'] ?? 0;
-          // Sort commentary by timestamp in descending order
-          List<dynamic> commentaryData = data['event']['commentary'] ?? [];
-          commentaryData.sort(
-            (a, b) => DateTime.parse(
-              b['timestamp'],
-            ).compareTo(DateTime.parse(a['timestamp'])),
-          );
           commentary = List<Map<String, dynamic>>.from(
-            commentaryData.map(
+            data['event']['commentary'].map(
               (c) => {
                 'id': c['_id'],
                 'text': c['text'],
@@ -630,7 +623,7 @@ class _PHLEventDetailsPageState extends State<PHLEventDetailsPage>
         ),
         Expanded(
           child: ListView.builder(
-            // Remove reverse: true since we're already sorting the list
+            reverse: true,
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             itemCount: commentary.length,
             itemBuilder: (context, index) {
@@ -642,7 +635,10 @@ class _PHLEventDetailsPageState extends State<PHLEventDetailsPage>
 
               return Dismissible(
                 key: Key(comment['id']),
-                direction: DismissDirection.endToStart,
+                direction:
+                    !widget.isReadOnly
+                        ? DismissDirection.endToStart
+                        : DismissDirection.none,
                 background: Container(
                   alignment: Alignment.centerRight,
                   padding: EdgeInsets.symmetric(horizontal: 20),
