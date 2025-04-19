@@ -5,6 +5,7 @@ import 'home.dart'; // Import the HomePage
 import 'signup.dart'; // Import the SignUpPage
 import 'constants.dart'; // Import the constants file
 import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
+import 'forgot_password.dart'; // Import the ForgotPasswordPage
 
 void main() {
   runApp(MyApp());
@@ -65,9 +66,27 @@ class _LoginPageState extends State<LoginPage> {
         (Route<dynamic> route) => false, // Remove all previous routes
       );
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Login failed: ${response.body}')));
+      final responseData = jsonDecode(response.body);
+      final errorMessage = responseData['message'] ?? 'Login failed';
+
+      // Show error dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text(errorMessage),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 
@@ -150,7 +169,10 @@ class _LoginPageState extends State<LoginPage> {
                 SizedBox(height: 16),
                 TextButton(
                   onPressed: () {
-                    // Handle forgot password logic here
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ForgotPasswordPage()),
+                    );
                   },
                   child: Text(
                     'Forgot password?',
