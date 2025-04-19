@@ -74,9 +74,9 @@ class _AddGalleryPageState extends State<AddGalleryPage> {
       selectedFiles.clear(); // Clear the list after uploading
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('All files uploaded successfully!')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('All files uploaded successfully!')));
   }
 
   @override
@@ -85,42 +85,151 @@ class _AddGalleryPageState extends State<AddGalleryPage> {
       appBar: AppBar(
         title: Text('Add Gallery Pics'),
         backgroundColor: Colors.black,
-        foregroundColor: Colors.white, // Makes the text and back arrow visible
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            ElevatedButton(
-              onPressed: _selectFiles,
-              child: Text('Select Images'),
-            ),
-            SizedBox(height: 16),
-            Expanded(
-              child: ListView.builder(
-                itemCount: selectedFiles.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: Icon(Icons.image, color: Colors.white),
-                    title: Text(
-                      selectedFiles[index].name,
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  );
-                },
-              ),
-            ),
-            SizedBox(height: 16),
-            isUploading
-                ? CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: selectedFiles.isNotEmpty ? _uploadAllFiles : null,
-                    child: Text('Upload Images'),
-                  ),
-          ],
-        ),
+        foregroundColor: Colors.white,
       ),
       backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          // Gradient Circles Background
+          Positioned(
+            top: -50,
+            left: -30,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [Colors.blue, Colors.purple],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 150,
+            right: -50,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [Colors.purple, Colors.blue],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -70,
+            left: 50,
+            child: Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [Colors.blueAccent, Colors.deepPurple],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+            ),
+          ),
+          // Main Content
+          Center(
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.8,
+              padding: const EdgeInsets.all(24.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.purple.shade200,
+                    Colors.blue.shade200,
+                    Colors.pink.shade100,
+                  ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.purple.withOpacity(0.3),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "Let's add more pics",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    icon: Icon(Icons.photo_library),
+                    label: Text('Select Images'),
+                    onPressed: _selectFiles,
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black87,
+                    ),
+                  ),
+                  if (selectedFiles.isNotEmpty) ...[
+                    SizedBox(height: 16),
+                    Container(
+                      height: 200,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ListView.builder(
+                        itemCount: selectedFiles.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            leading: Icon(Icons.image),
+                            title: Text(selectedFiles[index].name),
+                          );
+                        },
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    isUploading
+                        ? CircularProgressIndicator()
+                        : ElevatedButton.icon(
+                          icon: Icon(Icons.upload),
+                          label: Text('Upload Images'),
+                          onPressed: _uploadAllFiles,
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.black87,
+                          ),
+                        ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

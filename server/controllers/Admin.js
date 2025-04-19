@@ -88,3 +88,27 @@ export const removeAdmin = async (req, res) => {
         res.status(500).json({ message: 'Error removing admin', error });
     }
 };
+
+export const getCurrentAdmins = async (req, res) => {
+    try {
+        const admins = await Admin.find();
+        const decryptedEmails = [];
+        
+        // Decrypt all admin emails
+        for (let admin of admins) {
+            // Since we can't decrypt hashed emails, we'll need to compare with all registered users
+            const users = await User.find();
+            for (let user of users) {
+                const match = await bcrypt.compare(user.email, admin.email);
+                if (match) {
+                    decryptedEmails.push(user.email);
+                    break;
+                }
+            }
+        }
+        
+        res.status(200).json({ admins: decryptedEmails });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching admins', error });
+    }
+};
