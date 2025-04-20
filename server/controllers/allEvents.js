@@ -154,7 +154,7 @@ export const updateEvent = async (req, res) => {
                     } else {
                         // Create new team
                         const newTeam = new Team({
-                            teamName: updates.team1,
+                            teamName: updates.team1 || `Team 1 - ${existingEvent.eventType}`, // Fallback team name
                             members: updates.team1Details.members
                         });
                         const savedTeam = await newTeam.save();
@@ -173,7 +173,7 @@ export const updateEvent = async (req, res) => {
                     } else {
                         // Create new team
                         const newTeam = new Team({
-                            teamName: updates.team2,
+                            teamName: updates.team2 || `Team 2 - ${existingEvent.eventType}`, // Fallback team name
                             members: updates.team2Details.members
                         });
                         const savedTeam = await newTeam.save();
@@ -182,7 +182,11 @@ export const updateEvent = async (req, res) => {
                 }
             } catch (error) {
                 console.error('Error updating teams:', error);
-                return res.status(500).json({ message: 'Error updating teams', error: error.message });
+                return res.status(500).json({ 
+                    message: 'Error updating teams', 
+                    error: error.message,
+                    details: error.errors // Include validation errors in response
+                });
             }
         }
 

@@ -99,6 +99,9 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
     final TextEditingController winnerController = TextEditingController(
       text: event['winner'] ?? '',
     );
+    final TextEditingController descriptionController = TextEditingController(
+      text: event['description'] ?? '',
+    );
 
     final result = await showDialog<Map<String, String>>(
       context: context,
@@ -148,6 +151,15 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
                     hintText: 'Enter winner name or "Draw"',
                   ),
                 ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: descriptionController,
+                  decoration: InputDecoration(
+                    labelText: 'Description',
+                    hintText: 'Enter event description',
+                  ),
+                  maxLines: 3,
+                ),
               ],
             ),
           ),
@@ -168,6 +180,7 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
                     'date': dateController.text,
                     'time': timeController.text,
                     'winner': winnerController.text,
+                    'description': descriptionController.text,
                   });
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -198,7 +211,8 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
             'venue': result['venue'],
             'date': result['date'],
             'time': result['time'],
-            'winner': result['winner'], // Add winner field
+            'winner': result['winner'],
+            'description': result['description'],
           }),
         );
 

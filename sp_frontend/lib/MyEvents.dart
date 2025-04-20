@@ -610,21 +610,25 @@ class _MyEventsPageState extends State<MyEventsPage> {
                                     if (eventDescription != null &&
                                         eventDescription.isNotEmpty)
                                       Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 6.0,
-                                          vertical: 3.0,
+                                        margin: EdgeInsets.symmetric(
+                                          vertical: 8.0,
                                         ),
+                                        padding: EdgeInsets.all(8.0),
                                         decoration: BoxDecoration(
-                                          color: Colors.grey[200],
+                                          color: Colors.white.withOpacity(0.9),
                                           borderRadius: BorderRadius.circular(
                                             5,
                                           ),
+                                          border: Border.all(
+                                            color: Colors.grey.shade400,
+                                          ),
                                         ),
                                         child: Text(
-                                          'Description: $eventDescription',
+                                          eventDescription,
                                           style: TextStyle(
                                             fontSize: 12,
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black87,
                                           ),
                                         ),
                                       ),

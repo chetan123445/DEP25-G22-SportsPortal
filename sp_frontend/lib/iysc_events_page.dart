@@ -309,8 +309,38 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
                   children: [Text(type), Text(gender)],
                 ),
                 SizedBox(height: 8),
-                Text('Venue: $venue'),
-                SizedBox(height: 16),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    'Venue: $venue',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                SizedBox(height: 4.0),
+                if (event['description'] != null &&
+                    event['description'].isNotEmpty)
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 8.0),
+                    padding: EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(color: Colors.grey.shade400),
+                    ),
+                    child: Text(
+                      event['description'],
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                SizedBox(height: 12.0),
                 Wrap(
                   spacing: 8.0, // Horizontal spacing between buttons
                   runSpacing: 8.0, // Vertical spacing between rows

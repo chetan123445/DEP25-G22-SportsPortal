@@ -14,7 +14,7 @@ const eventModels = {
 
 export const updateEventDetails = async (req, res) => {
     try {
-        const { eventType, eventId, venue, date, time, winner } = req.body;
+        const { eventType, eventId, venue, date, time, winner, description } = req.body;
         const { email } = req.query;
 
         // Get the corresponding model
@@ -54,7 +54,8 @@ export const updateEventDetails = async (req, res) => {
                 venue,
                 date,
                 time,
-                winner // Add winner field
+                winner,
+                description // Add description field
             },
             { new: true }
         );
