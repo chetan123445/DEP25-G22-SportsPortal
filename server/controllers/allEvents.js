@@ -152,9 +152,9 @@ export const updateEvent = async (req, res) => {
                             { members: updates.team1Details.members }
                         );
                     } else {
-                        // Create new team
+                        // Create new team with team1 name from the event
                         const newTeam = new Team({
-                            teamName: updates.team1 || `Team 1 - ${existingEvent.eventType}`, // Fallback team name
+                            teamName: updates.team1 || existingEvent.team1, // Use actual team name
                             members: updates.team1Details.members
                         });
                         const savedTeam = await newTeam.save();
@@ -165,15 +165,14 @@ export const updateEvent = async (req, res) => {
                 // Update team2 if provided
                 if (updates.team2Details) {
                     if (updates.team2Details._id) {
-                        // Update existing team
                         await Team.findByIdAndUpdate(
                             updates.team2Details._id,
                             { members: updates.team2Details.members }
                         );
                     } else {
-                        // Create new team
+                        // Create new team with team2 name from the event
                         const newTeam = new Team({
-                            teamName: updates.team2 || `Team 2 - ${existingEvent.eventType}`, // Fallback team name
+                            teamName: updates.team2 || existingEvent.team2, // Use actual team name
                             members: updates.team2Details.members
                         });
                         const savedTeam = await newTeam.save();
