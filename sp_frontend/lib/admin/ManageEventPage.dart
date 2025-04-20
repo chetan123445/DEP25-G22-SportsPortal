@@ -185,6 +185,10 @@ class _ManageEventPageState extends State<ManageEventPage> {
     final genderController = TextEditingController(text: event['gender']);
     final winnerController = TextEditingController(text: event['winner'] ?? '');
 
+    // Add controllers for team names
+    final team1Controller = TextEditingController(text: event['team1']);
+    final team2Controller = TextEditingController(text: event['team2']);
+
     // Add non-GC teams section
     if (event['eventType'] != 'GC') {
       // Fetch team details for non-GC events
@@ -243,6 +247,13 @@ class _ManageEventPageState extends State<ManageEventPage> {
                         ),
                       ),
                       SizedBox(height: 16),
+
+                      // Add team name fields for non-GC events
+                      if (event['eventType'] != 'GC') ...[
+                        _buildEditField('Team 1 Name', team1Controller),
+                        _buildEditField('Team 2 Name', team2Controller),
+                        SizedBox(height: 16),
+                      ],
 
                       // Common fields
                       _buildEditField('Venue', venueController),
@@ -570,8 +581,12 @@ class _ManageEventPageState extends State<ManageEventPage> {
                                         ? null
                                         : winnerController.text;
 
-                              // Add team updates for non-GC events
+                              // Add team name updates for non-GC events
                               if (event['eventType'] != 'GC') {
+                                if (team1Controller.text != event['team1'])
+                                  updates['team1'] = team1Controller.text;
+                                if (team2Controller.text != event['team2'])
+                                  updates['team2'] = team2Controller.text;
                                 updates['team1Details'] = event['team1Details'];
                                 updates['team2Details'] = event['team2Details'];
                               }
