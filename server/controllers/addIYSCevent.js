@@ -340,6 +340,7 @@ export const deleteCommentary = async (req, res) => {
 
 export const getIYSCStandings = async (req, res) => {
     try {
+        const year = req.query.year ? parseInt(req.query.year) : null;
         const events = await IYSCevent.find();
         const sportTypes = [
             'cricket',
@@ -351,6 +352,17 @@ export const getIYSCStandings = async (req, res) => {
             'basketball',
             'volleyball'
         ];
+
+        // Get unique years from events
+        const uniqueYears = [...new Set(events.map(event => 
+            new Date(event.date).getFullYear()
+        ))].sort((a, b) => b - a);
+
+        // Filter events by year
+        const currentYear = new Date().getFullYear();
+        const filteredEvents = year 
+            ? events.filter(event => new Date(event.date).getFullYear() === year)
+            : events.filter(event => new Date(event.date).getFullYear() === currentYear);
 
         const standings = [];
 
@@ -364,7 +376,7 @@ export const getIYSCStandings = async (req, res) => {
         };
 
         for (const sportType of sportTypes) {
-            const sportEvents = events.filter(event => 
+            const sportEvents = filteredEvents.filter(event => 
                 event.type.toLowerCase() === sportType
             );
 
@@ -444,7 +456,11 @@ export const getIYSCStandings = async (req, res) => {
         // Sort standings by points and wins
         standings.sort((a, b) => b.points - a.points || b.wins - a.wins);
 
-        res.json({ standings });
+        res.json({ 
+            years: uniqueYears,
+            currentYear: year || currentYear,
+            standings 
+        });
     } catch (error) {
         console.error('Error fetching standings:', error);
         res.status(500).json({ message: 'Error fetching standings', error });

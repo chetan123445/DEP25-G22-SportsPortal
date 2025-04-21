@@ -68,6 +68,10 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
   String matchStatus = 'Not Started';
   late IO.Socket socket;
 
+  // Add new state variables
+  List<int> availableYears = [];
+  int selectedYear = DateTime.now().year;
+
   @override
   void initState() {
     super.initState();
@@ -267,15 +271,28 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
     }
   }
 
-  Future<void> fetchStandings() async {
+  Future<void> fetchStandings([int? year]) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/ircc/standings'));
+      // Convert year to string for query parameter
+      final yearParam = year?.toString() ?? '';
+      final response = await http.get(
+        Uri.parse(
+          '$baseUrl/ircc/standings${yearParam.isNotEmpty ? "?year=$yearParam" : ""}',
+        ),
+      );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print("Fetched standings data: $data"); // Debug print
         setState(() {
-          // Ensure we're getting the correct structure from the API
+          // Convert years from dynamic to int explicitly
+          availableYears =
+              (data['years'] as List<dynamic>?)
+                  ?.map((e) => int.parse(e.toString()))
+                  .toList() ??
+              [];
+          selectedYear = int.parse(data['currentYear'].toString());
+
+          // Rest of the standings processing
           maleStandings =
               (data['maleStandings'] as List?)
                   ?.map(
@@ -288,8 +305,7 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
                       'points': team['points']?.toString() ?? '0',
                     },
                   )
-                  .toList()
-                  .cast<Map<String, dynamic>>() ??
+                  .toList() ??
               [];
 
           femaleStandings =
@@ -304,13 +320,18 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
                       'points': team['points']?.toString() ?? '0',
                     },
                   )
-                  .toList()
-                  .cast<Map<String, dynamic>>() ??
+                  .toList() ??
               [];
         });
       }
     } catch (e) {
       print('Error fetching standings: $e');
+      // Show error in UI
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading standings: $e')));
+      }
     }
   }
 
@@ -1106,6 +1127,46 @@ class _IRCCEventDetailsPageState extends State<IRCCEventDetailsPage>
       length: 2,
       child: Column(
         children: [
+          // Add year selector
+          Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Year: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                DropdownButton<int>(
+                  value: selectedYear,
+                  items:
+                      availableYears.map((year) {
+                        return DropdownMenuItem<int>(
+                          value: year,
+                          child: Text(
+                            year == DateTime.now().year
+                                ? '$year (Current)'
+                                : year.toString(),
+                            style: TextStyle(
+                              fontWeight:
+                                  year == DateTime.now().year
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                  onChanged: (int? year) {
+                    if (year != null && year != selectedYear) {
+                      setState(() => selectedYear = year);
+                      fetchStandings(year);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
           TabBar(
             tabs: [Tab(text: 'Men\'s Teams'), Tab(text: 'Women\'s Teams')],
             labelColor: Colors.black,

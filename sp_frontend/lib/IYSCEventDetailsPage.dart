@@ -97,6 +97,10 @@ class _IYSCEventDetailsPageState extends State<IYSCEventDetailsPage>
   late IO.Socket socket;
   bool _isBlinking = true;
 
+  // Add new state variables
+  List<int> availableYears = [];
+  int selectedYear = DateTime.now().year;
+
   @override
   void initState() {
     super.initState();
@@ -215,12 +219,24 @@ class _IYSCEventDetailsPageState extends State<IYSCEventDetailsPage>
     });
   }
 
-  Future<void> fetchStandings() async {
+  Future<void> fetchStandings([int? year]) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/iysc/standings'));
+      final yearParam = year?.toString() ?? '';
+      final response = await http.get(
+        Uri.parse(
+          '$baseUrl/iysc/standings${yearParam.isNotEmpty ? "?year=$yearParam" : ""}',
+        ),
+      );
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
+          availableYears =
+              (data['years'] as List<dynamic>?)
+                  ?.map((e) => int.parse(e.toString()))
+                  .toList() ??
+              [];
+          selectedYear = int.parse(data['currentYear'].toString());
           standings = List<Map<String, dynamic>>.from(data['standings'] ?? []);
         });
       }
@@ -1184,6 +1200,46 @@ class _IYSCEventDetailsPageState extends State<IYSCEventDetailsPage>
       length: sportTypes.length,
       child: Column(
         children: [
+          // Add year selector
+          Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Year: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                DropdownButton<int>(
+                  value: selectedYear,
+                  items:
+                      availableYears.map((year) {
+                        return DropdownMenuItem<int>(
+                          value: year,
+                          child: Text(
+                            year == DateTime.now().year
+                                ? '$year (Current)'
+                                : year.toString(),
+                            style: TextStyle(
+                              fontWeight:
+                                  year == DateTime.now().year
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                  onChanged: (int? year) {
+                    if (year != null && year != selectedYear) {
+                      setState(() => selectedYear = year);
+                      fetchStandings(year);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
           TabBar(
             isScrollable: true,
             tabs: sportTypes.map((type) => Tab(text: type)).toList(),

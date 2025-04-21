@@ -283,14 +283,26 @@ export const getEventDetails = async (req, res) => {
 
 export const getIRCCStandings = async (req, res) => {
     try {
+        const year = req.query.year ? parseInt(req.query.year) : null;
         const events = await IRCCevent.find({ eventType: 'IRCC' });
         console.log(`Found ${events.length} IRCC events`);
+
+        // Convert all years to numbers explicitly
+        const uniqueYears = [...new Set(events.map(event => 
+            new Date(event.date).getFullYear()
+        ))].sort((a, b) => b - a);
+
+        // Filter events by year if specified, otherwise use current year
+        const currentYear = new Date().getFullYear();
+        const filteredEvents = year 
+            ? events.filter(event => new Date(event.date).getFullYear() === year)
+            : events.filter(event => new Date(event.date).getFullYear() === currentYear);
 
         const maleTeams = new Map();
         const femaleTeams = new Map();
 
         // Initialize teams with base stats
-        events.forEach(event => {
+        filteredEvents.forEach(event => {
             const gender = event.gender?.toLowerCase();
             const statsMap = (gender === 'male' || gender === 'boys') ? maleTeams : femaleTeams;
 
@@ -309,7 +321,7 @@ export const getIRCCStandings = async (req, res) => {
         });
 
         // Calculate stats for each event
-        events.forEach(event => {
+        filteredEvents.forEach(event => {
             const gender = event.gender?.toLowerCase();
             const statsMap = (gender === 'male' || gender === 'boys') ? maleTeams : femaleTeams;
             
@@ -357,6 +369,8 @@ export const getIRCCStandings = async (req, res) => {
                 .sort((a, b) => b.points - a.points || b.wins - a.wins);
 
         res.json({
+            years: uniqueYears, // Now guaranteed to be numbers
+            currentYear: year || currentYear, // Also guaranteed to be a number
             maleStandings: sortTeams(maleTeams),
             femaleStandings: sortTeams(femaleTeams)
         });

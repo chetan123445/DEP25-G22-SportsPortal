@@ -209,17 +209,28 @@ export const getEventDetails = async (req, res) => {
     }
 };
 
-// Add a new controller for standings
 export const getPHLStandings = async (req, res) => {
     try {
+        const year = req.query.year ? parseInt(req.query.year) : null;
         const events = await PHLevent.find({ eventType: 'PHL' });
         console.log(`Found ${events.length} PHL events`);
+
+        // Get unique years from events
+        const uniqueYears = [...new Set(events.map(event => 
+            new Date(event.date).getFullYear()
+        ))].sort((a, b) => b - a); // Sort years in descending order
+
+        // Filter events by year if specified, otherwise use current year
+        const currentYear = new Date().getFullYear();
+        const filteredEvents = year 
+            ? events.filter(event => new Date(event.date).getFullYear() === year)
+            : events.filter(event => new Date(event.date).getFullYear() === currentYear);
 
         const maleTeams = new Map();
         const femaleTeams = new Map();
 
         // Initialize teams with base stats
-        events.forEach(event => {
+        filteredEvents.forEach(event => {
             const gender = event.gender?.toLowerCase();
             const statsMap = (gender === 'male' || gender === 'boys') ? maleTeams : femaleTeams;
 
@@ -238,7 +249,7 @@ export const getPHLStandings = async (req, res) => {
         });
 
         // Calculate stats for each event
-        events.forEach(event => {
+        filteredEvents.forEach(event => {
             const gender = event.gender?.toLowerCase();
             const statsMap = (gender === 'male' || gender === 'boys') ? maleTeams : femaleTeams;
             
@@ -286,12 +297,11 @@ export const getPHLStandings = async (req, res) => {
             Array.from(teams.values())
                 .sort((a, b) => b.points - a.points || b.wins - a.wins);
 
-        const maleStandings = sortTeams(maleTeams);
-        const femaleStandings = sortTeams(femaleTeams);
-
         res.json({
-            maleStandings,
-            femaleStandings
+            years: uniqueYears,
+            currentYear: year || currentYear,
+            maleStandings: sortTeams(maleTeams),
+            femaleStandings: sortTeams(femaleTeams)
         });
     } catch (error) {
         console.error('Error in getPHLStandings:', error);

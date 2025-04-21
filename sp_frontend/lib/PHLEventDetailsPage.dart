@@ -29,6 +29,8 @@ class _PHLEventDetailsPageState extends State<PHLEventDetailsPage>
   List<Map<String, dynamic>> commentary = [];
   List<Map<String, dynamic>> maleStandings = [];
   List<Map<String, dynamic>> femaleStandings = [];
+  List<int> availableYears = [];
+  int selectedYear = DateTime.now().year;
   int team1Goals = 0;
   int team2Goals = 0;
   TextEditingController _commentaryController = TextEditingController();
@@ -151,15 +153,25 @@ class _PHLEventDetailsPageState extends State<PHLEventDetailsPage>
     // Update team1Players and team2Players
   }
 
-  Future<void> fetchStandings() async {
+  Future<void> fetchStandings([int? year]) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/phl/standings'));
+      final yearParam = year?.toString() ?? '';
+      final response = await http.get(
+        Uri.parse(
+          '$baseUrl/phl/standings${yearParam.isNotEmpty ? "?year=$yearParam" : ""}',
+        ),
+      );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print("Fetched standings data: $data"); // Debug print
         setState(() {
-          // Ensure we're getting the correct structure from the API
+          availableYears =
+              (data['years'] as List<dynamic>?)
+                  ?.map((e) => int.parse(e.toString()))
+                  .toList() ??
+              [];
+          selectedYear = int.parse(data['currentYear'].toString());
           maleStandings =
               (data['maleStandings'] as List?)
                   ?.map(
@@ -791,6 +803,38 @@ class _PHLEventDetailsPageState extends State<PHLEventDetailsPage>
       length: 2,
       child: Column(
         children: [
+          // Add year selector
+          Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Year: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                DropdownButton<int>(
+                  value: selectedYear,
+                  items:
+                      availableYears
+                          .map(
+                            (year) => DropdownMenuItem(
+                              value: year,
+                              child: Text(year.toString()),
+                            ),
+                          )
+                          .toList(),
+                  onChanged: (int? year) {
+                    if (year != null && year != selectedYear) {
+                      setState(() => selectedYear = year);
+                      fetchStandings(year);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
           TabBar(
             tabs: [Tab(text: 'Men\'s Teams'), Tab(text: 'Women\'s Teams')],
             labelColor: Colors.black,
