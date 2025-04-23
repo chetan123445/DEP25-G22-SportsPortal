@@ -1,17 +1,31 @@
-const otpMap = new Map(); // In-memory store (use Redis for production)
+class OtpStore {
+    constructor() {
+        this.otps = new Map();
+    }
 
-export const otpStore = {
-    setOtp: (email, otp, name, hashedPassword, ttl = 600000) => { // TTL in milliseconds (default: 10 minutes)
-        const normalizedEmail = email.toLowerCase();
-        otpMap.set(normalizedEmail, { otp, name, hashedPassword });
-        setTimeout(() => otpMap.delete(normalizedEmail), ttl); // Auto-delete after TTL
-    },
-    getOtpData: (email) => {
-        const normalizedEmail = email.toLowerCase();
-        return otpMap.get(normalizedEmail);
-    },
-    deleteOtp: (email) => {
-        const normalizedEmail = email.toLowerCase();
-        otpMap.delete(normalizedEmail);
-    },
-};
+    setOtp(email, otp) {
+        this.otps.set(email, {
+            otp,
+            timestamp: Date.now()
+        });
+    }
+
+    getOtp(email) {
+        const data = this.otps.get(email);
+        if (!data) return null;
+        
+        // Check if OTP is expired (10 minutes)
+        if (Date.now() - data.timestamp > 600000) {
+            this.deleteOtp(email);
+            return null;
+        }
+        
+        return data.otp;
+    }
+
+    deleteOtp(email) {
+        this.otps.delete(email);
+    }
+}
+
+export const otpStore = new OtpStore();

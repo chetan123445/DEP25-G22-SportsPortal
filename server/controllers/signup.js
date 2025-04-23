@@ -24,11 +24,6 @@ export const signup = async (req, res) => {
             return res.status(400).json({ message: "Email is required." });
         }
 
-        // Ensure email is from IIT Ropar
-        if (!email.endsWith("@iitrpr.ac.in")) {
-            return res.status(400).json({ message: "Only IIT Ropar emails are allowed." });
-        }
-
         // Check if user already exists in MongoDB
         const existingUser = await User.findOne({ email });
         if (existingUser) {

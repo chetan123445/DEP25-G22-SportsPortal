@@ -34,6 +34,8 @@ import { sendOtp, verifyOtp, resetPassword } from '../controllers/forgotPassword
 import { getCurrentAdmins } from '../controllers/Admin.js'; // Import the getCurrentAdmins controller
 import { getAdminProfile } from '../controllers/adminProfileController.js'; // Import the new controller
 import { changePassword } from '../controllers/changePassword.js'; // Add this import
+import { deleteAccount } from '../controllers/deleteAccount.js';
+import { updateAlternativeEmail, verifyAlternativeEmail, getAlternativeEmail } from '../controllers/alternativeEmail.js'; // Add these imports
 
 const router = express.Router();
 
@@ -75,9 +77,13 @@ const verifyEventManager = async (req, res, next) => {
   }
 };
 
-router.post("/signup", signup);
+router.post("/signup", signup); // This now handles both regular signup and alternative email verification
 router.post("/verify-email", verify_email);
 router.post("/login", login);
+
+router.get("/get-alternative-email/:email", getAlternativeEmail); // Add this route
+router.post("/verify-alternative-email", verifyAlternativeEmail); // Add this route
+router.post("/update-alternative-email", updateAlternativeEmail); // Add this route
 
 router.get("/profile", getProfile);
 router.patch("/update-profile", updateProfile);
@@ -276,7 +282,14 @@ router.put('/event/:eventId/:eventType/team/:teamNumber', async (req, res) => {
     }
 });
 
-router.post('/send-otp', sendOtp);
+router.post('/send-otp', async (req, res) => {
+    const { email, isAlternativeEmail } = req.body;
+    if (isAlternativeEmail) {
+        return updateAlternativeEmail(req, res);
+    }
+    return sendOtp(req, res);
+});
+
 router.post('/verify-otp', verifyOtp);
 router.post('/reset-password', resetPassword);
 
@@ -284,5 +297,7 @@ router.post("/changePassword", changePassword); // Add this route
 
 router.get("/current-admins", getCurrentAdmins); // Add this line before export default router
 router.get("/admin-profile/:email", getAdminProfile); // Add route for fetching admin profile
+
+router.delete("/delete-account", deleteAccount);
 
 export default router;

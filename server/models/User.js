@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
+    alternativeEmail: { type: String, required: false, unique: true }, // Add this field
     password: { type: String, required: true },
     isVerified: { type: Boolean, default: false },
     mobileNo: { type: Number, required: false },
