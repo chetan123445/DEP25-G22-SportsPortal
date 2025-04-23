@@ -12,6 +12,7 @@ import 'PHL.dart'; // Import the PHLPage
 import 'BasketBrawl.dart'; // Import the BasketBrawlPage
 import 'PlayersPage.dart'; // Import the PlayersPage
 import 'Gallery.dart'; // Import the GalleryPage
+import 'widgets/privacy_policy.dart'; // Import the PrivacyPolicyPage
 
 void main() {
   runApp(SportsPortalApp());
@@ -246,6 +247,16 @@ class MainPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => PlayersPage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.privacy_tip),
+              title: Text('Privacy Policy'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => PrivacyPolicyPage()),
                 );
               },
             ),

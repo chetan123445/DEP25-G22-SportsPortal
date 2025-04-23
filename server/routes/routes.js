@@ -33,6 +33,7 @@ import GC from '../models/GCevent.js'; // Change from GC.js to GCevent.js
 import { sendOtp, verifyOtp, resetPassword } from '../controllers/forgotPasswordController.js';
 import { getCurrentAdmins } from '../controllers/Admin.js'; // Import the getCurrentAdmins controller
 import { getAdminProfile } from '../controllers/adminProfileController.js'; // Import the new controller
+import { changePassword } from '../controllers/changePassword.js'; // Add this import
 
 const router = express.Router();
 
@@ -278,6 +279,8 @@ router.put('/event/:eventId/:eventType/team/:teamNumber', async (req, res) => {
 router.post('/send-otp', sendOtp);
 router.post('/verify-otp', verifyOtp);
 router.post('/reset-password', resetPassword);
+
+router.post("/changePassword", changePassword); // Add this route
 
 router.get("/current-admins", getCurrentAdmins); // Add this line before export default router
 router.get("/admin-profile/:email", getAdminProfile); // Add route for fetching admin profile

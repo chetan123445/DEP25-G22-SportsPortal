@@ -20,6 +20,8 @@ import 'ManagingEvents.dart'; // Import the ManagingEventsPage
 import 'NotificationsPage.dart'; // Import the NotificationsPage
 import 'Gallery.dart'; // Import the GalleryPage
 import 'dart:async';
+import 'SettingsPage.dart'; // Import the SettingsPage
+import 'widgets/privacy_policy.dart'; // Import the PrivacyPolicyPage
 
 void main() {
   runApp(SportsPortalApp());
@@ -171,12 +173,13 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         leading: Builder(
-          builder: (context) => IconButton(
-            icon: Icon(Icons.menu, color: Colors.white),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          ),
+          builder:
+              (context) => IconButton(
+                icon: Icon(Icons.menu, color: Colors.white),
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+              ),
         ),
         actions: [
           Stack(
@@ -190,23 +193,25 @@ class _HomePageState extends State<HomePage> {
                 builder: (context, snapshot) {
                   if (snapshot.hasData && snapshot.data! > 0) {
                     return Positioned(
-                      right: 6,  // Adjusted position
-                      top: 6,    // Adjusted position
+                      right: 6, // Adjusted position
+                      top: 6, // Adjusted position
                       child: Container(
-                        padding: EdgeInsets.all(1),  // Reduced padding
+                        padding: EdgeInsets.all(1), // Reduced padding
                         decoration: BoxDecoration(
                           color: Colors.red,
-                          borderRadius: BorderRadius.circular(6),  // Smaller radius
+                          borderRadius: BorderRadius.circular(
+                            6,
+                          ), // Smaller radius
                         ),
                         constraints: BoxConstraints(
-                          minWidth: 12,  // Reduced width
+                          minWidth: 12, // Reduced width
                           minHeight: 12, // Reduced height
                         ),
                         child: Text(
                           '${snapshot.data}',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 8,    // Smaller font size
+                            fontSize: 8, // Smaller font size
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,
@@ -234,9 +239,12 @@ class _HomePageState extends State<HomePage> {
                 cursor: SystemMouseCursors.click,
                 child: CircleAvatar(
                   radius: 16,
-                  backgroundImage: _profilePic != null
-                      ? MemoryImage(base64Decode(_profilePic!.split(',')[1]))
-                      : AssetImage('assets/profile.png') as ImageProvider,
+                  backgroundImage:
+                      _profilePic != null
+                          ? MemoryImage(
+                            base64Decode(_profilePic!.split(',')[1]),
+                          )
+                          : AssetImage('assets/profile.png') as ImageProvider,
                   backgroundColor: Colors.transparent,
                 ),
               ),
@@ -372,6 +380,28 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => PlayersPage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text('Settings'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SettingsPage(email: widget.email),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.privacy_tip),
+              title: Text('Privacy Policy'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => PrivacyPolicyPage()),
                 );
               },
             ),
