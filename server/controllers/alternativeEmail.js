@@ -1,5 +1,5 @@
 import User from '../models/User.js';
-import { otpStore } from '../utils/otpStore.js';
+import { alternativeEmailOtpStore } from '../utils/alternativeEmailOtpStore.js';
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
@@ -30,14 +30,11 @@ export const getAlternativeEmail = async (req, res) => {
 export const updateAlternativeEmail = async (req, res) => {
     try {
         const { email } = req.body;
-
-        // Generate OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        alternativeEmailOtpStore.setOtp(email, otp);
+        console.log('Stored OTP:', otp, 'for email:', email); // Debug log
 
-        // Store OTP with timestamp - store as direct value, not object
-        otpStore.setOtp(email, otp);
-
-        // Send OTP via email
         const mailOptions = {
             from: process.env.EMAIL,
             to: email,
@@ -51,34 +48,32 @@ export const updateAlternativeEmail = async (req, res) => {
                 return res.status(500).json({ message: "Error sending OTP email." });
             }
             return res.status(200).json({ 
-                message: "OTP sent to your alternative email",
-                otp: otp // Send OTP in response for testing
+                message: "OTP sent to your alternative email"
             });
         });
 
     } catch (error) {
+        console.error('Error in updateAlternativeEmail:', error);
         res.status(500).json({ message: 'Error updating alternative email', error: error.message });
     }
 };
 
 export const verifyAlternativeEmail = async (req, res) => {
-    const { email, otp } = req.body;
+    const { email, otp, mainEmail } = req.body;
 
     try {
-        // Get stored OTP directly
-        const storedOtp = otpStore.getOtp(email);
-        console.log("Stored OTP:", storedOtp, "Received OTP:", otp); // Debug log
+        // Use the new store
+        const storedOtp = alternativeEmailOtpStore.getOtp(email);
+        console.log("Stored OTP:", storedOtp, "Received OTP:", otp);
 
         if (!storedOtp) {
             return res.status(400).json({ message: "OTP expired or not found" });
         }
 
-        if (storedOtp.toString() !== otp.toString()) {
+        if (storedOtp !== otp.toString()) {
             return res.status(400).json({ message: "Invalid OTP" });
         }
 
-        // Important change: Use the main email to find and update the user
-        const mainEmail = req.body.mainEmail; // Add this to frontend request
         const user = await User.findOneAndUpdate(
             { email: mainEmail },
             { alternativeEmail: email },
@@ -90,7 +85,7 @@ export const verifyAlternativeEmail = async (req, res) => {
         }
 
         // Clear OTP after successful verification
-        otpStore.deleteOtp(email);
+        alternativeEmailOtpStore.deleteOtp(email);
 
         res.status(200).json({ 
             message: 'Alternative email verified and updated successfully',

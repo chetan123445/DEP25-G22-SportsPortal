@@ -81,9 +81,9 @@ router.post("/signup", signup); // This now handles both regular signup and alte
 router.post("/verify-email", verify_email);
 router.post("/login", login);
 
-router.get("/get-alternative-email/:email", getAlternativeEmail); // Add this route
-router.post("/verify-alternative-email", verifyAlternativeEmail); // Add this route
-router.post("/update-alternative-email", updateAlternativeEmail); // Add this route
+router.get("/get-alternative-email/:email", getAlternativeEmail);
+router.post("/update-alternative-email", updateAlternativeEmail);
+router.post("/verify-alternative-email", verifyAlternativeEmail);
 
 router.get("/profile", getProfile);
 router.patch("/update-profile", updateProfile);

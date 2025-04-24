@@ -192,9 +192,12 @@ class _SettingsPageState extends State<SettingsPage> {
         body: jsonEncode({
           'email': _alternativeEmailController.text,
           'otp': _otpController.text,
-          'mainEmail': widget.email, // Add this line
+          'mainEmail': widget.email,
         }),
       );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       final data = jsonDecode(response.body);
 
@@ -204,9 +207,9 @@ class _SettingsPageState extends State<SettingsPage> {
           _isAlternativeEmailVerified = true;
         });
         Navigator.of(context).pop(); // Close the dialog
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(data['message'])));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Alternative email verified successfully')),
+        );
         _loadAlternativeEmail(); // Reload the alternative email
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -214,6 +217,7 @@ class _SettingsPageState extends State<SettingsPage> {
         );
       }
     } catch (e) {
+      print('Error in _verifyAlternativeEmail: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error verifying alternative email')),
       );

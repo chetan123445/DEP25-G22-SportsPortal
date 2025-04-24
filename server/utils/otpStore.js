@@ -3,9 +3,11 @@ class OtpStore {
         this.otps = new Map();
     }
 
-    setOtp(email, otp) {
+    setOtp(email, otp, name, hashedPassword) {
         this.otps.set(email, {
-            otp,
+            storedOtp: otp,
+            name: name,
+            hashedPassword: hashedPassword,
             timestamp: Date.now()
         });
     }
@@ -20,7 +22,7 @@ class OtpStore {
             return null;
         }
         
-        return data.otp;
+        return data;
     }
 
     deleteOtp(email) {
