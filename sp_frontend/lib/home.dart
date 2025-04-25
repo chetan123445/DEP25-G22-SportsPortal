@@ -22,9 +22,101 @@ import 'Gallery.dart'; // Import the GalleryPage
 import 'dart:async';
 import 'SettingsPage.dart'; // Import the SettingsPage
 import 'widgets/privacy_policy.dart'; // Import the PrivacyPolicyPage
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 void main() {
   runApp(SportsPortalApp());
+}
+
+class CustomSpacer extends StatelessWidget {
+  final double width;
+  final double height;
+
+  const CustomSpacer({this.width = 0, this.height = 0, Key? key})
+    : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(width: width, height: height);
+  }
+}
+
+class CustomRow extends StatelessWidget {
+  final List<Widget> children;
+  final MainAxisAlignment mainAxisAlignment;
+  final MainAxisSize mainAxisSize;
+
+  const CustomRow({
+    required this.children,
+    this.mainAxisAlignment = MainAxisAlignment.start,
+    this.mainAxisSize = MainAxisSize.max,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: children,
+      mainAxisAlignment: mainAxisAlignment,
+      mainAxisSize: mainAxisSize,
+    );
+  }
+}
+
+class _LiveIndicator extends StatefulWidget {
+  const _LiveIndicator({Key? key}) : super(key: key);
+
+  @override
+  _LiveIndicatorState createState() => _LiveIndicatorState();
+}
+
+class _LiveIndicatorState extends State<_LiveIndicator>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    _animationController.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _animationController,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const CustomRow(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.live_tv, color: Colors.white, size: 16),
+            CustomSpacer(width: 4),
+            Text(
+              'LIVE',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class SportsPortalApp extends StatelessWidget {
@@ -50,6 +142,9 @@ class _HomePageState extends State<HomePage> {
   Timer? _timer;
   bool isMenuHovered = false;
   String? _profilePic; // Variable to store the profile picture
+  List<dynamic> liveEvents = [];
+  IO.Socket? socket;
+  bool hasLiveEvents = false;
 
   final List<Map<String, String>> carouselImages = [
     {'path': 'assets/sports1.jpg', 'caption': 'Cricket Championship'},
@@ -67,11 +162,597 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _startAutoPlay();
+    _fetchLiveEvents();
+    _connectToSocket();
+    // Only start autoplay if there are no live events
+    if (!hasLiveEvents) {
+      _startAutoPlay();
+    }
     _fetchAndSetProfilePic(); // Fetch profile picture once
   }
 
-  void _startAutoPlay() {
+  void _connectToSocket() {
+    socket = IO.io(baseUrl, <String, dynamic>{
+      'transports': ['websocket'],
+      'autoConnect': false,
+    });
+
+    socket?.connect();
+
+    socket?.on('score-update', (data) {
+      if (mounted) {
+        _updateLiveScore(data);
+      }
+    });
+  }
+
+  Widget _buildLiveEventCard(dynamic event) {
+    if (event == null) {
+      // Display for no live events
+      return Container(
+        decoration: BoxDecoration(
+          color: Color(
+            0xFF2196F3,
+          ).withOpacity(0.15), // Match the new blue color
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.sports_outlined,
+                size: 50,
+                color: Colors.blue.shade900,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'No Live Events',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Check back later for live sports updates',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    String eventType = event['eventType'];
+    String displayType = eventType;
+    if (eventType == 'IYSC') {
+      displayType += ' - ${event['type'] ?? 'Unknown Type'}';
+    }
+
+    late Widget scoreDisplay;
+
+    // Add event type header
+    Widget header = Container(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      margin: EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white.withOpacity(0.3)),
+      ),
+      child: Text(
+        displayType,
+        style: TextStyle(
+          color: Colors.black54, // Changed from Colors.white
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+
+    // Update text styles for cricket scores
+    if (eventType == 'IRCC' ||
+        (eventType == 'IYSC' && event['type']?.toLowerCase() == 'cricket')) {
+      final team1Score = Map<String, dynamic>.from(event['team1Score'] ?? {});
+      final team2Score = Map<String, dynamic>.from(event['team2Score'] ?? {});
+
+      scoreDisplay = Container(
+        padding: EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color:
+              Colors
+                  .blue[100], // Changed from Color(0xFFA1D6B2) to match sports events box color
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            // Team 1
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${event['team1']}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${team1Score['runs'] ?? 0}/${team1Score['wickets'] ?? 0}\n(${team1Score['overs'] ?? 0}.${team1Score['balls'] ?? 0})',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+            // VS
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                'VS',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.blue.shade900,
+                ),
+              ),
+            ),
+            // Team 2
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${event['team2']}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${team2Score['runs'] ?? 0}/${team2Score['wickets'] ?? 0}\n(${team2Score['overs'] ?? 0}.${team2Score['balls'] ?? 0})',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (eventType == 'PHL' ||
+        eventType == 'BasketBrawl' ||
+        (eventType == 'IYSC' && event['type']?.toLowerCase() != 'cricket')) {
+      final team1Score = getSafeScore(event['team1Score']);
+      final team2Score = getSafeScore(event['team2Score']);
+      final score1 =
+          eventType == 'PHL'
+              ? event['team1Goals'] ?? 0
+              : team1Score['goals'] ?? 0;
+      final score2 =
+          eventType == 'PHL'
+              ? event['team2Goals'] ?? 0
+              : team2Score['goals'] ?? 0;
+
+      // Add rounds history for IYSC non-cricket events
+      Widget? roundsHistory;
+      if (eventType == 'IYSC' && event['type']?.toLowerCase() != 'cricket') {
+        final team1Score = Map<String, dynamic>.from(event['team1Score'] ?? {});
+        final team2Score = Map<String, dynamic>.from(event['team2Score'] ?? {});
+
+        // Extract round history from both teams' scores
+        final team1RoundHistory = List<Map<String, dynamic>>.from(
+          team1Score['roundHistory'] ?? [],
+        );
+        final team2RoundHistory = List<Map<String, dynamic>>.from(
+          team2Score['roundHistory'] ?? [],
+        );
+
+        roundsHistory = Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Previous Rounds',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: Colors.black54, // Changed from Colors.white
+              ),
+            ),
+            SizedBox(height: 8),
+            Container(
+              height: 85,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: team1RoundHistory.length,
+                itemBuilder: (context, index) {
+                  final team1Round = team1RoundHistory[index];
+                  final team2Round = team2RoundHistory[index];
+                  return Container(
+                    margin: EdgeInsets.symmetric(horizontal: 6),
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.white.withOpacity(0.3)),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade700,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'Round ${index + 1}',
+                            style: TextStyle(
+                              color:
+                                  Colors.black54, // Changed from Colors.white
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Column(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.shade100.withOpacity(
+                                      0.2,
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    '${team1Round['score'] ?? 0}',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color:
+                                          Colors
+                                              .black54, // Changed from Colors.white
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 4),
+                              child: Text(
+                                '-',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color:
+                                      Colors
+                                          .black54, // Changed from Colors.white70
+                                ),
+                              ),
+                            ),
+                            Column(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade100.withOpacity(
+                                      0.2,
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    '${team2Round['score'] ?? 0}',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color:
+                                          Colors
+                                              .black54, // Changed from Colors.white
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            SizedBox(height: 12),
+          ],
+        );
+      }
+
+      scoreDisplay = Container(
+        padding: EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color:
+              Colors
+                  .blue[100], // Changed from Color(0xFFA1D6B2) to match sports events box color
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (roundsHistory != null) roundsHistory,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // Team 1
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '${event['team1']}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.black,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '$score1',
+                        style: const TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.black,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                // VS
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  child: Text(
+                    'VS',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.blue.shade900,
+                    ),
+                  ),
+                ),
+                // Team 2
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '${event['team2']}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.black,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '$score2',
+                        style: const TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.black,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    } else {
+      scoreDisplay = Container(
+        padding: EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Color(0xFFA1D6B2), // New color
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Score not available',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: Colors.black,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.blue[100]?.withOpacity(
+          0.95,
+        ), // Changed from black to light blue
+        borderRadius: BorderRadius.circular(15),
+      ),
+      padding: EdgeInsets.symmetric(vertical: 10),
+      child: Stack(
+        children: [
+          Container(
+            constraints: BoxConstraints(maxHeight: 200),
+            child: SingleChildScrollView(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    header, // Add the header here
+                    if (eventType == 'IYSC' &&
+                        event['type']?.toLowerCase() != 'cricket' &&
+                        event['roundScores'] != null)
+                      Container(
+                        height: 50,
+                        margin: EdgeInsets.only(bottom: 10),
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: (event['roundScores'] as List).length,
+                          itemBuilder: (context, index) {
+                            final roundScore = event['roundScores'][index];
+                            return Container(
+                              margin: EdgeInsets.symmetric(horizontal: 4),
+                              padding: EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Round ${index + 1}',
+                                    style: TextStyle(
+                                      color:
+                                          Colors
+                                              .black54, // Changed from Colors.white
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${roundScore['team1Score']} - ${roundScore['team2Score']}',
+                                    style: TextStyle(
+                                      color:
+                                          Colors
+                                              .black54, // Changed from Colors.white
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    scoreDisplay,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const Positioned(top: 10, right: 10, child: _LiveIndicator()),
+        ],
+      ),
+    );
+  }
+
+  void _updateLiveScore(dynamic data) {
+    setState(() {
+      int index = liveEvents.indexWhere(
+        (event) => event['_id'] == data['eventId'],
+      );
+      if (index != -1) {
+        final eventType = liveEvents[index]['eventType'];
+
+        if (eventType == 'PHL') {
+          // Update PHL scores using team1Goals and team2Goals
+          liveEvents[index]['team1Goals'] = data['team1Goals'];
+          liveEvents[index]['team2Goals'] = data['team2Goals'];
+        } else if (eventType == 'BasketBrawl') {
+          // Handle BasketBrawl scores using team1Score and team2Score
+          liveEvents[index]['team1Score'] =
+              data['team1Score'] is int
+                  ? {'goals': data['team1Score']}
+                  : Map<String, dynamic>.from(data['team1Score']);
+
+          liveEvents[index]['team2Score'] =
+              data['team2Score'] is int
+                  ? {'goals': data['team2Score']}
+                  : Map<String, dynamic>.from(data['team2Score']);
+        } else {
+          // Handle other events (IRCC, IYSC)
+          if (data['team1Score'] != null) {
+            liveEvents[index]['team1Score'] = Map<String, dynamic>.from(
+              data['team1Score'],
+            );
+          }
+          if (data['team2Score'] != null) {
+            liveEvents[index]['team2Score'] = Map<String, dynamic>.from(
+              data['team2Score'],
+            );
+          }
+        }
+      }
+    });
+  }
+
+  Future<void> _fetchLiveEvents() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/live-events'));
+      if (response.statusCode == 200) {
+        final events = json.decode(response.body);
+        setState(() {
+          liveEvents =
+              events.where((event) => event['eventType'] != 'GC').toList();
+          hasLiveEvents = liveEvents.isNotEmpty;
+          if (hasLiveEvents) {
+            _timer?.cancel(); // Stop image carousel if there are live events
+          }
+        });
+
+        // Connect to socket room for each live event
+        liveEvents.forEach((event) {
+          socket?.emit('join-event', event['_id']);
+        });
+      }
+    } catch (e) {
+      print('Error fetching live events: $e');
+    }
+  }
+
+  Future<void> _startAutoPlay() {
     _timer = Timer.periodic(Duration(seconds: 5), (Timer timer) {
       if (_currentPage < carouselImages.length - 1) {
         _currentPage++;
@@ -84,6 +765,7 @@ class _HomePageState extends State<HomePage> {
         curve: Curves.easeInOut,
       );
     });
+    return Future.value(); // Ensure a Future<void> is always returned
   }
 
   Future<void> _fetchAndSetProfilePic() async {
@@ -162,6 +844,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    socket?.disconnect();
+    socket?.dispose();
     _timer?.cancel();
     _pageController.dispose();
     super.dispose();
@@ -219,7 +903,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   }
-                  return SizedBox.shrink();
+                  return const SizedBox.shrink();
                 },
               ),
             ],
@@ -447,7 +1131,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             // Image Carousel
             Container(
-              height: 225, // Reduced from 300 to 225 (3/4 of original height)
+              height: 225,
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.black, width: 2),
                 borderRadius: BorderRadius.circular(10),
@@ -462,17 +1146,14 @@ class _HomePageState extends State<HomePage> {
                       onPageChanged: (index) {
                         setState(() => _currentPage = index);
                       },
-                      itemCount: carouselImages.length,
+                      itemCount: hasLiveEvents ? liveEvents.length : 1,
                       itemBuilder: (context, index) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: AssetImage(carouselImages[index]['path']!),
-                              fit: BoxFit.cover,
-                              filterQuality: FilterQuality.medium,
-                            ),
-                          ),
-                        );
+                        if (hasLiveEvents) {
+                          return _buildLiveEventCard(liveEvents[index]);
+                        }
+                        return _buildLiveEventCard(
+                          null,
+                        ); // Pass null to show "No Live Events" message
                       },
                     ),
                     // Indicators
@@ -483,7 +1164,9 @@ class _HomePageState extends State<HomePage> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(
-                          carouselImages.length,
+                          hasLiveEvents
+                              ? liveEvents.length
+                              : carouselImages.length,
                           (index) => Container(
                             margin: EdgeInsets.symmetric(horizontal: 4),
                             width: 8,
@@ -541,7 +1224,8 @@ class _HomePageState extends State<HomePage> {
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
-                          Row(
+                          CustomRow(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Expanded(
                                 flex: 2,
@@ -551,7 +1235,7 @@ class _HomePageState extends State<HomePage> {
                                   EventsPage(),
                                 ),
                               ),
-                              SizedBox(width: 10),
+                              const CustomSpacer(width: 10),
                               Expanded(
                                 flex: 2,
                                 child: _buildAnimatedCard(
@@ -562,8 +1246,9 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ],
                           ),
-                          SizedBox(height: 10),
-                          Row(
+                          const CustomSpacer(height: 10),
+                          CustomRow(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Expanded(
                                 flex: 2,
@@ -573,7 +1258,7 @@ class _HomePageState extends State<HomePage> {
                                   IRCCPage(),
                                 ),
                               ),
-                              SizedBox(width: 10),
+                              const CustomSpacer(width: 10),
                               Expanded(
                                 flex: 2,
                                 child: _buildAnimatedCard(
@@ -584,8 +1269,9 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ],
                           ),
-                          SizedBox(height: 10),
-                          Row(
+                          const CustomSpacer(height: 10),
+                          CustomRow(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Expanded(
                                 flex: 2,
@@ -595,7 +1281,7 @@ class _HomePageState extends State<HomePage> {
                                   BasketBrawlPage(),
                                 ),
                               ),
-                              SizedBox(width: 10),
+                              const CustomSpacer(width: 10),
                               Expanded(
                                 flex: 2,
                                 child: _buildAnimatedCard(
@@ -606,8 +1292,9 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ],
                           ),
-                          SizedBox(height: 10),
-                          Row(
+                          const CustomSpacer(height: 10),
+                          CustomRow(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Expanded(
                                 flex: 2,
@@ -617,7 +1304,7 @@ class _HomePageState extends State<HomePage> {
                                   MyEventsPage(email: widget.email),
                                 ),
                               ),
-                              SizedBox(width: 10),
+                              const CustomSpacer(width: 10),
                               Expanded(
                                 flex: 2,
                                 child: _buildAnimatedCard(
@@ -641,9 +1328,17 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Add this helper method
+  Map<String, dynamic> getSafeScore(dynamic score) {
+    if (score == null) return {'goals': 0};
+    if (score is int) return {'goals': score};
+    return Map<String, dynamic>.from(score);
+  }
+
   Widget _buildAnimatedCard(String title, IconData icon, Widget page) {
     return Card(
       elevation: 4,
+      color: Colors.blue[100], // Light blue background
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: InkWell(
         onTap:
@@ -653,23 +1348,20 @@ class _HomePageState extends State<HomePage> {
             ),
         borderRadius: BorderRadius.circular(15),
         child: Container(
-          height: 80, // Increased height
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-          child: Row(
+          height: 80,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          child: CustomRow(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                size: 32,
-                color: Colors.blue.shade700,
-              ), // Increased icon size
-              SizedBox(width: 15),
+              Icon(icon, size: 32, color: Colors.blue.shade900),
+              const CustomSpacer(width: 15),
               Flexible(
                 child: Text(
                   title,
-                  style: TextStyle(
-                    fontSize: 18, // Increased font size
-                    fontWeight: FontWeight.bold,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800, // Bolder text
+                    color: Colors.black, // Black text color
                   ),
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,

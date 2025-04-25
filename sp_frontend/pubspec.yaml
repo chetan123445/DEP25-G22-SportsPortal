@@ -82,16 +82,6 @@ flutter:
   assets:
     - assets/pngsport.png
     - assets/profile.png
-    - assets/sports1.jpg
-    - assets/sports2.jpg
-    - assets/sports3.jpg
-    - assets/sports4.jpg
-    - assets/sports5.jpg
-    - assets/sports6.jpg
-    - assets/sports7.jpg
-    - assets/sports8.jpg
-    - assets/sports9.jpg
-    - assets/sports10.jpg
     - assets/galleryBackground.webp
 
   # An image asset can refer to one or more resolution-specific "variants", see
