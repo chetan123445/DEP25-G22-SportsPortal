@@ -301,7 +301,10 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
               detailsPage = IRCCEventDetailsPage(event: event);
               break;
             case 'IYSC':
-              detailsPage = IYSCEventDetailsPage(event: event);
+              detailsPage = IYSCEventDetailsPage(
+                event: event,
+                isReadOnly: false,
+              );
               break;
             case 'GC':
               detailsPage = GCEventDetailsPage(event: event, isReadOnly: false);
@@ -665,11 +668,11 @@ class _ManagingEventsPageState extends State<ManagingEventsPage>
                           },
                           child: Container(
                             padding: EdgeInsets.symmetric(
-                              horizontal: 8.0,
-                              vertical: 4.0,
+                              horizontal: 12,
+                              vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.orange,
+                              color: Colors.orange.shade200,
                               borderRadius: BorderRadius.circular(5),
                               border: Border.all(color: Colors.black),
                             ),

@@ -11,6 +11,8 @@ import 'PlayerProfilePage.dart';
 import 'IRCCEventDetailsPage.dart';
 import 'PHLEventDetailsPage.dart';
 import 'BasketBrawlEventDetailsPage.dart';
+import 'IYSCEventDetailsPage.dart';
+import 'GCEventDetailsPage.dart';
 
 void main() {
   runApp(MaterialApp(debugShowCheckedModeBanner: false, home: EventsPage()));
@@ -533,7 +535,7 @@ class _EventsPageState extends State<EventsPage>
 
   Widget _buildEventCard(
     BuildContext context,
-    Map<String, dynamic> event, // Pass the entire event object
+    Map<String, dynamic> event,
     String team1,
     String team2,
     String date,
@@ -543,7 +545,7 @@ class _EventsPageState extends State<EventsPage>
     String venue,
     String eventType,
     bool isLive,
-    String eventId, // Add eventId parameter
+    String eventId,
   ) {
     bool isFavorite = favoriteStatus[eventId] ?? false;
 
@@ -942,6 +944,7 @@ class _EventsPageState extends State<EventsPage>
                       icon: Icon(Icons.info_outline, size: 16),
                       label: Text('Event Details'),
                       onPressed: () {
+                        // Navigate to appropriate event details page
                         if (eventType == 'IRCC') {
                           Navigator.push(
                             context,
@@ -975,22 +978,27 @@ class _EventsPageState extends State<EventsPage>
                                   ),
                             ),
                           );
-                        } else if (eventType == 'GC' || eventType == 'IYSC') {
-                          showDialog(
-                            context: context,
-                            builder:
-                                (context) => AlertDialog(
-                                  title: Text('Event Details'),
-                                  content: Text(
-                                    'Event details feature for ${eventType} events will be available soon.',
+                        } else if (eventType == 'IYSC') {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => IYSCEventDetailsPage(
+                                    event: event,
+                                    isReadOnly: true,
                                   ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: Text('OK'),
-                                    ),
-                                  ],
-                                ),
+                            ),
+                          );
+                        } else if (eventType == 'GC') {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => GCEventDetailsPage(
+                                    event: event,
+                                    isReadOnly: true,
+                                  ),
+                            ),
                           );
                         }
                       },
@@ -1022,10 +1030,48 @@ class _EventsPageState extends State<EventsPage>
                           if (event['winner'] == null ||
                               event['winner'].isEmpty) {
                             message = 'No results available';
-                          } else if (event['winner'] == 'Draw') {
-                            message = 'Match ended in a draw';
                           } else {
-                            message = '${event['winner']} won this match!';
+                            // Special handling for different event types
+                            if (eventType == 'IRCC' ||
+                                (eventType == 'IYSC' &&
+                                    event['type']?.toLowerCase() ==
+                                        'cricket')) {
+                              message = _getCricketMatchResult(
+                                event['team1'],
+                                event['team2'],
+                                event['team1Score'],
+                                event['team2Score'],
+                                event['winner'],
+                              );
+                            } else if (eventType == 'PHL') {
+                              message = _getPHLMatchResult(
+                                event['team1'],
+                                event['team2'],
+                                event['team1Goals'],
+                                event['team2Goals'],
+                                event['winner'],
+                              );
+                            } else if (eventType == 'BasketBrawl') {
+                              message = _getBasketBrawlMatchResult(
+                                event['team1'],
+                                event['team2'],
+                                event['team1Score'],
+                                event['team2Score'],
+                                event['winner'],
+                              );
+                            } else if (eventType == 'IYSC' &&
+                                event['team1Score']?['roundHistory'] != null) {
+                              // For IYSC round-based games
+                              message = _getIYSCRoundBasedResult(
+                                event['team1'],
+                                event['team2'],
+                                event['team1Score'],
+                                event['team2Score'],
+                                event['winner'],
+                              );
+                            } else {
+                              message = '${event['winner']} won this match!';
+                            }
                           }
                         }
 
@@ -1164,4 +1210,106 @@ class _BlinkingLiveIndicatorState extends State<BlinkingLiveIndicator>
       ),
     );
   }
+}
+
+String _getCricketMatchResult(
+  String team1,
+  String team2,
+  Map<String, dynamic> team1Score,
+  Map<String, dynamic> team2Score,
+  String winner,
+) {
+  final team1Runs = team1Score['runs'] ?? 0;
+  final team2Runs = team2Score['runs'] ?? 0;
+  final team2Wickets = team2Score['wickets'] ?? 0;
+
+  if (team1Runs == team2Runs) {
+    return 'Match ended in a draw';
+  }
+
+  // If team batting second (team2) has more runs, they won by wickets
+  if (team2Runs > team1Runs) {
+    return '$team2 won by ${10 - team2Wickets} wickets';
+  }
+  // If team batting first (team1) has more runs, they won by runs
+  else if (team1Runs > team2Runs) {
+    return '$team1 won by ${team1Runs - team2Runs} runs';
+  }
+
+  return '$winner won this match!';
+}
+
+String _getPHLMatchResult(
+  String team1,
+  String team2,
+  dynamic team1Goals,
+  dynamic team2Goals,
+  String winner,
+) {
+  final goals1 = team1Goals ?? 0;
+  final goals2 = team2Goals ?? 0;
+
+  if (goals1 == goals2) {
+    return 'Match ended in a draw';
+  }
+
+  return goals2 > goals1
+      ? '$team2 won by ${goals2 - goals1} goals'
+      : '$team1 won by ${goals1 - goals2} goals';
+}
+
+String _getBasketBrawlMatchResult(
+  String team1,
+  String team2,
+  dynamic team1Score,
+  dynamic team2Score,
+  String winner,
+) {
+  // Access team scores directly since they are stored as numbers
+  final score1 = num.tryParse(team1Score?.toString() ?? '0') ?? 0;
+  final score2 = num.tryParse(team2Score?.toString() ?? '0') ?? 0;
+
+  if (score1 == score2) {
+    return 'Match ended in a draw';
+  }
+
+  return score2 > score1
+      ? '$team2 won by ${score2 - score1} points'
+      : '$team1 won by ${score1 - score2} points';
+}
+
+String _getIYSCRoundBasedResult(
+  String team1,
+  String team2,
+  Map<String, dynamic> team1Score,
+  Map<String, dynamic> team2Score,
+  String winner,
+) {
+  // Extract round histories
+  final team1Rounds = (team1Score['roundHistory'] as List<dynamic>?) ?? [];
+  final team2Rounds = (team2Score['roundHistory'] as List<dynamic>?) ?? [];
+
+  // Count rounds won by each team
+  int team1RoundsWon = 0;
+  int team2RoundsWon = 0;
+
+  for (int i = 0; i < team1Rounds.length; i++) {
+    final team1RoundScore = team1Rounds[i]['score'] ?? 0;
+    final team2RoundScore = team2Rounds[i]['score'] ?? 0;
+
+    if (team1RoundScore > team2RoundScore) {
+      team1RoundsWon++;
+    } else if (team2RoundScore > team1RoundScore) {
+      team2RoundsWon++;
+    }
+  }
+
+  // Determine winner based on rounds won
+  if (team1RoundsWon == team2RoundsWon) {
+    return 'Match ended in a draw';
+  }
+
+  return team1RoundsWon > team2RoundsWon
+      ? '$team1 won by winning $team1RoundsWon rounds to $team2RoundsWon'
+      : '$team2 won by winning $team2RoundsWon rounds to $team1RoundsWon';
 }

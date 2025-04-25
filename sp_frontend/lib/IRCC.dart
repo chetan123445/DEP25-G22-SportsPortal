@@ -628,7 +628,13 @@ class _IRCCPageState extends State<IRCCPage> {
                           } else if (event['winner'] == 'Draw') {
                             message = 'Match ended in a draw';
                           } else {
-                            message = '${event['winner']} won this match!';
+                            message = _getCricketMatchResult(
+                              event['team1'],
+                              event['team2'],
+                              event['team1Score'],
+                              event['team2Score'],
+                              event['winner'],
+                            );
                           }
                         }
 
@@ -735,5 +741,29 @@ class _IRCCPageState extends State<IRCCPage> {
         ),
       ),
     );
+  }
+
+  String _getCricketMatchResult(
+    String team1,
+    String team2,
+    Map<String, dynamic> team1Score,
+    Map<String, dynamic> team2Score,
+    String winner,
+  ) {
+    final team1Runs = team1Score['runs'] ?? 0;
+    final team2Runs = team2Score['runs'] ?? 0;
+    final team2Wickets = team2Score['wickets'] ?? 0;
+
+    if (team1Runs == team2Runs) {
+      return 'Match ended in a draw';
+    }
+
+    if (team2Runs > team1Runs) {
+      return '$team2 won by ${10 - team2Wickets} wickets';
+    } else if (team1Runs > team2Runs) {
+      return '$team1 won by ${team1Runs - team2Runs} runs';
+    }
+
+    return '$winner won this match!';
   }
 }

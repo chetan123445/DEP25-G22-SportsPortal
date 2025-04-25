@@ -547,7 +547,27 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
       } else if (event['winner'] == 'Draw') {
         message = 'Match ended in a draw';
       } else {
-        message = '${event['winner']} won this match!';
+        // Handle different types of games
+        if (event['type']?.toLowerCase() == 'cricket') {
+          message = _getCricketMatchResult(
+            event['team1'],
+            event['team2'],
+            event['team1Score'],
+            event['team2Score'],
+            event['winner'],
+          );
+        } else if (event['team1Score']?['roundHistory'] != null) {
+          // For round-based games
+          message = _getRoundBasedResult(
+            event['team1'],
+            event['team2'],
+            event['team1Score'],
+            event['team2Score'],
+            event['winner'],
+          );
+        } else {
+          message = '${event['winner']} won this match!';
+        }
       }
     }
 
@@ -565,6 +585,63 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
             ],
           ),
     );
+  }
+
+  String _getCricketMatchResult(
+    String team1,
+    String team2,
+    Map<String, dynamic> team1Score,
+    Map<String, dynamic> team2Score,
+    String winner,
+  ) {
+    final team1Runs = team1Score['runs'] ?? 0;
+    final team2Runs = team2Score['runs'] ?? 0;
+    final team2Wickets = team2Score['wickets'] ?? 0;
+
+    if (team1Runs == team2Runs) {
+      return 'Match ended in a draw';
+    }
+
+    if (team2Runs > team1Runs) {
+      return '$team2 won by ${10 - team2Wickets} wickets';
+    } else if (team1Runs > team2Runs) {
+      return '$team1 won by ${team1Runs - team2Runs} runs';
+    }
+
+    return '$winner won this match!';
+  }
+
+  String _getRoundBasedResult(
+    String team1,
+    String team2,
+    Map<String, dynamic> team1Score,
+    Map<String, dynamic> team2Score,
+    String winner,
+  ) {
+    final team1Rounds = (team1Score['roundHistory'] as List<dynamic>?) ?? [];
+    final team2Rounds = (team2Score['roundHistory'] as List<dynamic>?) ?? [];
+
+    int team1RoundsWon = 0;
+    int team2RoundsWon = 0;
+
+    for (int i = 0; i < team1Rounds.length; i++) {
+      final team1RoundScore = team1Rounds[i]['score'] ?? 0;
+      final team2RoundScore = team2Rounds[i]['score'] ?? 0;
+
+      if (team1RoundScore > team2RoundScore) {
+        team1RoundsWon++;
+      } else if (team2RoundScore > team1RoundScore) {
+        team2RoundsWon++;
+      }
+    }
+
+    if (team1RoundsWon == team2RoundsWon) {
+      return 'Match ended in a draw';
+    }
+
+    return team1RoundsWon > team2RoundsWon
+        ? '$team1 won by winning $team1RoundsWon rounds to $team2RoundsWon'
+        : '$team2 won by winning $team2RoundsWon rounds to $team1RoundsWon';
   }
 
   void _showTeamDetails(

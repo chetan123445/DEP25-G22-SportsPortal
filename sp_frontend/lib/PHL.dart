@@ -691,7 +691,13 @@ class _PHLPageState extends State<PHLPage> {
                           } else if (event['winner'] == 'Draw') {
                             message = 'Match ended in a draw';
                           } else {
-                            message = '${event['winner']} won this match!';
+                            message = _getPHLMatchResult(
+                              event['team1'],
+                              event['team2'],
+                              event['team1Goals'],
+                              event['team2Goals'],
+                              event['winner'],
+                            );
                           }
                         }
 
@@ -755,5 +761,24 @@ class _PHLPageState extends State<PHLPage> {
         ],
       ),
     );
+  }
+
+  String _getPHLMatchResult(
+    String team1,
+    String team2,
+    dynamic team1Goals,
+    dynamic team2Goals,
+    String winner,
+  ) {
+    final goals1 = team1Goals ?? 0;
+    final goals2 = team2Goals ?? 0;
+
+    if (goals1 == goals2) {
+      return 'Match ended in a draw';
+    }
+
+    return goals2 > goals1
+        ? '$team2 won by ${goals2 - goals1} goals'
+        : '$team1 won by ${goals1 - goals2} goals';
   }
 }

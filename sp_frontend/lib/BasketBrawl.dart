@@ -634,10 +634,14 @@ class _BasketBrawlPageState extends State<BasketBrawlPage> {
                           if (event['winner'] == null ||
                               event['winner'].isEmpty) {
                             message = 'No results available';
-                          } else if (event['winner'] == 'Draw') {
-                            message = 'Match ended in a draw';
                           } else {
-                            message = '${event['winner']} won this match!';
+                            message = _getBasketBrawlMatchResult(
+                              event['team1'],
+                              event['team2'],
+                              event['team1Score'],
+                              event['team2Score'],
+                              event['winner'],
+                            );
                           }
                         }
 
@@ -701,5 +705,25 @@ class _BasketBrawlPageState extends State<BasketBrawlPage> {
         ],
       ),
     );
+  }
+
+  String _getBasketBrawlMatchResult(
+    String team1,
+    String team2,
+    dynamic team1Score,
+    dynamic team2Score,
+    String winner,
+  ) {
+    // Access team scores directly since they are stored as numbers
+    final score1 = num.tryParse(team1Score?.toString() ?? '0') ?? 0;
+    final score2 = num.tryParse(team2Score?.toString() ?? '0') ?? 0;
+
+    if (score1 == score2) {
+      return 'Match ended in a draw';
+    }
+
+    return score2 > score1
+        ? '$team2 won by ${score2 - score1} points'
+        : '$team1 won by ${score1 - score2} points';
   }
 }
