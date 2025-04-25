@@ -141,34 +141,17 @@ class _HomePageState extends State<HomePage> {
   int _currentPage = 0;
   Timer? _timer;
   bool isMenuHovered = false;
-  String? _profilePic; // Variable to store the profile picture
+  String? _profilePic;
   List<dynamic> liveEvents = [];
   IO.Socket? socket;
   bool hasLiveEvents = false;
-
-  final List<Map<String, String>> carouselImages = [
-    {'path': 'assets/sports1.jpg', 'caption': 'Cricket Championship'},
-    {'path': 'assets/sports2.jpg', 'caption': 'Basketball Tournament'},
-    {'path': 'assets/sports3.jpg', 'caption': 'Football League'},
-    {'path': 'assets/sports4.jpg', 'caption': 'Hockey Tournament'},
-    {'path': 'assets/sports5.jpg', 'caption': 'Athletics Meet'},
-    {'path': 'assets/sports6.jpg', 'caption': 'Sports Complex'},
-    {'path': 'assets/sports7.jpg', 'caption': 'Volleyball Match'},
-    {'path': 'assets/sports8.jpg', 'caption': 'Badminton Tournament'},
-    {'path': 'assets/sports9.jpg', 'caption': 'Table Tennis'},
-    {'path': 'assets/sports10.jpg', 'caption': 'Swimming Championship'},
-  ];
 
   @override
   void initState() {
     super.initState();
     _fetchLiveEvents();
     _connectToSocket();
-    // Only start autoplay if there are no live events
-    if (!hasLiveEvents) {
-      _startAutoPlay();
-    }
-    _fetchAndSetProfilePic(); // Fetch profile picture once
+    _fetchAndSetProfilePic();
   }
 
   void _connectToSocket() {
@@ -184,6 +167,87 @@ class _HomePageState extends State<HomePage> {
         _updateLiveScore(data);
       }
     });
+
+    socket?.on('event-status-update', (data) {
+      if (mounted) {
+        _handleEventStatusUpdate(data);
+      }
+    });
+  }
+
+  void _handleEventStatusUpdate(dynamic data) {
+    if (data['status'] == 'completed') {
+      setState(() {
+        // Remove the event from live events
+        liveEvents.removeWhere((event) => event['_id'] == data['eventId']);
+        hasLiveEvents = liveEvents.isNotEmpty;
+      });
+    }
+  }
+
+  Future<void> _fetchUpdatedEvent(String eventId) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/event/$eventId'));
+      if (response.statusCode == 200) {
+        final updatedEvent = json.decode(response.body);
+
+        if (mounted) {
+          setState(() {
+            // Remove existing event if present
+            liveEvents.removeWhere((event) => event['_id'] == eventId);
+
+            // Add updated event if it's live
+            if (updatedEvent['status'] == 'live') {
+              // Insert at the beginning of the list for immediate visibility
+              liveEvents.insert(0, updatedEvent);
+              hasLiveEvents = true;
+
+              // Update page controller to show the new event
+              if (_pageController.hasClients) {
+                _pageController.animateToPage(
+                  0,
+                  duration: Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              }
+
+              // Join socket room for the new live event
+              socket?.emit('join-event', eventId);
+            }
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching updated event: $e');
+    }
+  }
+
+  Future<void> _fetchLiveEvents() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/live-events'));
+      if (response.statusCode == 200) {
+        final events = json.decode(response.body);
+        if (mounted) {
+          setState(() {
+            liveEvents =
+                events.where((event) => event['eventType'] != 'GC').toList();
+            hasLiveEvents = liveEvents.isNotEmpty;
+            if (hasLiveEvents) {
+              _timer?.cancel(); // Stop image carousel if there are live events
+            } else {
+              _startAutoPlay(); // Start carousel if no live events
+            }
+          });
+
+          // Join socket room for each live event
+          liveEvents.forEach((event) {
+            socket?.emit('join-event', event['_id']);
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching live events: $e');
+    }
   }
 
   Widget _buildLiveEventCard(dynamic event) {
@@ -728,44 +792,9 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> _fetchLiveEvents() async {
-    try {
-      final response = await http.get(Uri.parse('$baseUrl/live-events'));
-      if (response.statusCode == 200) {
-        final events = json.decode(response.body);
-        setState(() {
-          liveEvents =
-              events.where((event) => event['eventType'] != 'GC').toList();
-          hasLiveEvents = liveEvents.isNotEmpty;
-          if (hasLiveEvents) {
-            _timer?.cancel(); // Stop image carousel if there are live events
-          }
-        });
-
-        // Connect to socket room for each live event
-        liveEvents.forEach((event) {
-          socket?.emit('join-event', event['_id']);
-        });
-      }
-    } catch (e) {
-      print('Error fetching live events: $e');
-    }
-  }
-
   Future<void> _startAutoPlay() {
-    _timer = Timer.periodic(Duration(seconds: 5), (Timer timer) {
-      if (_currentPage < carouselImages.length - 1) {
-        _currentPage++;
-      } else {
-        _currentPage = 0;
-      }
-      _pageController.animateToPage(
-        _currentPage,
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    });
-    return Future.value(); // Ensure a Future<void> is always returned
+    _timer?.cancel(); // Cancel any existing timer
+    return Future.value();
   }
 
   Future<void> _fetchAndSetProfilePic() async {
@@ -827,7 +856,14 @@ class _HomePageState extends State<HomePage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => NotificationsPage(email: widget.email),
+        builder:
+            (context) => NotificationsPage(
+              email: widget.email,
+              onNotificationsUpdated: () {
+                // Force rebuild to refresh notification count
+                setState(() {});
+              },
+            ),
       ),
     );
   }
@@ -1151,12 +1187,9 @@ class _HomePageState extends State<HomePage> {
                         if (hasLiveEvents) {
                           return _buildLiveEventCard(liveEvents[index]);
                         }
-                        return _buildLiveEventCard(
-                          null,
-                        ); // Pass null to show "No Live Events" message
+                        return _buildLiveEventCard(null);
                       },
                     ),
-                    // Indicators
                     Positioned(
                       bottom: 10,
                       left: 0,
@@ -1164,9 +1197,7 @@ class _HomePageState extends State<HomePage> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(
-                          hasLiveEvents
-                              ? liveEvents.length
-                              : carouselImages.length,
+                          hasLiveEvents ? liveEvents.length : 1,
                           (index) => Container(
                             margin: EdgeInsets.symmetric(horizontal: 4),
                             width: 8,

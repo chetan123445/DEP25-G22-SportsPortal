@@ -6,8 +6,12 @@ import 'package:intl/intl.dart';
 
 class NotificationsPage extends StatefulWidget {
   final String email;
+  final VoidCallback? onNotificationsUpdated; // Add this parameter
 
-  NotificationsPage({required this.email});
+  NotificationsPage({
+    required this.email,
+    this.onNotificationsUpdated, // Add this parameter
+  });
 
   @override
   _NotificationsPageState createState() => _NotificationsPageState();
@@ -32,6 +36,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       );
 
       if (response.statusCode == 200) {
+        widget.onNotificationsUpdated?.call(); // Add this line
         // Show a brief success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -61,6 +66,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       );
 
       if (response.statusCode == 200) {
+        widget.onNotificationsUpdated?.call(); // Add this line
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('All notifications deleted'),
