@@ -25,7 +25,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     final email = _emailController.text;
 
     final response = await http.post(
-      Uri.parse('$baseUrl/send-otp'),
+      Uri.parse('$baseUrl/FP-send-otp'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email}),
     );

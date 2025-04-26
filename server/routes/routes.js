@@ -30,7 +30,7 @@ import { addImage, getImages, deleteImages } from '../controllers/updateGallery.
 import { updateEventDetails } from '../controllers/updateEventController.js';
 import { updateGCEventTeams } from '../controllers/GCeventController.js'; // Add new import for GC team management
 import GC from '../models/GCevent.js'; // Change from GC.js to GCevent.js
-import { sendOtp, verifyOtp, resetPassword } from '../controllers/forgotPasswordController.js';
+import { FPsendOtp, verifyOtp, resetPassword } from '../controllers/forgotPasswordController.js';
 import { getCurrentAdmins } from '../controllers/Admin.js'; // Import the getCurrentAdmins controller
 import { getAdminProfile } from '../controllers/adminProfileController.js'; // Import the new controller
 import { changePassword } from '../controllers/changePassword.js'; // Add this import
@@ -290,6 +290,7 @@ router.post('/send-otp', async (req, res) => {
     return sendOtp(req, res);
 });
 
+router.post('/FP-send-otp',FPsendOtp); // Add this route for sending OTP for password reset
 router.post('/verify-otp', verifyOtp);
 router.post('/reset-password', resetPassword);
 
