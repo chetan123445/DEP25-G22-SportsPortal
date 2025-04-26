@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 
 const otpStore = new Map(); // Temporary store for OTPs
 
-export const sendOtp = async (req, res) => {
+export const FPsendOtp = async (req, res) => {
   const { email } = req.body;
 
   try {
