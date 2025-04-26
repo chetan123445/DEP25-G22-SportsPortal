@@ -740,9 +740,18 @@ class _AddEventPageState extends State<AddEventPage> {
 
       try {
         bool success;
+        final formattedDate =
+            _date != null
+                ? "${_date!.year}-${_date!.month.toString().padLeft(2, '0')}-${_date!.day.toString().padLeft(2, '0')}"
+                : 'N/A';
+        final List<String> timeParts = _time.split(':');
+        final formattedTime =
+            timeParts.length == 2
+                ? "${timeParts[0].padLeft(2, '0')}:${timeParts[1].padLeft(2, '0')}"
+                : _time;
 
         if (selectedEventType == 'GC') {
-          // For GC events, use participants structure
+          // Handle GC event
           success = await EventServices.addGCEvent(
             gender: selectedGender!,
             eventType: _eventType,
@@ -756,18 +765,37 @@ class _AddEventPageState extends State<AddEventPage> {
             participants: participants,
             eventManagers: _eventManagers.isNotEmpty ? _eventManagers : null,
           );
+
+          if (success) {
+            // Collect all participant emails
+            List<String> playerEmails = [];
+            for (var participant in participants) {
+              for (var member in participant['members']) {
+                if (member['email'] != null && member['email'].isNotEmpty) {
+                  playerEmails.add(member['email']);
+                }
+              }
+            }
+
+            // Send notifications to players
+            if (playerEmails.isNotEmpty) {
+              await http.post(
+                Uri.parse('$baseUrl/notifications/send'),
+                headers: {'Content-Type': 'application/json'},
+                body: json.encode({
+                  'message':
+                      'You have been added as a participant in the GC event: ${selectedMainType} - ${_type}',
+                  'eventType': 'GC',
+                  'date': formattedDate,
+                  'time': formattedTime,
+                  'venue': _venue,
+                  'emailsList': playerEmails,
+                }),
+              );
+            }
+          }
         } else {
-          // For other event types, use team1 and team2 structure
-          Team? team1Details =
-              _team1Members.isNotEmpty
-                  ? Team(teamName: _team1, members: _team1Members)
-                  : null;
-
-          Team? team2Details =
-              _team2Members.isNotEmpty
-                  ? Team(teamName: _team2, members: _team2Members)
-                  : null;
-
+          // Handle other events
           success = await EventServices.addEvent(
             gender: selectedGender!,
             eventType: _eventType,
@@ -780,55 +808,67 @@ class _AddEventPageState extends State<AddEventPage> {
             winner: _winner,
             team1: _team1,
             team2: _team2,
-            team1Details: team1Details,
-            team2Details: team2Details,
+            team1Details:
+                _team1Members.isNotEmpty
+                    ? Team(teamName: _team1, members: _team1Members)
+                    : null,
+            team2Details:
+                _team2Members.isNotEmpty
+                    ? Team(teamName: _team2, members: _team2Members)
+                    : null,
             eventManagers: _eventManagers.isNotEmpty ? _eventManagers : null,
           );
+
+          if (success) {
+            // Collect team member emails
+            List<String> playerEmails = [];
+            [..._team1Members, ..._team2Members].forEach((member) {
+              if (member.email.isNotEmpty) {
+                playerEmails.add(member.email);
+              }
+            });
+
+            // Send notifications to players
+            if (playerEmails.isNotEmpty) {
+              await http.post(
+                Uri.parse('$baseUrl/notifications/send'),
+                headers: {'Content-Type': 'application/json'},
+                body: json.encode({
+                  'message':
+                      'You have been added as a player in the ${selectedEventType} event: ${_team1} vs ${_team2}',
+                  'eventType': selectedEventType,
+                  'date': formattedDate,
+                  'time': formattedTime,
+                  'venue': _venue,
+                  'team1': _team1,
+                  'team2': _team2,
+                  'emailsList': playerEmails,
+                }),
+              );
+            }
+          }
         }
 
-        if (success) {
-          // Format date and time properly for the notification
-          final formattedDate =
-              _date != null
-                  ? "${_date!.year}-${_date!.month.toString().padLeft(2, '0')}-${_date!.day.toString().padLeft(2, '0')}"
-                  : 'N/A';
-
-          // Format time to ensure it has proper padding
-          final List<String> timeParts = _time.split(':');
-          final formattedTime =
-              timeParts.length == 2
-                  ? "${timeParts[0].padLeft(2, '0')}:${timeParts[1].padLeft(2, '0')}"
-                  : _time;
-
-          // Create notification message based on event type
-          String notificationMessage;
-          if (selectedEventType == 'GC') {
-            notificationMessage =
-                'New GC event added: ${selectedMainType} - ${_type}';
-          } else {
-            notificationMessage =
-                'New event added: ${_team1} vs ${_team2} - ${selectedEventType}';
-          }
-
-          // Send notifications to all users with formatted date and time
+        // Send notifications to event managers (for both GC and other events)
+        if (success && _eventManagers.isNotEmpty) {
+          List<String> managerEmails =
+              _eventManagers.map((m) => m.email).toList();
           await http.post(
             Uri.parse('$baseUrl/notifications/send'),
             headers: {'Content-Type': 'application/json'},
             body: json.encode({
-              'message': notificationMessage,
+              'message':
+                  'You are assigned as an Event Manager for ${selectedEventType == 'GC' ? 'GC event: $selectedMainType - $_type' : '$selectedEventType event: $_team1 vs $_team2'}',
               'eventType': selectedEventType,
               'date': formattedDate,
               'time': formattedTime,
               'venue': _venue,
-              // Only include team names for non-GC events
-              'team1': selectedEventType != 'GC' ? _team1 : null,
-              'team2': selectedEventType != 'GC' ? _team2 : null,
-              // Include main type and type for GC events
-              'mainType': selectedEventType == 'GC' ? selectedMainType : null,
-              'type': _type,
+              'emailsList': managerEmails,
             }),
           );
+        }
 
+        if (success) {
           // First navigate back to AdminDashboard
           Navigator.pushReplacement(
             context,

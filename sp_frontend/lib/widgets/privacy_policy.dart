@@ -36,7 +36,7 @@ class PrivacyPolicyPage extends StatelessWidget {
                 _buildLastUpdated('April 23, 2025'),
                 _buildSection(
                   'Introduction',
-                  'This Privacy Policy describes Our policies and procedures on the collection, use and disclosure of Your information when You use the Service and tells You about Your privacy rights and how the law protects You.\n\nWe use Your Personal data to provide and improve the Service. By using the Service, You agree to the collection and use of information in accordance with this Privacy Policy. This Privacy Policy has been created with the help of the Free Privacy Policy Generator.',
+                  'This Privacy Policy describes Our policies and procedures on the collection, use and disclosure of Your information when You use the Service and tells You about Your privacy rights and how the law protects You.\n\nWe use Your Personal data to provide and improve the Service. By using the Service, You agree to the collection and use of information in accordance with this Privacy Policy.',
                 ),
                 _buildSection(
                   'Interpretation',
@@ -109,7 +109,7 @@ class PrivacyPolicyPage extends StatelessWidget {
                 ),
                 _buildSection(
                   'Contact Us',
-                  'If you have any questions about this Privacy Policy, You can contact us:\nBy email: manishanwlaiitrpr@gmail.com',
+                  'If you have any questions about this Privacy Policy, You can contact us:\nBy email: sporteveiitropar@gmail.com',
                 ),
                 SizedBox(height: 20),
                 Center(

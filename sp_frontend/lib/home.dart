@@ -306,14 +306,14 @@ class _HomePageState extends State<HomePage> {
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       margin: EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white, // Changed from Colors.white.withOpacity(0.2)
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.white.withOpacity(0.3)),
       ),
       child: Text(
         displayType,
         style: TextStyle(
-          color: Colors.black54, // Changed from Colors.white
+          color: Colors.black, // Changed from Colors.black54
           fontSize: 16,
           fontWeight: FontWeight.bold,
         ),
@@ -434,136 +434,145 @@ class _HomePageState extends State<HomePage> {
           team2Score['roundHistory'] ?? [],
         );
 
-        roundsHistory = Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Previous Rounds',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: Colors.black54, // Changed from Colors.white
+        // Only create roundsHistory widget if there are actual rounds to display
+        if (team1RoundHistory.isNotEmpty && team2RoundHistory.isNotEmpty) {
+          roundsHistory = Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Previous Rounds',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.black54,
+                ),
               ),
-            ),
-            SizedBox(height: 8),
-            Container(
-              height: 85,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: team1RoundHistory.length,
-                itemBuilder: (context, index) {
-                  final team1Round = team1RoundHistory[index];
-                  final team2Round = team2RoundHistory[index];
-                  return Container(
-                    margin: EdgeInsets.symmetric(horizontal: 6),
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.white.withOpacity(0.3)),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade700,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'Round ${index + 1}',
-                            style: TextStyle(
-                              color:
-                                  Colors.black54, // Changed from Colors.white
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
+              SizedBox(height: 8),
+              Container(
+                height: 85,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: team1RoundHistory.length,
+                  itemBuilder: (context, index) {
+                    final team1Round = team1RoundHistory[index];
+                    final team2Round = team2RoundHistory[index];
+                    return Container(
+                      margin: EdgeInsets.symmetric(horizontal: 6),
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color:
+                            Colors
+                                .white, // Changed from Colors.white.withOpacity(0.1)
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
                         ),
-                        SizedBox(height: 4),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Column(
-                              children: [
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green.shade100.withOpacity(
-                                      0.2,
-                                    ),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    '${team1Round['score'] ?? 0}',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color:
-                                          Colors
-                                              .black54, // Changed from Colors.white
-                                    ),
-                                  ),
-                                ),
-                              ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
                             ),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 4),
-                              child: Text(
-                                '-',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color:
-                                      Colors
-                                          .black54, // Changed from Colors.white70
-                                ),
+                            decoration: BoxDecoration(
+                              color:
+                                  Colors
+                                      .white, // Changed from Colors.blue.shade700
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'Round ${index + 1}',
+                              style: TextStyle(
+                                color:
+                                    Colors.black, // Changed from Colors.black54
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
                               ),
                             ),
-                            Column(
-                              children: [
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade100.withOpacity(
-                                      0.2,
+                          ),
+                          SizedBox(height: 4),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Column(
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
                                     ),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    '${team2Round['score'] ?? 0}',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color:
-                                          Colors
-                                              .black54, // Changed from Colors.white
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.shade100.withOpacity(
+                                        0.2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(4),
                                     ),
+                                    child: Text(
+                                      '${team1Round['score'] ?? 0}',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color:
+                                            Colors
+                                                .black54, // Changed from Colors.white
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 4),
+                                child: Text(
+                                  '-',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color:
+                                        Colors
+                                            .black54, // Changed from Colors.white70
                                   ),
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                              ),
+                              Column(
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade100.withOpacity(
+                                        0.2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      '${team2Round['score'] ?? 0}',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color:
+                                            Colors
+                                                .black54, // Changed from Colors.white
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            SizedBox(height: 12),
-          ],
-        );
+              SizedBox(height: 12),
+            ],
+          );
+        }
       }
 
       scoreDisplay = Container(
