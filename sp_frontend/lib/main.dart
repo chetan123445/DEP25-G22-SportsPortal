@@ -1,3 +1,4 @@
+//flutter pub run flutter_launcher_icons:main   ...use this command if u changed app logo
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -118,19 +119,41 @@ class MainPage extends StatelessWidget {
                 isLoggedIn
                     ? CircleAvatar(
                       backgroundColor: Colors.blue.shade200,
-                      child: Text("XA"), // Replace with user initials
+                      child: Text("XA"),
                     )
-                    : TextButton(
-                      onPressed: () {
-                        // Navigate to login page
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => LoginPage()),
-                        );
-                      },
-                      child: Text(
-                        "LOGIN",
-                        style: TextStyle(color: Colors.white),
+                    : Container(
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade400,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.orange.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LoginPage(),
+                            ),
+                          );
+                        },
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Text(
+                            "LOGIN",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
           ),
@@ -279,9 +302,40 @@ class MainPage extends StatelessWidget {
           children: [
             SizedBox(height: 16),
             Center(
-              child: Text(
-                'IIT Ropar Sports Portal',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.purple.shade500, Colors.blue.shade500],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.purple.withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: ShaderMask(
+                  shaderCallback:
+                      (bounds) => LinearGradient(
+                        colors: [Colors.white, Colors.white70],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ).createShader(bounds),
+                  child: Text(
+                    'SportEve',
+                    style: TextStyle(
+                      fontSize: 38,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 3,
+                    ),
+                  ),
+                ),
               ),
             ),
             SizedBox(height: 16),
@@ -289,16 +343,49 @@ class MainPage extends StatelessWidget {
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Image.asset('assets/pngsport.png', fit: BoxFit.cover),
+                  child: Container(
+                    height:
+                        300, // Adjust this value to make image smaller/larger
+                    width:
+                        300, // Adjust this value to make image smaller/larger
+                    child: Image.asset(
+                      'assets/pngsport.png',
+                      fit: BoxFit.contain,
+                    ),
+                  ),
                 ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Center(
-                child: Text(
-                  'Contact Us:',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.contact_support_rounded,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      'Contact Us',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        letterSpacing: 1.2,
+                        height: 1.2,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black26,
+                            offset: Offset(2, 2),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -328,10 +415,13 @@ class MainPage extends StatelessWidget {
                   GestureDetector(
                     onTap:
                         () => ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('sports@iitrpr.ac.in')),
+                          SnackBar(content: Text('sporteveiitropar@gmail.com')),
                         ),
                     onLongPress:
-                        () => _copyToClipboard(context, 'sports@iitrpr.ac.in'),
+                        () => _copyToClipboard(
+                          context,
+                          'sporteveiitropar@gmail.com',
+                        ),
                     child: Column(
                       children: [
                         CircleAvatar(
