@@ -43,33 +43,47 @@ export const getNotifications = async (req, res) => {
 
 export const sendNotification = async (req, res) => {
     try {
-        const { message, eventType, date, time, venue, team1, team2 } = req.body;
+        const { message, eventType, date, time, venue, team1, team2, emailsList, notificationType } = req.body;
         
-        // Build notification object based on event type
+        // Build notification object based on event type and notification type
         const notification = {
             message,
             eventType,
             date,
             time,
             venue,
-            // Only include team1 and team2 if they are provided (non-GC events)
             ...(team1 && { team1 }),
             ...(team2 && { team2 }),
             read: false
         };
 
-        // Update all users with the new notification
-        await User.updateMany(
-            {},
-            {
-                $push: { 
-                    notifications: { 
-                        $each: [notification],
-                        $position: 0
+        // If emailsList is provided, send notifications only to specific users
+        if (emailsList && emailsList.length > 0) {
+            await User.updateMany(
+                { email: { $in: emailsList } },
+                {
+                    $push: { 
+                        notifications: { 
+                            $each: [notification],
+                            $position: 0
+                        }
                     }
                 }
-            }
-        );
+            );
+        } else {
+            // Otherwise, send to all users (general announcement)
+            await User.updateMany(
+                {},
+                {
+                    $push: { 
+                        notifications: { 
+                            $each: [notification],
+                            $position: 0
+                        }
+                    }
+                }
+            );
+        }
 
         res.status(200).json({ message: 'Notifications sent successfully' });
     } catch (error) {
