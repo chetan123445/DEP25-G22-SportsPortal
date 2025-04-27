@@ -223,32 +223,42 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _fetchLiveEvents() async {
-    try {
-      final response = await http.get(Uri.parse('$baseUrl/live-events'));
-      if (response.statusCode == 200) {
-        final events = json.decode(response.body);
-        if (mounted) {
-          setState(() {
-            liveEvents =
-                events.where((event) => event['eventType'] != 'GC').toList();
-            hasLiveEvents = liveEvents.isNotEmpty;
-            if (hasLiveEvents) {
-              _timer?.cancel(); // Stop image carousel if there are live events
-            } else {
-              _startAutoPlay(); // Start carousel if no live events
+  try {
+    final response = await http.get(Uri.parse('$baseUrl/live-events'));
+    if (response.statusCode == 200) {
+      final events = json.decode(response.body);
+      if (mounted) {
+        setState(() {
+          // Filter out IYSC events with specific types
+          liveEvents = events.where((event) {
+            // Exclude specific IYSC event types
+            if (event['eventType'] == 'IYSC') {
+              String type = (event['type'] ?? '').toString().toLowerCase();
+              if (['field athletics', 'weightlifting', 'powerlifting'].contains(type)) {
+                return false;
+              }
             }
-          });
+            return event['eventType'] != 'GC';
+          }).toList();
+          
+          hasLiveEvents = liveEvents.isNotEmpty;
+          if (hasLiveEvents) {
+            _timer?.cancel();
+          } else {
+            _startAutoPlay();
+          }
+        });
 
-          // Join socket room for each live event
-          liveEvents.forEach((event) {
-            socket?.emit('join-event', event['_id']);
-          });
-        }
+        // Join socket room for each live event
+        liveEvents.forEach((event) {
+          socket?.emit('join-event', event['_id']);
+        });
       }
-    } catch (e) {
-      print('Error fetching live events: $e');
     }
+  } catch (e) {
+    print('Error fetching live events: $e');
   }
+}
 
   Widget _buildLiveEventCard(dynamic event) {
     if (event == null) {

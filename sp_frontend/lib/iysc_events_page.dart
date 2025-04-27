@@ -342,27 +342,31 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
                   ),
                 SizedBox(height: 12.0),
                 Wrap(
-                  spacing: 8.0, // Horizontal spacing between buttons
-                  runSpacing: 8.0, // Vertical spacing between rows
+                  spacing: 8.0,
+                  runSpacing: 8.0,
                   alignment: WrapAlignment.spaceEvenly,
                   children: [
                     _buildActionButton(
                       'Event Managers',
                       () => _showEventManagers(context, event),
                     ),
-                    _buildActionButton(
-                      'Event Details',
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => IYSCEventDetailsPage(
+                    // Only show Event Details button if not field athletics
+                    if (!['field athletics', 'powerlifting', 'weightlifting']
+        .contains(event['type']?.toString().toLowerCase()))
+                      _buildActionButton(
+                        'Event Details',
+                        () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => IYSCEventDetailsPage(
                                 event: event,
                                 isReadOnly: true,
                               ),
-                        ),
+                            ),
+                          );
+                        },
                       ),
-                    ),
                     _buildActionButton(
                       'View Result',
                       () => _showMatchResult(context, event, date),

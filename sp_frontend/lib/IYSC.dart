@@ -115,21 +115,11 @@ class _IYSCPageState extends State<IYSCPage> {
                                 event['icon'] as IconData,
                                 event['title'] as String,
                                 onTap: () {
-                                  if (event['title'] == 'Field Athletics') {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) => FieldAthleticsPage(),
-                                      ),
-                                    );
-                                  } else {
                                     _fetchIYSCEvents(
                                       context,
                                       event['title'] as String,
                                     );
-                                  }
-                                },
+                                  },
                               );
                             }).toList(),
                       ),

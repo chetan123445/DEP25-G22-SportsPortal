@@ -940,6 +940,9 @@ class _EventsPageState extends State<EventsPage>
                         ),
                       ),
                     ),
+                     if (!(eventType == 'IYSC' && 
+                         ['field athletics', 'weightlifting', 'powerlifting']
+                            .contains(event['type']?.toString().toLowerCase())))
                     ElevatedButton.icon(
                       icon: Icon(Icons.info_outline, size: 16),
                       label: Text('Event Details'),
