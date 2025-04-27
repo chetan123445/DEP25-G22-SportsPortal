@@ -621,7 +621,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           ),
                                           SizedBox(height: 12),
                                           Text(
-                                            'You currently don\'t have admin privileges. To request admin access, please contact our super admins:',
+                                            'You currently don\'t have admin privileges. To request admin access, please contact to below email:',
                                             style: TextStyle(
                                               fontSize: 16,
                                               color: Colors.black87,
@@ -642,7 +642,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  'Super Admins:',
+                                                  'Email:',
                                                   style: TextStyle(
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 16,
@@ -663,56 +663,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                           8,
                                                         ),
                                                   ),
-                                                  child: Row(
-                                                    children: [
-                                                      Text(
-                                                        '1. ',
-                                                        style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color: Colors.black87,
-                                                        ),
-                                                      ),
-                                                      SelectableText(
-                                                        '2022csb1074@iitrpr.ac.in',
-                                                        style: TextStyle(
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                SizedBox(height: 8),
-                                                Container(
-                                                  padding: EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                    vertical: 8,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color:
-                                                        Colors.orange.shade200,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          8,
-                                                        ),
-                                                  ),
-                                                  child: Row(
-                                                    children: [
-                                                      Text(
-                                                        '2. ',
-                                                        style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color: Colors.black87,
-                                                        ),
-                                                      ),
-                                                      SelectableText(
-                                                        '2022csb1090@iitrpr.ac.in',
-                                                        style: TextStyle(
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                    ],
+                                                  child: SelectableText(
+                                                    'sporteveiitropar@gmail.com',
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                    ),
                                                   ),
                                                 ),
                                               ],
