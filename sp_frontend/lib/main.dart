@@ -304,37 +304,83 @@ class MainPage extends StatelessWidget {
             Center(
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 25, vertical: 12),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.purple.shade500, Colors.blue.shade500],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.purple.withOpacity(0.3),
-                      blurRadius: 15,
-                      offset: Offset(0, 5),
+                // Replace the ShaderMask widget with this:
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'S',
+                      style: TextStyle(
+                        color: Colors.blue[600],
+                        fontSize: 38,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                    Text(
+                      'p',
+                      style: TextStyle(
+                        color: Colors.red[600],
+                        fontSize: 38,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                    Text(
+                      'o',
+                      style: TextStyle(
+                        color: Colors.amber[600],
+                        fontSize: 38,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                    Text(
+                      'r',
+                      style: TextStyle(
+                        color: Colors.blue[600],
+                        fontSize: 38,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                    Text(
+                      't',
+                      style: TextStyle(
+                        color: Colors.green[600],
+                        fontSize: 38,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                    Text(
+                      'E',
+                      style: TextStyle(
+                        color: Colors.red[600],
+                        fontSize: 38,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                    Text(
+                      'v',
+                      style: TextStyle(
+                        color: Colors.amber[600],
+                        fontSize: 38,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                    Text(
+                      'e',
+                      style: TextStyle(
+                        color: Colors.green[600],
+                        fontSize: 38,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 3,
+                      ),
                     ),
                   ],
-                ),
-                child: ShaderMask(
-                  shaderCallback:
-                      (bounds) => LinearGradient(
-                        colors: [Colors.white, Colors.white70],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ).createShader(bounds),
-                  child: Text(
-                    'SportEve',
-                    style: TextStyle(
-                      fontSize: 38,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: 3,
-                    ),
-                  ),
                 ),
               ),
             ),
