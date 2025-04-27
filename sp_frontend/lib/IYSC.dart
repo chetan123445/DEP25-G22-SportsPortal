@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // Import FontAwesome package
-import 'field_athletics.dart'; // Import the FieldAthleticsPage
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'iysc_events_page.dart'; // Import the new IYSCEventsPage
