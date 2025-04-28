@@ -121,39 +121,112 @@ class MainPage extends StatelessWidget {
                       backgroundColor: Colors.blue.shade200,
                       child: Text("XA"),
                     )
-                    : Container(
-                      decoration: BoxDecoration(
-                        color: Colors.orange.shade400,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.orange.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: Offset(0, 3),
+                    : TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => LoginPage()),
+                        );
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ShaderMask(
+                            shaderCallback:
+                                (bounds) => LinearGradient(
+                                  colors: [
+                                    Colors.purple.shade200,
+                                    Colors.blue.shade200,
+                                    Colors.pink.shade100,
+                                  ],
+                                ).createShader(bounds),
+                            child: Text(
+                              'L',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ),
+                          ShaderMask(
+                            shaderCallback:
+                                (bounds) => LinearGradient(
+                                  colors: [
+                                    Colors.purple.shade200,
+                                    Colors.blue.shade200,
+                                    Colors.pink.shade100,
+                                  ],
+                                ).createShader(bounds),
+                            child: Text(
+                              'O',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ),
+                          ShaderMask(
+                            shaderCallback:
+                                (bounds) => LinearGradient(
+                                  colors: [
+                                    Colors.purple.shade200,
+                                    Colors.blue.shade200,
+                                    Colors.pink.shade100,
+                                  ],
+                                ).createShader(bounds),
+                            child: Text(
+                              'G',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ),
+                          ShaderMask(
+                            shaderCallback:
+                                (bounds) => LinearGradient(
+                                  colors: [
+                                    Colors.purple.shade200,
+                                    Colors.blue.shade200,
+                                    Colors.pink.shade100,
+                                  ],
+                                ).createShader(bounds),
+                            child: Text(
+                              'I',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ),
+                          ShaderMask(
+                            shaderCallback:
+                                (bounds) => LinearGradient(
+                                  colors: [
+                                    Colors.purple.shade200,
+                                    Colors.blue.shade200,
+                                    Colors.pink.shade100,
+                                  ],
+                                ).createShader(bounds),
+                            child: Text(
+                              'N',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
                           ),
                         ],
-                      ),
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => LoginPage(),
-                            ),
-                          );
-                        },
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text(
-                            "LOGIN",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                        ),
                       ),
                     ),
           ),
@@ -286,147 +359,230 @@ class MainPage extends StatelessWidget {
           ],
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.purple.shade200,
-              Colors.blue.shade200,
-              Colors.pink.shade100,
-            ],
-          ),
-        ),
-        child: Column(
-          children: [
-            SizedBox(height: 16),
-            Center(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 25, vertical: 12),
-                // Replace the ShaderMask widget with this:
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'S',
-                      style: TextStyle(
-                        color: Colors.blue[600],
-                        fontSize: 38,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 3,
-                      ),
-                    ),
-                    Text(
-                      'p',
-                      style: TextStyle(
-                        color: Colors.red[600],
-                        fontSize: 38,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 3,
-                      ),
-                    ),
-                    Text(
-                      'o',
-                      style: TextStyle(
-                        color: Colors.amber[600],
-                        fontSize: 38,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 3,
-                      ),
-                    ),
-                    Text(
-                      'r',
-                      style: TextStyle(
-                        color: Colors.blue[600],
-                        fontSize: 38,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 3,
-                      ),
-                    ),
-                    Text(
-                      't',
-                      style: TextStyle(
-                        color: Colors.green[600],
-                        fontSize: 38,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 3,
-                      ),
-                    ),
-                    Text(
-                      'E',
-                      style: TextStyle(
-                        color: Colors.red[600],
-                        fontSize: 38,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 3,
-                      ),
-                    ),
-                    Text(
-                      'v',
-                      style: TextStyle(
-                        color: Colors.amber[600],
-                        fontSize: 38,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 3,
-                      ),
-                    ),
-                    Text(
-                      'e',
-                      style: TextStyle(
-                        color: Colors.green[600],
-                        fontSize: 38,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 3,
-                      ),
-                    ),
-                  ],
-                ),
+      body: Stack(
+        children: [
+          // Background gradient container with reversed colors
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.purple.shade200,
+                  Colors.blue.shade200,
+                  Colors.pink.shade100,
+                ],
               ),
             ),
-            SizedBox(height: 16),
-            Expanded(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    height:
-                        300, // Adjust this value to make image smaller/larger
-                    width:
-                        300, // Adjust this value to make image smaller/larger
-                    child: Image.asset(
-                      'assets/pngsport.png',
-                      fit: BoxFit.contain,
+          ),
+          // Remove the circle containers
+          // Main Content Column
+          Column(
+            children: [
+              SizedBox(height: 16),
+              Center(
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+                  // Replace the ShaderMask widget with this:
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'S',
+                        style: TextStyle(
+                          color: Colors.blue[600],
+                          fontSize: 38,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                      Text(
+                        'p',
+                        style: TextStyle(
+                          color: Colors.red[600],
+                          fontSize: 38,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                      Text(
+                        'o',
+                        style: TextStyle(
+                          color: Colors.amber[600],
+                          fontSize: 38,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                      Text(
+                        'r',
+                        style: TextStyle(
+                          color: Colors.blue[600],
+                          fontSize: 38,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                      Text(
+                        't',
+                        style: TextStyle(
+                          color: Colors.green[600],
+                          fontSize: 38,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                      Text(
+                        'E',
+                        style: TextStyle(
+                          color: Colors.red[600],
+                          fontSize: 38,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                      Text(
+                        'v',
+                        style: TextStyle(
+                          color: Colors.amber[600],
+                          fontSize: 38,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                      Text(
+                        'e',
+                        style: TextStyle(
+                          color: Colors.green[600],
+                          fontSize: 38,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      height:
+                          300, // Adjust this value to make image smaller/larger
+                      width:
+                          300, // Adjust this value to make image smaller/larger
+                      child: Image.asset(
+                        'assets/pngsport.png',
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.contact_support_rounded,
-                      color: Colors.white,
-                      size: 32,
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      'Contact Us',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w600,
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.contact_support_rounded,
                         color: Colors.white,
-                        letterSpacing: 1.2,
-                        height: 1.2,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black26,
-                            offset: Offset(2, 2),
-                            blurRadius: 4,
+                        size: 32,
+                      ),
+                      SizedBox(width: 10),
+                      Text(
+                        'Contact Us',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          letterSpacing: 1.2,
+                          height: 1.2,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black26,
+                              offset: Offset(2, 2),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    GestureDetector(
+                      onTap:
+                          () => ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('+916377418791')),
+                          ),
+                      onLongPress:
+                          () => _copyToClipboard(context, '+916377418791'),
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: Colors.black,
+                            child: Icon(Icons.phone, color: Colors.white),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Contact',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap:
+                          () => ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('sporteveiitropar@gmail.com'),
+                            ),
+                          ),
+                      onLongPress:
+                          () => _copyToClipboard(
+                            context,
+                            'sporteveiitropar@gmail.com',
+                          ),
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: Colors.black,
+                            child: Icon(Icons.email, color: Colors.white),
+                          ),
+                          SizedBox(height: 8),
+                          Text('Email', style: TextStyle(color: Colors.white)),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap:
+                          () => ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('https://www.iitrpr.ac.in')),
+                          ),
+                      onLongPress:
+                          () => _copyToClipboard(
+                            context,
+                            'https://www.iitrpr.ac.in',
+                          ),
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: Colors.black,
+                            child: Icon(Icons.web, color: Colors.white),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Website',
+                            style: TextStyle(color: Colors.white),
                           ),
                         ],
                       ),
@@ -434,77 +590,9 @@ class MainPage extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  GestureDetector(
-                    onTap:
-                        () => ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('+916377418791')),
-                        ),
-                    onLongPress:
-                        () => _copyToClipboard(context, '+916377418791'),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: Colors.black,
-                          child: Icon(Icons.phone, color: Colors.white),
-                        ),
-                        SizedBox(height: 8),
-                        Text('Contact', style: TextStyle(color: Colors.white)),
-                      ],
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap:
-                        () => ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('sporteveiitropar@gmail.com')),
-                        ),
-                    onLongPress:
-                        () => _copyToClipboard(
-                          context,
-                          'sporteveiitropar@gmail.com',
-                        ),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: Colors.black,
-                          child: Icon(Icons.email, color: Colors.white),
-                        ),
-                        SizedBox(height: 8),
-                        Text('Email', style: TextStyle(color: Colors.white)),
-                      ],
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap:
-                        () => ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('https://www.iitrpr.ac.in')),
-                        ),
-                    onLongPress:
-                        () => _copyToClipboard(
-                          context,
-                          'https://www.iitrpr.ac.in',
-                        ),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: Colors.black,
-                          child: Icon(Icons.web, color: Colors.white),
-                        ),
-                        SizedBox(height: 8),
-                        Text('Website', style: TextStyle(color: Colors.white)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }
