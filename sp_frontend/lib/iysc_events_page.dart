@@ -262,6 +262,19 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    if (_isPoolEvent(event['type']?.toString() ?? ''))
+                      Positioned(
+                        top: 8,
+                        left: 8,
+                        child: Tooltip(
+                          message: 'Players have been divided into two pools',
+                          child: Icon(
+                            Icons.info_outline,
+                            color: Colors.blue[800],
+                            size: 20,
+                          ),
+                        ),
+                      ),
                     Expanded(
                       child: Text(
                         event['team1']?.toString() ?? 'TBA',
@@ -275,16 +288,17 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4),
-                      child: Text(
-                        "vs",
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.bold,
+                    if (!_isPoolEvent(event['type']?.toString() ?? ''))
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 4),
+                        child: Text(
+                          "vs",
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
                     Expanded(
                       child: Text(
                         event['team2']?.toString() ?? 'TBA',
@@ -351,22 +365,23 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
                       () => _showEventManagers(context, event),
                     ),
                     // Only show Event Details button if not field athletics
-                    if (!['field athletics', 'powerlifting', 'weightlifting']
-        .contains(event['type']?.toString().toLowerCase()))
-                      _buildActionButton(
-                        'Event Details',
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => IYSCEventDetailsPage(
-                                event: event,
-                                isReadOnly: true,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                    if (![
+                      'field athletics',
+                      'powerlifting',
+                      'weightlifting',
+                    ].contains(event['type']?.toString().toLowerCase()))
+                      _buildActionButton('Event Details', () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => IYSCEventDetailsPage(
+                                  event: event,
+                                  isReadOnly: true,
+                                ),
+                          ),
+                        );
+                      }),
                     _buildActionButton(
                       'View Result',
                       () => _showMatchResult(context, event, date),
@@ -679,5 +694,14 @@ class _IYSCEventsPageState extends State<IYSCEventsPage> {
         ),
       );
     }
+  }
+
+  // Add this helper method at the start of the _IYSCEventsPageState class
+  bool _isPoolEvent(String type) {
+    return [
+      'field athletics',
+      'powerlifting',
+      'weightlifting',
+    ].contains(type.toLowerCase());
   }
 }

@@ -940,69 +940,134 @@ class _EventsPageState extends State<EventsPage>
                         ),
                       ),
                     ),
-                     if (!(eventType == 'IYSC' && 
-                         ['field athletics', 'weightlifting', 'powerlifting']
-                            .contains(event['type']?.toString().toLowerCase())))
                     ElevatedButton.icon(
                       icon: Icon(Icons.info_outline, size: 16),
                       label: Text('Event Details'),
                       onPressed: () {
-                        // Navigate to appropriate event details page
-                        if (eventType == 'IRCC') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => IRCCEventDetailsPage(
-                                    event: event,
-                                    isReadOnly: true,
+                        // Special handling for IYSC specific event types
+                        if (eventType == 'IYSC' &&
+                            [
+                              'field athletics',
+                              'weightlifting',
+                              'powerlifting',
+                            ].contains(
+                              event['type']?.toString().toLowerCase(),
+                            )) {
+                          showDialog(
+                            context: context,
+                            builder:
+                                (context) => AlertDialog(
+                                  backgroundColor: Colors.transparent,
+                                  contentPadding: EdgeInsets.zero,
+                                  content: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12.0),
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          Colors.purple.shade200,
+                                          Colors.blue.shade200,
+                                          Colors.pink.shade100,
+                                        ],
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.info,
+                                          size: 40,
+                                          color: Colors.black,
+                                        ),
+                                        SizedBox(height: 16),
+                                        Text(
+                                          'Pool System Information',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(height: 12),
+                                        Text(
+                                          'Players in this event have been divided into two pools for preliminary rounds.',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                        SizedBox(height: 16),
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.black,
+                                            foregroundColor: Colors.white,
+                                          ),
+                                          onPressed:
+                                              () => Navigator.pop(context),
+                                          child: Text('Close'),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                            ),
+                                ),
                           );
-                        } else if (eventType == 'PHL') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => PHLEventDetailsPage(
-                                    event: event,
-                                    isReadOnly: true,
-                                  ),
-                            ),
-                          );
-                        } else if (eventType == 'BasketBrawl') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => BasketBrawlEventDetailsPage(
-                                    event: event,
-                                    isReadOnly: true,
-                                  ),
-                            ),
-                          );
-                        } else if (eventType == 'IYSC') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => IYSCEventDetailsPage(
-                                    event: event,
-                                    isReadOnly: true,
-                                  ),
-                            ),
-                          );
-                        } else if (eventType == 'GC') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => GCEventDetailsPage(
-                                    event: event,
-                                    isReadOnly: true,
-                                  ),
-                            ),
-                          );
+                        } else {
+                          // Original navigation logic for other event types
+                          if (eventType == 'IRCC') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => IRCCEventDetailsPage(
+                                      event: event,
+                                      isReadOnly: true,
+                                    ),
+                              ),
+                            );
+                          } else if (eventType == 'PHL') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => PHLEventDetailsPage(
+                                      event: event,
+                                      isReadOnly: true,
+                                    ),
+                              ),
+                            );
+                          } else if (eventType == 'BasketBrawl') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => BasketBrawlEventDetailsPage(
+                                      event: event,
+                                      isReadOnly: true,
+                                    ),
+                              ),
+                            );
+                          } else if (eventType == 'IYSC') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => IYSCEventDetailsPage(
+                                      event: event,
+                                      isReadOnly: true,
+                                    ),
+                              ),
+                            );
+                          } else if (eventType == 'GC') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => GCEventDetailsPage(
+                                      event: event,
+                                      isReadOnly: true,
+                                    ),
+                              ),
+                            );
+                          }
                         }
                       },
                       style: ElevatedButton.styleFrom(
