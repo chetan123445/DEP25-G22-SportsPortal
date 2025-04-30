@@ -3,7 +3,8 @@ import bcrypt from 'bcrypt';
 import generateToken from '../utils/token.js';
 
 export const login = async (req, res) => {
-    const { email, password } = req.body;
+    const { email: rawEmail, password } = req.body;
+    const email = rawEmail?.trim().toLowerCase();
 
     try {
         const user = await User.findOne({ email });

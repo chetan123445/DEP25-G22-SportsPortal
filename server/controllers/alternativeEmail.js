@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
 
 export const getAlternativeEmail = async (req, res) => {
     try {
-        const { email } = req.params;
+        const email = req.params.email.trim().toLowerCase();
         const user = await User.findOne({ email });
         
         if (!user) {
@@ -29,7 +29,8 @@ export const getAlternativeEmail = async (req, res) => {
 
 export const updateAlternativeEmail = async (req, res) => {
     try {
-        const { email } = req.body;
+        const { email: rawEmail } = req.body;
+        const email = rawEmail?.trim().toLowerCase();
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         
         alternativeEmailOtpStore.setOtp(email, otp);
@@ -59,7 +60,9 @@ export const updateAlternativeEmail = async (req, res) => {
 };
 
 export const verifyAlternativeEmail = async (req, res) => {
-    const { email, otp, mainEmail } = req.body;
+    const { email: rawEmail, otp, mainEmail: rawMainEmail } = req.body;
+    const email = rawEmail?.trim().toLowerCase();
+    const mainEmail = rawMainEmail?.trim().toLowerCase();
 
     try {
         // Use the new store

@@ -1,12 +1,12 @@
 import Admin from '../models/admin.js';
-import User from '../models/User.js'; // Import the User model
+import User from '../models/User.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = 'your_jwt_secret_key'; // Replace with your actual secret key
 
 export const addAdmin = async (req, res) => {
-    const { email } = req.body;
+    const email = req.body.email?.trim().toLowerCase();
 
     if (!email) {
         return res.status(400).json({ message: 'Email is required' });
@@ -39,7 +39,7 @@ export const addAdmin = async (req, res) => {
 };
 
 export const verifyAdmin = async (req, res) => {
-    const { email } = req.body;
+    const email = req.body.email?.trim().toLowerCase();
 
     if (!email) {
         return res.status(400).json({ message: 'Email is required' });
@@ -62,13 +62,13 @@ export const verifyAdmin = async (req, res) => {
 };
 
 export const removeAdmin = async (req, res) => {
-    const { email } = req.body;
+    const email = req.body.email?.trim().toLowerCase();
 
     if (!email) {
         return res.status(400).json({ message: 'Email is required' });
     }
 
-    const superAdmins = ['2022csb1090@iitrpr.ac.in', '2022csb1074@iitrpr.ac.in'];
+    const superAdmins = ['2022csb1090@iitrpr.ac.in', '2022csb1074@iitrpr.ac.in'].map(e => e.toLowerCase());
 
     if (superAdmins.includes(email)) {
         return res.status(403).json({ message: 'Unable to remove super admins' });

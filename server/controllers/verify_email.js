@@ -3,8 +3,8 @@ import { otpStore } from '../utils/otpStore.js';
 
 export const verify_email = async (req, res) => {
     try {
-        const { email, otp } = req.body;
-
+        const { email: rawEmail, otp } = req.body;
+        const email = rawEmail?.trim().toLowerCase();
         // Get stored OTP data
         const storedData = otpStore.getOtp(email);
         

@@ -13,7 +13,8 @@ const transporter = nodemailer.createTransport({
 });
 
 export const signup = async (req, res) => {
-    const { email, name, password } = req.body;
+    const { email: rawEmail, name, password } = req.body;
+    const email = rawEmail?.trim().toLowerCase();
 
     // Log the request body to verify its contents
     console.log("Request Body:", req.body);

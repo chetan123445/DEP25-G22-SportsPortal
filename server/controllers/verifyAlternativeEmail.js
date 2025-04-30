@@ -3,7 +3,9 @@ import { alternativeEmailOtpStore } from '../utils/alternativeEmailOtpStore.js';
 
 export const verifyAlternativeEmail = async (req, res) => {
     try {
-        const { email, otp, mainEmail } = req.body;
+        const { email: rawEmail, otp, mainEmail: rawMainEmail } = req.body;
+        const email = rawEmail?.trim().toLowerCase();
+        const mainEmail = rawMainEmail?.trim().toLowerCase();
         console.log('Verifying alternative email:', { email, otp, mainEmail }); // Debug log
 
         const storedOtp = alternativeEmailOtpStore.getOtp(email);

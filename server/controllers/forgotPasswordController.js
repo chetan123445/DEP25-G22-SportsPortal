@@ -6,7 +6,8 @@ import bcrypt from 'bcrypt';
 const otpStore = new Map(); // Temporary store for OTPs
 
 export const FPsendOtp = async (req, res) => {
-  const { email } = req.body;
+    const { email: rawEmail } = req.body;
+    const email = rawEmail?.trim().toLowerCase();
 
   try {
     const user = await User.findOne({ email });
@@ -40,7 +41,8 @@ export const FPsendOtp = async (req, res) => {
 };
 
 export const verifyOtp = (req, res) => {
-  const { email, otp } = req.body;
+    const { email: rawEmail, otp } = req.body;
+    const email = rawEmail?.trim().toLowerCase();
 
   if (otpStore.get(email) === otp) {
     otpStore.delete(email);
@@ -51,7 +53,8 @@ export const verifyOtp = (req, res) => {
 };
 
 export const resetPassword = async (req, res) => {
-  const { email, newPassword } = req.body;
+    const { email: rawEmail, newPassword } = req.body;
+    const email = rawEmail?.trim().toLowerCase();
 
   try {
     const user = await User.findOne({ email });

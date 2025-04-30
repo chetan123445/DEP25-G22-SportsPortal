@@ -1,2 +1,2 @@
-const String baseUrl = 'http://34.131.63.205:5000'; // Ensure this matches your backend server's address
+const String baseUrl = 'http://localhost:5000'; // Ensure this matches your backend server's address
 //34.131.63.205 google cloud Ip address
