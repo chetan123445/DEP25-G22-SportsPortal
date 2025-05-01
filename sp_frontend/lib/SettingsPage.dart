@@ -27,6 +27,7 @@ class _SettingsPageState extends State<SettingsPage> {
   String? userId;
   String? _alternativeEmail; // Add new state variable
   bool _isAlternativeEmailVerified = false;
+  bool _isLoadingAlternativeEmail = true; // Add this line
 
   @override
   void initState() {
@@ -44,6 +45,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
   // Add this method
   Future<void> _loadAlternativeEmail() async {
+    setState(() {
+      _isLoadingAlternativeEmail = true;
+    });
+
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/get-alternative-email/${widget.email}'),
@@ -54,10 +59,14 @@ class _SettingsPageState extends State<SettingsPage> {
         final data = jsonDecode(response.body);
         setState(() {
           _alternativeEmail = data['alternativeEmail'];
+          _isLoadingAlternativeEmail = false;
         });
       }
     } catch (e) {
       print('Error loading alternative email: $e');
+      setState(() {
+        _isLoadingAlternativeEmail = false;
+      });
     }
   }
 
@@ -569,7 +578,25 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showAlternativeEmailDialog() {
-    // If alternative email exists, just show it
+    if (_isLoadingAlternativeEmail) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder:
+            (context) => AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading alternative email...'),
+                ],
+              ),
+            ),
+      );
+      return;
+    }
+
     if (_alternativeEmail != null && _alternativeEmail!.isNotEmpty) {
       showDialog(
         context: context,
