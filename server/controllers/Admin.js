@@ -1,13 +1,12 @@
 import Admin from '../models/admin.js';
 import User from '../models/User.js';
-import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = 'your_jwt_secret_key'; // Replace with your actual secret key
 
 export const addAdmin = async (req, res) => {
     const email = req.body.email?.trim().toLowerCase();
-    const userEmail = req.body.user_email?.trim().toLowerCase(); // Extract user_email
+    const userEmail = req.body.user_email?.trim().toLowerCase();
 
     const allowedUsers = ['2022csb1090@iitrpr.ac.in', '2022csb1074@iitrpr.ac.in'];
 
@@ -19,7 +18,7 @@ export const addAdmin = async (req, res) => {
         return res.status(403).json({ message: 'You are not authorized to perform this action' });
     }
 
-    console.log(`Request by: ${userEmail} to add admin: ${email}`); // Log user_email
+    console.log(`Request by: ${userEmail} to add admin: ${email}`);
 
     try {
         // Check if the email exists in the User model
@@ -29,17 +28,13 @@ export const addAdmin = async (req, res) => {
         }
 
         // Check if the email already exists in the Admin model
-        const admins = await Admin.find();
-        for (let admin of admins) {
-            const match = await bcrypt.compare(email, admin.email);
-            if (match) {
-                return res.status(400).json({ message: 'Email already exists' });
-            }
+        const existingAdmin = await Admin.findOne({ email });
+        if (existingAdmin) {
+            return res.status(400).json({ message: 'Email already exists' });
         }
 
-        // Encrypt the email and add it to the Admin model
-        const encryptedEmail = await bcrypt.hash(email, 10);
-        const newAdmin = new Admin({ email: encryptedEmail });
+        // Add the email directly to the Admin model
+        const newAdmin = new Admin({ email });
         await newAdmin.save();
         res.status(201).json({ message: 'Admin added successfully' });
     } catch (error) {
@@ -55,15 +50,10 @@ export const verifyAdmin = async (req, res) => {
     }
 
     try {
-        const admins = await Admin.find();
-        for (let admin of admins) {
-            const match = await bcrypt.compare(email, admin.email);
-            if (match) {
-                const token = jwt.sign({ isAdmin: true }, JWT_SECRET, { expiresIn: '50s' });
-                return res.status(200).json({ token });
-            }
-        }
-        const token = jwt.sign({ isAdmin: false }, JWT_SECRET, { expiresIn: '50s' });
+        const admin = await Admin.findOne({ email });
+        const isAdmin = !!admin;
+
+        const token = jwt.sign({ isAdmin }, JWT_SECRET, { expiresIn: '50s' });
         res.status(200).json({ token });
     } catch (error) {
         res.status(500).json({ message: 'Error verifying admin', error });
@@ -72,7 +62,7 @@ export const verifyAdmin = async (req, res) => {
 
 export const removeAdmin = async (req, res) => {
     const email = req.body.email?.trim().toLowerCase();
-    const userEmail = req.body.user_email?.trim().toLowerCase(); // Extract user_email
+    const userEmail = req.body.user_email?.trim().toLowerCase();
 
     const allowedUsers = ['2022csb1090@iitrpr.ac.in', '2022csb1074@iitrpr.ac.in'];
 
@@ -84,24 +74,20 @@ export const removeAdmin = async (req, res) => {
         return res.status(403).json({ message: 'You are not authorized to perform this action' });
     }
 
-    console.log(`Request by: ${userEmail} to remove admin: ${email}`); // Log user_email
+    console.log(`Request by: ${userEmail} to remove admin: ${email}`);
 
-    const superAdmins = ['2022csb1090@iitrpr.ac.in', '2022csb1074@iitrpr.ac.in'].map(e => e.toLowerCase());
+    const superAdmins = ['2022csb1090@iitrpr.ac.in', '2022csb1074@iitrpr.ac.in'];
 
     if (superAdmins.includes(email)) {
         return res.status(403).json({ message: 'Unable to remove super admins' });
     }
 
     try {
-        const admins = await Admin.find();
-        for (let admin of admins) {
-            const match = await bcrypt.compare(email, admin.email);
-            if (match) {
-                await Admin.findByIdAndDelete(admin._id);
-                return res.status(200).json({ message: 'Admin removed successfully' });
-            }
+        const admin = await Admin.findOneAndDelete({ email });
+        if (!admin) {
+            return res.status(404).json({ message: 'Admin not found' });
         }
-        res.status(404).json({ message: 'Admin not found' });
+        res.status(200).json({ message: 'Admin removed successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Error removing admin', error });
     }
@@ -110,22 +96,8 @@ export const removeAdmin = async (req, res) => {
 export const getCurrentAdmins = async (req, res) => {
     try {
         const admins = await Admin.find();
-        const decryptedEmails = [];
-        
-        // Decrypt all admin emails
-        for (let admin of admins) {
-            // Since we can't decrypt hashed emails, we'll need to compare with all registered users
-            const users = await User.find();
-            for (let user of users) {
-                const match = await bcrypt.compare(user.email, admin.email);
-                if (match) {
-                    decryptedEmails.push(user.email);
-                    break;
-                }
-            }
-        }
-        
-        res.status(200).json({ admins: decryptedEmails });
+        const adminEmails = admins.map(admin => admin.email); // Directly retrieve emails
+        res.status(200).json({ admins: adminEmails });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching admins', error });
     }
