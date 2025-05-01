@@ -1,4 +1,4 @@
-package com.example.sp_frontend
+package com.sporteve.sportportal
 
 import io.flutter.embedding.android.FlutterActivity
 
