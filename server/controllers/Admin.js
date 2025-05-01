@@ -7,10 +7,19 @@ const JWT_SECRET = 'your_jwt_secret_key'; // Replace with your actual secret key
 
 export const addAdmin = async (req, res) => {
     const email = req.body.email?.trim().toLowerCase();
+    const userEmail = req.body.user_email?.trim().toLowerCase(); // Extract user_email
 
-    if (!email) {
-        return res.status(400).json({ message: 'Email is required' });
+    const allowedUsers = ['2022csb1090@iitrpr.ac.in', '2022csb1074@iitrpr.ac.in'];
+
+    if (!email || !userEmail) {
+        return res.status(400).json({ message: 'Email and user_email are required' });
     }
+
+    if (!allowedUsers.includes(userEmail)) {
+        return res.status(403).json({ message: 'You are not authorized to perform this action' });
+    }
+
+    console.log(`Request by: ${userEmail} to add admin: ${email}`); // Log user_email
 
     try {
         // Check if the email exists in the User model
@@ -63,10 +72,19 @@ export const verifyAdmin = async (req, res) => {
 
 export const removeAdmin = async (req, res) => {
     const email = req.body.email?.trim().toLowerCase();
+    const userEmail = req.body.user_email?.trim().toLowerCase(); // Extract user_email
 
-    if (!email) {
-        return res.status(400).json({ message: 'Email is required' });
+    const allowedUsers = ['2022csb1090@iitrpr.ac.in', '2022csb1074@iitrpr.ac.in'];
+
+    if (!email || !userEmail) {
+        return res.status(400).json({ message: 'Email and user_email are required' });
     }
+
+    if (!allowedUsers.includes(userEmail)) {
+        return res.status(403).json({ message: 'You are not authorized to perform this action' });
+    }
+
+    console.log(`Request by: ${userEmail} to remove admin: ${email}`); // Log user_email
 
     const superAdmins = ['2022csb1090@iitrpr.ac.in', '2022csb1074@iitrpr.ac.in'].map(e => e.toLowerCase());
 

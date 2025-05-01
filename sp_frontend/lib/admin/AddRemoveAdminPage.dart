@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../constants.dart';
 import 'AdminProfilePage.dart';
 
@@ -71,10 +72,16 @@ class _AddRemoveAdminPageState extends State<AddRemoveAdminPage> {
 
   Future<void> _addAdmin(String email) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final userEmail = prefs.getString('email') ?? ''; // Retrieve user_email
+
       final response = await http.post(
         Uri.parse('$baseUrl/add-admin'),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
-        body: json.encode({'email': email}),
+        body: json.encode({
+          'email': email,
+          'user_email': userEmail, // Include user_email from shared preferences
+        }),
       );
       if (response.statusCode == 201) {
         _showResponseDialog('Admin added successfully');
@@ -90,10 +97,16 @@ class _AddRemoveAdminPageState extends State<AddRemoveAdminPage> {
 
   Future<void> _removeAdmin(String email) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final userEmail = prefs.getString('email') ?? ''; // Retrieve user_email
+
       final response = await http.post(
         Uri.parse('$baseUrl/remove-admin'),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
-        body: json.encode({'email': email}),
+        body: json.encode({
+          'email': email,
+          'user_email': userEmail, // Include user_email from shared preferences
+        }),
       );
       if (response.statusCode == 200) {
         _showResponseDialog('Admin removed successfully');
